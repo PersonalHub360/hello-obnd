@@ -177,7 +177,7 @@ The system includes 10 pre-seeded staff members across various departments:
 
 ## Recent Changes
 - **Glass Effect Login Page**: Redesigned login page with glassmorphism design featuring backdrop blur, semi-transparent card, animated gradient backgrounds, floating blur orbs, and gradient text effects
-- **Staff Performance Check**: Added new performance tracking feature with daily/monthly/yearly metrics, conversion ratio calculation, and color-coded status indicators (Good/Average/Bad)
+- **Staff Performance Check**: Added new performance tracking feature with daily/monthly/yearly metrics, conversion ratio calculation, bonus amount calculation (FTD = $1, Deposit = $1.5), and color-coded status indicators (Good/Average/Bad)
 - **Staff Directory Excel Import**: Added bulk upload feature for staff members from Excel files (.xlsx or .xls) with sample template download
 - **Deposit Excel Features**: Added sample template download and Excel update import (matches by reference number) with validation
 - **Dashboard Enhancements**: Added date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, All Time) and comprehensive business metrics
