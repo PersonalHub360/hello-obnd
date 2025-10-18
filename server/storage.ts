@@ -33,6 +33,12 @@ export interface IStorage {
   createManyCallReports(callReports: InsertCallReport[]): Promise<CallReport[]>;
   updateCallReport(id: string, callReport: Partial<InsertCallReport>): Promise<CallReport | undefined>;
   deleteCallReport(id: string): Promise<boolean>;
+  
+  // Performance methods
+  getStaffPerformance(staffName: string): Promise<{
+    calls: CallReport[];
+    deposits: Deposit[];
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -203,6 +209,35 @@ export class DatabaseStorage implements IStorage {
   async deleteCallReport(id: string): Promise<boolean> {
     const result = await db.delete(callReports).where(eq(callReports.id, id));
     return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getStaffPerformance(staffName: string): Promise<{
+    calls: CallReport[];
+    deposits: Deposit[];
+  }> {
+    const calls = await db
+      .select()
+      .from(callReports)
+      .where(eq(callReports.callAgentName, staffName))
+      .orderBy(callReports.dateTime);
+    
+    const userNames = calls.map(c => c.userName);
+    const uniqueUserNames = Array.from(new Set(userNames));
+    
+    let relatedDeposits: Deposit[] = [];
+    if (uniqueUserNames.length > 0) {
+      const allDeposits = await db.select().from(deposits);
+      relatedDeposits = allDeposits.filter(d => 
+        uniqueUserNames.some(userName => 
+          userName.toLowerCase() === d.depositor.toLowerCase()
+        )
+      );
+    }
+    
+    return {
+      calls,
+      deposits: relatedDeposits,
+    };
   }
 }
 

@@ -1,4 +1,4 @@
-import { LayoutDashboard, DollarSign, FileText, Users, BarChart3, Building2 } from "lucide-react";
+import { LayoutDashboard, DollarSign, FileText, Users, BarChart3, Building2, TrendingUp } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -36,6 +36,11 @@ const menuItems = [
     title: "Staff Directory",
     url: "/staff-directory",
     icon: Users,
+  },
+  {
+    title: "Staff Performance Check",
+    url: "/performance-check",
+    icon: TrendingUp,
   },
   {
     title: "Analytics",

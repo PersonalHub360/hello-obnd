@@ -698,6 +698,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Performance Check endpoint
+  app.get("/api/performance/:staffName", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const staffName = decodeURIComponent(req.params.staffName);
+      const performanceData = await storage.getStaffPerformance(staffName);
+      
+      res.json(performanceData);
+    } catch (error) {
+      console.error("Get staff performance error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
