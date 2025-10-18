@@ -54,3 +54,24 @@ export interface SessionData {
   email: string;
   name: string;
 }
+
+// Deposits table
+export const deposits = pgTable("deposits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: timestamp("date").notNull().defaultNow(),
+  amount: text("amount").notNull(),
+  type: text("type").notNull(),
+  status: text("status").notNull().default("pending"),
+  reference: text("reference").notNull(),
+  depositor: text("depositor").notNull(),
+});
+
+export const insertDepositSchema = createInsertSchema(deposits).omit({
+  id: true,
+}).extend({
+  amount: z.string().min(1, "Amount is required"),
+  date: z.string().optional(),
+});
+
+export type InsertDeposit = z.infer<typeof insertDepositSchema>;
+export type Deposit = typeof deposits.$inferSelect;
