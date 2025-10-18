@@ -48,11 +48,15 @@ A professional staff management web application with secure authentication and a
 - **Real-time Updates**: Statistics and table refresh after create/import operations
 
 ### Call Reports
-- **Call Logging**: Track all customer call activities
-- **Statistics**: Total calls, completed, follow-ups needed, average duration
-- **New Call Form**: Log calls with client, phone, type, duration, notes
-- **Status Tracking**: Completed, follow-up required, missed call statuses
-- **Call History**: Table view of all call reports with timestamps
+- **Call Logging**: Track all customer call activities with comprehensive details
+- **Statistics Cards**: Total calls, completed count, follow-ups needed, average duration
+- **Enhanced Call Form**: Log calls with user name, call agent name, phone number, call status, duration, call type, and remarks
+- **Excel Import**: Bulk upload call reports from Excel files (.xlsx or .xls)
+- **Sample Template**: Downloadable Excel template with proper column headers
+- **Status Tracking**: Completed, follow-up required, missed call statuses with visual badges
+- **Call History**: Detailed table view of all call reports with timestamps, user info, and agent names
+- **Database Persistence**: All call reports stored in PostgreSQL with full CRUD operations
+- **Real-time Updates**: Statistics and table refresh automatically after create/import operations
 
 ### Employee Detail View
 - **Detailed Profile**: Full employee information on dedicated page
@@ -107,11 +111,18 @@ A professional staff management web application with secure authentication and a
   - `POST /api/deposits/import/excel` - Import deposits from Excel file (protected)
   - `PATCH /api/deposits/:id` - Update deposit (protected)
   - `DELETE /api/deposits/:id` - Delete deposit (protected)
+  - `GET /api/call-reports` - Retrieve all call reports (protected)
+  - `GET /api/call-reports/:id` - Get call report by ID (protected)
+  - `POST /api/call-reports` - Create new call report (protected)
+  - `POST /api/call-reports/import/excel` - Import call reports from Excel file (protected)
+  - `GET /api/call-reports/sample/template` - Download sample Excel template (protected)
+  - `PATCH /api/call-reports/:id` - Update call report (protected)
+  - `DELETE /api/call-reports/:id` - Delete call report (protected)
 - **Database** (`db/`): PostgreSQL with Drizzle ORM for data persistence
 - **Storage** (`storage.ts`): Database storage interface with CRUD operations
 
 ### Shared (`shared/`)
-- **Schema** (`schema.ts`): TypeScript types and Zod validation schemas for Staff, Auth, and Deposits
+- **Schema** (`schema.ts`): TypeScript types and Zod validation schemas for Staff, Auth, Deposits, and Call Reports
 
 ## Login Credentials
 - **Email**: james.bond@auroramy.com
@@ -148,11 +159,16 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Call Reports Excel Import**: Added bulk upload feature with enhanced schema (userName, callAgentName, dateTime, callStatus, phoneNumber, duration, callType, remarks)
+- **Call Reports Database Integration**: Full PostgreSQL persistence with call_reports table
+- **Call Reports CRUD API**: Complete backend routes for creating, reading, updating, and deleting call reports
+- **Sample Excel Template**: Downloadable template with proper column headers for easy bulk imports
+- **Enhanced Call Form**: Comprehensive form fields including user name, agent name, phone, status, duration, type, and remarks
 - **Excel Import for Deposits**: Added bulk upload feature for deposits from Excel files
 - **Deposit Database Integration**: Migrated deposits from sample data to PostgreSQL
 - **Deposit CRUD API**: Full backend routes for creating, reading, updating, and deleting deposits
 - **Auto-generated References**: Automatic unique reference number generation for new deposits
-- **Real-time Statistics**: Deposit statistics update automatically after operations
+- **Real-time Statistics**: Both deposits and call reports statistics update automatically after operations
 - **Sidebar Navigation**: Implemented professional collapsible sidebar with 5 main sections
 - **New Sections**: Added Deposit Section and Call Reports pages with full interfaces
 - **Reorganized Dashboard**: Created overview dashboard with quick stats and section cards
@@ -160,7 +176,7 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Layout Improvements**: All pages now use consistent sidebar layout
 - **User Menu**: Moved logout and user info to header-based dropdown menu
 - Database Migration: PostgreSQL with Drizzle ORM
-- Full CRUD operations for staff members and deposits
+- Full CRUD operations for staff members, deposits, and call reports
 - Department, role, and status filtering
 - CSV export with proper field quoting
 - Analytics with Recharts visualizations
