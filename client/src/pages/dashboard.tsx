@@ -45,6 +45,7 @@ import {
   MoreVertical,
   Filter,
   X,
+  Download,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -222,6 +223,39 @@ export default function Dashboard() {
     setStatusFilter("all");
   };
 
+  const handleExportCSV = async () => {
+    try {
+      const response = await fetch("/api/staff/export/csv", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Export failed");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `staff-export-${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Staff data exported successfully.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to export data. Please try again.",
+      });
+    }
+  };
+
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
@@ -326,10 +360,20 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <Button onClick={handleAddStaff} data-testid="button-add-staff">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Employee
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleExportCSV}
+                data-testid="button-export-csv"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </Button>
+              <Button onClick={handleAddStaff} data-testid="button-add-staff">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Employee
+              </Button>
+            </div>
           </div>
 
           <div className="relative w-full md:w-80">

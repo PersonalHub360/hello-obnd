@@ -172,6 +172,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/staff/export/csv", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const staffList = await storage.getAllStaff();
+      
+      const headers = [
+        "First Name",
+        "Last Name",
+        "Email",
+        "Phone",
+        "Role",
+        "Department",
+        "Status",
+        "Join Date"
+      ];
+      
+      const rows = staffList.map(staff => [
+        staff.firstName,
+        staff.lastName,
+        staff.email,
+        staff.phone,
+        staff.role,
+        staff.department,
+        staff.status,
+        new Date(staff.joinDate).toISOString().split('T')[0]
+      ]);
+      
+      const csvContent = [
+        headers.map(h => `"${h}"`).join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="staff-export-${new Date().toISOString().split('T')[0]}.csv"`);
+      res.send(csvContent);
+    } catch (error) {
+      console.error("Export CSV error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
