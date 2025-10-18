@@ -75,3 +75,29 @@ export const insertDepositSchema = createInsertSchema(deposits).omit({
 
 export type InsertDeposit = z.infer<typeof insertDepositSchema>;
 export type Deposit = typeof deposits.$inferSelect;
+
+// Call Reports table
+export const callReports = pgTable("call_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userName: text("user_name").notNull(),
+  callAgentName: text("call_agent_name").notNull(),
+  dateTime: timestamp("date_time").notNull().defaultNow(),
+  callStatus: text("call_status").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  duration: text("duration"),
+  remarks: text("remarks"),
+  callType: text("call_type"),
+});
+
+export const insertCallReportSchema = createInsertSchema(callReports).omit({
+  id: true,
+}).extend({
+  userName: z.string().min(1, "User name is required"),
+  callAgentName: z.string().min(1, "Call agent name is required"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  callStatus: z.string().min(1, "Call status is required"),
+  dateTime: z.string().optional(),
+});
+
+export type InsertCallReport = z.infer<typeof insertCallReportSchema>;
+export type CallReport = typeof callReports.$inferSelect;

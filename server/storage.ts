@@ -1,4 +1,4 @@
-import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type Deposit, type InsertDeposit, staff, authUsers, deposits } from "@shared/schema";
+import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, staff, authUsers, deposits, callReports } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -22,6 +22,14 @@ export interface IStorage {
   createManyDeposits(deposits: InsertDeposit[]): Promise<Deposit[]>;
   updateDeposit(id: string, deposit: Partial<InsertDeposit>): Promise<Deposit | undefined>;
   deleteDeposit(id: string): Promise<boolean>;
+  
+  // Call Report methods
+  getAllCallReports(): Promise<CallReport[]>;
+  getCallReportById(id: string): Promise<CallReport | undefined>;
+  createCallReport(callReport: InsertCallReport): Promise<CallReport>;
+  createManyCallReports(callReports: InsertCallReport[]): Promise<CallReport[]>;
+  updateCallReport(id: string, callReport: Partial<InsertCallReport>): Promise<CallReport | undefined>;
+  deleteCallReport(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -113,6 +121,54 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDeposit(id: string): Promise<boolean> {
     const result = await db.delete(deposits).where(eq(deposits.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getAllCallReports(): Promise<CallReport[]> {
+    return await db.select().from(callReports).orderBy(callReports.dateTime);
+  }
+
+  async getCallReportById(id: string): Promise<CallReport | undefined> {
+    const [callReport] = await db.select().from(callReports).where(eq(callReports.id, id));
+    return callReport || undefined;
+  }
+
+  async createCallReport(insertCallReport: InsertCallReport): Promise<CallReport> {
+    const callReportData: any = { ...insertCallReport };
+    if (callReportData.dateTime && typeof callReportData.dateTime === 'string') {
+      callReportData.dateTime = new Date(callReportData.dateTime);
+    }
+    const [callReport] = await db.insert(callReports).values(callReportData).returning();
+    return callReport;
+  }
+
+  async createManyCallReports(insertCallReports: InsertCallReport[]): Promise<CallReport[]> {
+    const callReportsData = insertCallReports.map(c => {
+      const data: any = { ...c };
+      if (data.dateTime && typeof data.dateTime === 'string') {
+        data.dateTime = new Date(data.dateTime);
+      }
+      return data;
+    });
+    const result = await db.insert(callReports).values(callReportsData).returning();
+    return result;
+  }
+
+  async updateCallReport(id: string, updates: Partial<InsertCallReport>): Promise<CallReport | undefined> {
+    const updateData: any = { ...updates };
+    if (updateData.dateTime && typeof updateData.dateTime === 'string') {
+      updateData.dateTime = new Date(updateData.dateTime);
+    }
+    const [callReport] = await db
+      .update(callReports)
+      .set(updateData)
+      .where(eq(callReports.id, id))
+      .returning();
+    return callReport || undefined;
+  }
+
+  async deleteCallReport(id: string): Promise<boolean> {
+    const result = await db.delete(callReports).where(eq(callReports.id, id));
     return result.rowCount !== null && result.rowCount > 0;
   }
 }
