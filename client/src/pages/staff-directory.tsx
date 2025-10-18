@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, Link } from "wouter";
 import { type Staff, type SessionData, type InsertStaff } from "@shared/schema";
 import { Card } from "@/components/ui/card";
@@ -44,6 +44,8 @@ import {
   Filter,
   X,
   Download,
+  Upload,
+  FileSpreadsheet,
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +63,7 @@ export default function Dashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | undefined>();
   const [deletingStaff, setDeletingStaff] = useState<Staff | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: session, isLoading: sessionLoading, isError: sessionError } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -143,6 +146,45 @@ export default function Dashboard() {
     },
   });
 
+  const importStaffMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/staff/import/excel", {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Import failed");
+      }
+
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
+      toast({
+        title: "Success",
+        description: `Imported ${data.imported} employees from Excel file.`,
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Import Failed",
+        description: error.message || "Failed to import Excel file. Please try again.",
+      });
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+  });
 
   const handleAddStaff = () => {
     setEditingStaff(undefined);
@@ -237,6 +279,58 @@ export default function Dashboard() {
     }
   };
 
+  const handleDownloadSample = async () => {
+    try {
+      const response = await fetch("/api/staff/sample/template", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Download failed");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "staff-import-template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Sample template downloaded successfully.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to download sample template. Please try again.",
+      });
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+        toast({
+          variant: "destructive",
+          title: "Invalid File",
+          description: "Please upload an Excel file (.xlsx or .xls)",
+        });
+        return;
+      }
+      importStaffMutation.mutate(file);
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
@@ -283,7 +377,32 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={handleDownloadSample}
+                data-testid="button-download-sample"
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Download Sample
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleImportClick}
+                disabled={importStaffMutation.isPending}
+                data-testid="button-import-excel"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                {importStaffMutation.isPending ? "Importing..." : "Import Excel"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handleFileChange}
+                className="hidden"
+                data-testid="input-file-upload"
+              />
               <Button
                 variant="outline"
                 onClick={handleExportCSV}
