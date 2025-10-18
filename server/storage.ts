@@ -1,4 +1,4 @@
-import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, staff, authUsers } from "@shared/schema";
+import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type Deposit, type InsertDeposit, staff, authUsers, deposits } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -14,6 +14,14 @@ export interface IStorage {
   createStaff(staff: InsertStaff): Promise<Staff>;
   updateStaff(id: string, staff: Partial<InsertStaff>): Promise<Staff | undefined>;
   deleteStaff(id: string): Promise<boolean>;
+  
+  // Deposit methods
+  getAllDeposits(): Promise<Deposit[]>;
+  getDepositById(id: string): Promise<Deposit | undefined>;
+  createDeposit(deposit: InsertDeposit): Promise<Deposit>;
+  createManyDeposits(deposits: InsertDeposit[]): Promise<Deposit[]>;
+  updateDeposit(id: string, deposit: Partial<InsertDeposit>): Promise<Deposit | undefined>;
+  deleteDeposit(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -57,6 +65,39 @@ export class DatabaseStorage implements IStorage {
 
   async deleteStaff(id: string): Promise<boolean> {
     const result = await db.delete(staff).where(eq(staff.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getAllDeposits(): Promise<Deposit[]> {
+    return await db.select().from(deposits).orderBy(deposits.date);
+  }
+
+  async getDepositById(id: string): Promise<Deposit | undefined> {
+    const [deposit] = await db.select().from(deposits).where(eq(deposits.id, id));
+    return deposit || undefined;
+  }
+
+  async createDeposit(insertDeposit: InsertDeposit): Promise<Deposit> {
+    const [deposit] = await db.insert(deposits).values(insertDeposit).returning();
+    return deposit;
+  }
+
+  async createManyDeposits(insertDeposits: InsertDeposit[]): Promise<Deposit[]> {
+    const result = await db.insert(deposits).values(insertDeposits).returning();
+    return result;
+  }
+
+  async updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit | undefined> {
+    const [deposit] = await db
+      .update(deposits)
+      .set(updates)
+      .where(eq(deposits.id, id))
+      .returning();
+    return deposit || undefined;
+  }
+
+  async deleteDeposit(id: string): Promise<boolean> {
+    const result = await db.delete(deposits).where(eq(deposits.id, id));
     return result.rowCount !== null && result.rowCount > 0;
   }
 }
