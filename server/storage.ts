@@ -78,19 +78,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDeposit(insertDeposit: InsertDeposit): Promise<Deposit> {
-    const [deposit] = await db.insert(deposits).values(insertDeposit).returning();
+    const depositData: any = { ...insertDeposit };
+    if (depositData.date && typeof depositData.date === 'string') {
+      depositData.date = new Date(depositData.date);
+    }
+    const [deposit] = await db.insert(deposits).values(depositData).returning();
     return deposit;
   }
 
   async createManyDeposits(insertDeposits: InsertDeposit[]): Promise<Deposit[]> {
-    const result = await db.insert(deposits).values(insertDeposits).returning();
+    const depositsData = insertDeposits.map(d => {
+      const data: any = { ...d };
+      if (data.date && typeof data.date === 'string') {
+        data.date = new Date(data.date);
+      }
+      return data;
+    });
+    const result = await db.insert(deposits).values(depositsData).returning();
     return result;
   }
 
   async updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit | undefined> {
+    const updateData: any = { ...updates };
+    if (updateData.date && typeof updateData.date === 'string') {
+      updateData.date = new Date(updateData.date);
+    }
     const [deposit] = await db
       .update(deposits)
-      .set(updates)
+      .set(updateData)
       .where(eq(deposits.id, id))
       .returning();
     return deposit || undefined;
