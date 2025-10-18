@@ -25,7 +25,9 @@ A professional staff management web application with secure authentication and a
 - **Responsive**: Sidebar collapses on smaller screens
 
 ### Dashboard (Overview)
-- **Date Filtering**: Select from Today, Yesterday, This Week, Last Week, This Month, Last Month, or All Time
+- **Date Filtering**: Select from Today, Yesterday, This Week, Last Week, This Month, Last Month, By Month, or All Time
+- **Month Selection**: When "By Month" is selected, choose any specific month (January-December) and year (2021-2030)
+- **Dynamic Description**: Shows selected month and year (e.g., "January 2025 Performance") when using month filter
 - **Business Metrics** (filtered by selected date range):
   - **Total Calls**: Count of all call activities in the period
   - **Total Deposit**: Sum of all deposit amounts with transaction count
@@ -35,7 +37,7 @@ A professional staff management web application with secure authentication and a
 - **Staff Overview**: Total staff, active employees, departments, average team size
 - **Quick Access Cards**: Clickable cards linking to main sections with descriptions
 - **Quick Actions**: Fast access buttons for common operations across all sections
-- **Real-time Metrics**: All statistics update automatically when date filter changes
+- **Real-time Metrics**: All statistics update automatically when date filter or month selection changes
 
 ### Staff Directory
 - **Complete CRUD**: Create, edit, and delete staff members with dialog forms
@@ -176,6 +178,7 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Dashboard Month Selection**: Added "By Month" option to date filter allowing users to select any specific month (January-December) and year (2021-2030) to view business performance for that period with dynamic description updates
 - **Glass Effect Login Page**: Redesigned login page with glassmorphism design featuring backdrop blur, semi-transparent card, animated gradient backgrounds, floating blur orbs, and gradient text effects
 - **Staff Performance Check - Month Selection**: Added month and year selector to view performance for any specific month (January-December) and year (2021-2030)
 - **Staff Performance Check**: Added new performance tracking feature with daily/monthly/yearly metrics, conversion ratio calculation, bonus amount calculation (FTD = $1, Deposit = $1.5), and color-coded status indicators (Good/Average/Bad)
