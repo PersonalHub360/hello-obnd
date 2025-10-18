@@ -258,6 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.status(201).json({
         message: `Successfully imported ${createdStaff.length} staff members`,
+        imported: createdStaff.length,
         staff: createdStaff,
       });
     } catch (error: any) {
