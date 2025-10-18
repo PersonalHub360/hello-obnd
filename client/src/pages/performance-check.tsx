@@ -35,6 +35,7 @@ interface PerformanceMetrics {
   totalFTD: number;
   totalDeposits: number;
   conversionRatio: number;
+  bonusAmount: number;
   performanceStatus: "Good" | "Average" | "Bad";
 }
 
@@ -85,6 +86,8 @@ export default function PerformanceCheck() {
       ? (successfulCalls / totalCalls) * 100
       : 0;
 
+    const bonusAmount = (totalFTD * 1) + (totalDeposits * 1.5);
+
     let performanceStatus: "Good" | "Average" | "Bad" = "Bad";
     if (conversionRatio >= 70) {
       performanceStatus = "Good";
@@ -98,6 +101,7 @@ export default function PerformanceCheck() {
       totalFTD,
       totalDeposits,
       conversionRatio,
+      bonusAmount,
       performanceStatus,
     };
   };
@@ -165,6 +169,21 @@ export default function PerformanceCheck() {
               <div className="text-2xl font-bold" data-testid="metric-total-deposits">{metrics.totalDeposits}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Deposit transactions
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Bonus Amount</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400" data-testid="metric-bonus-amount">
+                ${metrics.bonusAmount.toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                FTD: $1 | Deposit: $1.5
               </p>
             </CardContent>
           </Card>
