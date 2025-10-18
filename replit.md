@@ -39,11 +39,13 @@ A professional staff management web application with secure authentication and a
 - **Status Badges**: Visual indicators for active/inactive staff members
 
 ### Deposit Section
-- **Deposit Tracking**: View and manage all financial deposits
+- **Deposit Tracking**: View and manage all financial deposits from database
 - **Statistics Cards**: Total deposits, pending count, completed today
 - **New Deposit Form**: Record new deposits with type, amount, depositor
-- **Transaction Table**: Recent deposits with status, reference numbers
-- **Sample Data**: Pre-populated with example deposit transactions
+- **Excel Import**: Bulk upload deposits from Excel files (.xlsx or .xls)
+- **Transaction Table**: Recent deposits with status, reference numbers, and amounts
+- **Auto-generated References**: Unique reference numbers (REF-YYYY-XXXXXXX format)
+- **Real-time Updates**: Statistics and table refresh after create/import operations
 
 ### Call Reports
 - **Call Logging**: Track all customer call activities
@@ -99,11 +101,17 @@ A professional staff management web application with secure authentication and a
   - `PATCH /api/staff/:id` - Update staff member (protected)
   - `DELETE /api/staff/:id` - Delete staff member (protected)
   - `GET /api/staff/export/csv` - Export staff data as CSV (protected)
+  - `GET /api/deposits` - Retrieve all deposits (protected)
+  - `GET /api/deposits/:id` - Get deposit by ID (protected)
+  - `POST /api/deposits` - Create new deposit (protected)
+  - `POST /api/deposits/import/excel` - Import deposits from Excel file (protected)
+  - `PATCH /api/deposits/:id` - Update deposit (protected)
+  - `DELETE /api/deposits/:id` - Delete deposit (protected)
 - **Database** (`db/`): PostgreSQL with Drizzle ORM for data persistence
-- **Storage** (`storage.ts`): Database storage interface with seed data
+- **Storage** (`storage.ts`): Database storage interface with CRUD operations
 
 ### Shared (`shared/`)
-- **Schema** (`schema.ts`): TypeScript types and Zod validation schemas for Staff and Auth
+- **Schema** (`schema.ts`): TypeScript types and Zod validation schemas for Staff, Auth, and Deposits
 
 ## Login Credentials
 - **Email**: james.bond@auroramy.com
@@ -140,6 +148,11 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Excel Import for Deposits**: Added bulk upload feature for deposits from Excel files
+- **Deposit Database Integration**: Migrated deposits from sample data to PostgreSQL
+- **Deposit CRUD API**: Full backend routes for creating, reading, updating, and deleting deposits
+- **Auto-generated References**: Automatic unique reference number generation for new deposits
+- **Real-time Statistics**: Deposit statistics update automatically after operations
 - **Sidebar Navigation**: Implemented professional collapsible sidebar with 5 main sections
 - **New Sections**: Added Deposit Section and Call Reports pages with full interfaces
 - **Reorganized Dashboard**: Created overview dashboard with quick stats and section cards
@@ -147,7 +160,7 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Layout Improvements**: All pages now use consistent sidebar layout
 - **User Menu**: Moved logout and user info to header-based dropdown menu
 - Database Migration: PostgreSQL with Drizzle ORM
-- Full CRUD operations for staff members
+- Full CRUD operations for staff members and deposits
 - Department, role, and status filtering
 - CSV export with proper field quoting
 - Analytics with Recharts visualizations
