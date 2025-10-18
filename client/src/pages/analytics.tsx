@@ -3,9 +3,7 @@ import { useEffect } from "react";
 import { useLocation, Link } from "wouter";
 import { type Staff, type SessionData } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
   Users,
   TrendingUp,
   Building2,
@@ -97,17 +95,8 @@ export default function Analytics() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex-1 overflow-auto">
       <div className="container mx-auto p-4 md:p-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="gap-2" data-testid="button-back">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </Link>
-        </div>
-
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">
             Analytics Dashboard

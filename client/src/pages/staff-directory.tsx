@@ -31,9 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Building2,
   Search,
-  LogOut,
   User,
   Mail,
   Phone,
@@ -46,9 +44,7 @@ import {
   Filter,
   X,
   Download,
-  BarChart3,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -82,19 +78,6 @@ export default function Dashboard() {
     enabled: !!session,
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/auth/logout", {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/session"] });
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      setLocation("/");
-    },
-  });
 
   const createStaffMutation = useMutation({
     mutationFn: async (data: InsertStaff) => {
@@ -160,9 +143,6 @@ export default function Dashboard() {
     },
   });
 
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
 
   const handleAddStaff = () => {
     setEditingStaff(undefined);
@@ -290,72 +270,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-8">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold">AuroraMY</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Staff Management
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link href="/analytics">
-              <Button variant="ghost" size="sm" data-testid="button-analytics">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Analytics
-              </Button>
-            </Link>
-            <ThemeToggle />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-9 w-9 rounded-full"
-                  data-testid="button-user-menu"
-                >
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                      {session.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{session.name}</p>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {session.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-destructive cursor-pointer"
-                  data-testid="button-logout"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto p-4 md:p-8 space-y-6">
+    <div className="flex-1 overflow-auto">
+      <div className="container mx-auto p-4 md:p-8 space-y-6">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -708,7 +624,7 @@ export default function Dashboard() {
         <div className="text-center text-sm text-muted-foreground">
           Showing {filteredStaff.length} of {staffList.length} staff members
         </div>
-      </main>
+      </div>
 
       <StaffFormDialog
         open={isFormOpen}

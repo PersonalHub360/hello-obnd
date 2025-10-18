@@ -138,7 +138,7 @@ export default function StaffDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <Card className="p-8 max-w-md">
           <div className="text-center space-y-4">
             <User className="h-12 w-12 text-muted-foreground mx-auto" />
@@ -146,9 +146,9 @@ export default function StaffDetail() {
             <p className="text-muted-foreground">
               The employee you're looking for doesn't exist or has been removed.
             </p>
-            <Button onClick={() => setLocation("/dashboard")}>
+            <Button onClick={() => setLocation("/staff-directory")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
+              Back to Staff Directory
             </Button>
           </div>
         </Card>
@@ -157,13 +157,13 @@ export default function StaffDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex-1 overflow-auto">
       <div className="container mx-auto p-4 md:p-8 space-y-6 max-w-4xl">
         <div className="flex items-center justify-between">
-          <Link href="/dashboard">
+          <Link href="/staff-directory">
             <Button variant="ghost" className="gap-2" data-testid="button-back">
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              Back to Staff Directory
             </Button>
           </Link>
 
