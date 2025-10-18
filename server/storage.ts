@@ -12,6 +12,7 @@ export interface IStorage {
   getAllStaff(): Promise<Staff[]>;
   getStaffById(id: string): Promise<Staff | undefined>;
   createStaff(staff: InsertStaff): Promise<Staff>;
+  createManyStaff(staffList: InsertStaff[]): Promise<Staff[]>;
   updateStaff(id: string, staff: Partial<InsertStaff>): Promise<Staff | undefined>;
   deleteStaff(id: string): Promise<boolean>;
   
@@ -62,6 +63,18 @@ export class DatabaseStorage implements IStorage {
   async createStaff(insertStaff: InsertStaff): Promise<Staff> {
     const [staffMember] = await db.insert(staff).values(insertStaff).returning();
     return staffMember;
+  }
+
+  async createManyStaff(insertStaffList: InsertStaff[]): Promise<Staff[]> {
+    const staffData = insertStaffList.map(s => {
+      const data: any = { ...s };
+      if (data.joinDate && typeof data.joinDate === 'string') {
+        data.joinDate = new Date(data.joinDate);
+      }
+      return data;
+    });
+    const result = await db.insert(staff).values(staffData).returning();
+    return result;
   }
 
   async updateStaff(id: string, updates: Partial<InsertStaff>): Promise<Staff | undefined> {

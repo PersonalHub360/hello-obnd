@@ -28,6 +28,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
+  // Multer setup for file uploads
+  const upload = multer({ storage: multer.memoryStorage() });
+
   // Auth endpoints
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
@@ -214,6 +217,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excel import endpoint for staff
+  app.post("/api/staff/import/excel", requireAuth, upload.single("file"), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+
+      const staffList = data.map((row: any) => ({
+        firstName: String(row["First Name"] || row.firstName || row["first_name"] || "").trim(),
+        lastName: String(row["Last Name"] || row.lastName || row["last_name"] || "").trim(),
+        email: String(row.Email || row.email || "").trim().toLowerCase(),
+        phone: String(row.Phone || row.phone || "").trim(),
+        role: String(row.Role || row.role || "").trim(),
+        department: String(row.Department || row.department || "").trim(),
+        status: String(row.Status || row.status || "active").trim(),
+      }));
+
+      const validStaff = staffList.filter(s => 
+        s.firstName && s.firstName.length > 0 &&
+        s.lastName && s.lastName.length > 0 &&
+        s.email && s.email.length > 0 &&
+        s.phone && s.phone.length > 0 &&
+        s.role && s.role.length > 0 &&
+        s.department && s.department.length > 0
+      );
+
+      if (validStaff.length === 0) {
+        return res.status(400).json({ 
+          message: "No valid staff members found in Excel file. Required fields: First Name, Last Name, Email, Phone, Role, Department" 
+        });
+      }
+
+      const createdStaff = await storage.createManyStaff(validStaff);
+
+      res.status(201).json({
+        message: `Successfully imported ${createdStaff.length} staff members`,
+        staff: createdStaff,
+      });
+    } catch (error: any) {
+      console.error("Excel import error:", error);
+      if (error.message?.includes("duplicate key") || error.message?.includes("unique constraint")) {
+        res.status(400).json({ message: "One or more email addresses already exist in the system" });
+      } else {
+        res.status(500).json({ message: "Failed to import Excel file" });
+      }
+    }
+  });
+
+  // Sample Excel template download for staff
+  app.get("/api/staff/sample/template", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const sampleData = [
+        {
+          "First Name": "John",
+          "Last Name": "Doe",
+          "Email": "john.doe@example.com",
+          "Phone": "+1-555-0101",
+          "Role": "Software Engineer",
+          "Department": "Engineering",
+          "Status": "active",
+        },
+        {
+          "First Name": "Jane",
+          "Last Name": "Smith",
+          "Email": "jane.smith@example.com",
+          "Phone": "+1-555-0102",
+          "Role": "Product Manager",
+          "Department": "Product",
+          "Status": "active",
+        },
+        {
+          "First Name": "Bob",
+          "Last Name": "Johnson",
+          "Email": "bob.johnson@example.com",
+          "Phone": "+1-555-0103",
+          "Role": "Designer",
+          "Department": "Design",
+          "Status": "active",
+        },
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(sampleData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Staff");
+
+      const excelBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename="staff-template.xlsx"');
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Sample template error:", error);
+      res.status(500).json({ message: "Failed to generate sample template" });
+    }
+  });
+
   // Deposit endpoints
   app.get("/api/deposits", requireAuth, async (req: Request, res: Response) => {
     try {
@@ -290,8 +394,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Excel import endpoint for deposits
-  const upload = multer({ storage: multer.memoryStorage() });
-
   app.post("/api/deposits/import/excel", requireAuth, upload.single("file"), async (req: Request, res: Response) => {
     try {
       if (!req.file) {
