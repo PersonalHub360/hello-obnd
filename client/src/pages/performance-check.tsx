@@ -56,7 +56,7 @@ const MONTHS = [
 ];
 
 const currentYear = new Date().getFullYear();
-const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
+const YEARS = Array.from({ length: 10 }, (_, i) => 2021 + i);
 
 export default function PerformanceCheck() {
   const [selectedStaff, setSelectedStaff] = useState<string>("");
