@@ -98,7 +98,7 @@ export function AppSidebar() {
                         >
                           <Link href={item.url}>
                             <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-white/80'}`} />
-                            <span className="font-medium">{item.title}</span>
+                            <span className="font-bold">{item.title}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
