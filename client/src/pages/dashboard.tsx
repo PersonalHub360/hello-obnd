@@ -25,11 +25,31 @@ import {
 } from "lucide-react";
 import { startOfToday, startOfYesterday, endOfYesterday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from "date-fns";
 
-type DateFilter = "today" | "yesterday" | "this-week" | "last-week" | "this-month" | "last-month" | "all-time";
+type DateFilter = "today" | "yesterday" | "this-week" | "last-week" | "this-month" | "last-month" | "by-month" | "all-time";
+
+const MONTHS = [
+  { value: "0", label: "January" },
+  { value: "1", label: "February" },
+  { value: "2", label: "March" },
+  { value: "3", label: "April" },
+  { value: "4", label: "May" },
+  { value: "5", label: "June" },
+  { value: "6", label: "July" },
+  { value: "7", label: "August" },
+  { value: "8", label: "September" },
+  { value: "9", label: "October" },
+  { value: "10", label: "November" },
+  { value: "11", label: "December" },
+];
+
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: 10 }, (_, i) => 2021 + i);
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -81,6 +101,13 @@ export default function Dashboard() {
         return { 
           start: startOfMonth(lastMonth), 
           end: endOfMonth(lastMonth) 
+        };
+      }
+      case "by-month": {
+        const monthDate = new Date(selectedYear, parseInt(selectedMonth), 1);
+        return {
+          start: startOfMonth(monthDate),
+          end: endOfMonth(monthDate)
         };
       }
       case "all-time":
@@ -163,10 +190,12 @@ export default function Dashboard() {
               Welcome back, {session.name.split(" ")[0]}!
             </h1>
             <p className="text-muted-foreground mt-1">
-              Here's an overview of your business performance
+              {dateFilter === "by-month" 
+                ? `${MONTHS[parseInt(selectedMonth)].label} ${selectedYear} Performance` 
+                : "Here's an overview of your business performance"}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <Select value={dateFilter} onValueChange={(value) => setDateFilter(value as DateFilter)}>
               <SelectTrigger className="w-[180px]" data-testid="select-date-filter">
@@ -179,9 +208,40 @@ export default function Dashboard() {
                 <SelectItem value="last-week">Last Week</SelectItem>
                 <SelectItem value="this-month">This Month</SelectItem>
                 <SelectItem value="last-month">Last Month</SelectItem>
+                <SelectItem value="by-month">By Month</SelectItem>
                 <SelectItem value="all-time">All Time</SelectItem>
               </SelectContent>
             </Select>
+            
+            {dateFilter === "by-month" && (
+              <>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-[140px]" data-testid="select-month">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((month) => (
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                  <SelectTrigger className="w-[120px]" data-testid="select-year">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {YEARS.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </>
+            )}
           </div>
         </div>
 
