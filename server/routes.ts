@@ -31,6 +31,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Multer setup for file uploads
   const upload = multer({ storage: multer.memoryStorage() });
 
+  // Health check endpoint for deployment
+  app.get("/health", (_req: Request, res: Response) => {
+    res.status(200).json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
+  // Alternative health check endpoint
+  app.get("/api/health", (_req: Request, res: Response) => {
+    res.status(200).json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
   // Auth endpoints
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
