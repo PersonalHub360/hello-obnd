@@ -176,6 +176,7 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Glass Effect Login Page**: Redesigned login page with glassmorphism design featuring backdrop blur, semi-transparent card, animated gradient backgrounds, floating blur orbs, and gradient text effects
 - **Staff Performance Check**: Added new performance tracking feature with daily/monthly/yearly metrics, conversion ratio calculation, and color-coded status indicators (Good/Average/Bad)
 - **Staff Directory Excel Import**: Added bulk upload feature for staff members from Excel files (.xlsx or .xls) with sample template download
 - **Deposit Excel Features**: Added sample template download and Excel update import (matches by reference number) with validation
