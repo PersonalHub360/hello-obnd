@@ -119,15 +119,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/staff/:id", requireAuth, async (req: Request, res: Response) => {
     try {
-      const staff = await storage.getStaffById(req.params.id);
+      const staffMember = await storage.getStaffById(req.params.id);
       
-      if (!staff) {
+      if (!staffMember) {
         return res.status(404).json({ message: "Staff member not found" });
       }
 
-      res.json(staff);
+      res.json(staffMember);
     } catch (error) {
       console.error("Get staff by ID error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/staff", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const staffMember = await storage.createStaff(req.body);
+      res.status(201).json(staffMember);
+    } catch (error) {
+      console.error("Create staff error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/staff/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const staffMember = await storage.updateStaff(req.params.id, req.body);
+      
+      if (!staffMember) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+
+      res.json(staffMember);
+    } catch (error) {
+      console.error("Update staff error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/staff/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteStaff(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+
+      res.json({ message: "Staff member deleted successfully" });
+    } catch (error) {
+      console.error("Delete staff error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
