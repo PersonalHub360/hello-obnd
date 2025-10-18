@@ -8,23 +8,53 @@ A professional staff management web application with secure authentication and a
 ### Authentication System
 - **Secure Login Page**: Clean, professional design with email and password inputs
 - **Session Management**: Cookie-based sessions with 24-hour expiration
-- **Protected Routes**: Dashboard requires authentication, automatic redirect to login
-- **Logout Functionality**: Graceful logout with session cleanup
+- **Protected Routes**: All pages require authentication, automatic redirect to login
+- **Logout Functionality**: Graceful logout with session cleanup via user menu
 
-### Staff Management Dashboard
-- **Staff Directory**: Displays all team members in a professional table layout
-- **Responsive Design**: Table view on desktop, card layout on mobile devices
-- **Search Functionality**: Real-time search by name, email, department, or role
-- **Staff Information**: Avatar, name, role, department, email, phone, status, join date
-- **Status Badges**: Visual indicators for active/inactive staff members
+### Navigation System
+- **Collapsible Sidebar**: Professional sidebar navigation using Shadcn UI primitives
+- **5 Main Sections**:
+  - Dashboard - Overview with quick stats and links
+  - Deposit Section - Financial deposit management
+  - Call Reports - Customer call tracking and reporting
+  - Staff Directory - Complete staff management system
+  - Analytics - Charts and statistics
+- **Active State Indicators**: Visual feedback for current page
+- **User Menu**: Header-based menu with user info and logout
+- **Theme Toggle**: Quick access to dark/light mode switcher
+- **Responsive**: Sidebar collapses on smaller screens
+
+### Dashboard (Overview)
+- **Quick Statistics**: Total staff, active employees, department count, system status
+- **Section Cards**: Clickable cards linking to main sections with descriptions
+- **Quick Actions**: Fast access to common operations across all sections
+
+### Staff Directory
+- **Complete CRUD**: Create, edit, and delete staff members with dialog forms
+- **Search**: Real-time search by name, email, department, or role
+- **Filtering**: Filter by department, role, and status with dropdown selectors
+- **CSV Export**: Download staff data as properly formatted CSV
+- **Table/Card Views**: Responsive table view on desktop, card layout on mobile
 - **Color-coded Avatars**: Unique background colors with initials fallback
-- **CRUD Operations**: Create, edit, and delete staff members with dialog forms
-- **Filtering**: Filter staff by department, role, and status with dropdown selectors
-- **CSV Export**: Download staff data as CSV file with proper field quoting
+- **Status Badges**: Visual indicators for active/inactive staff members
+
+### Deposit Section
+- **Deposit Tracking**: View and manage all financial deposits
+- **Statistics Cards**: Total deposits, pending count, completed today
+- **New Deposit Form**: Record new deposits with type, amount, depositor
+- **Transaction Table**: Recent deposits with status, reference numbers
+- **Sample Data**: Pre-populated with example deposit transactions
+
+### Call Reports
+- **Call Logging**: Track all customer call activities
+- **Statistics**: Total calls, completed, follow-ups needed, average duration
+- **New Call Form**: Log calls with client, phone, type, duration, notes
+- **Status Tracking**: Completed, follow-up required, missed call statuses
+- **Call History**: Table view of all call reports with timestamps
 
 ### Employee Detail View
 - **Detailed Profile**: Full employee information on dedicated page
-- **Navigation**: Click on staff member from dashboard to view details
+- **Navigation**: Click on staff member from directory to view details
 - **Actions**: Edit or delete employee directly from detail view
 - **Professional Layout**: Card-based design with organized sections
 
@@ -33,7 +63,6 @@ A professional staff management web application with secure authentication and a
 - **Department Distribution**: Interactive pie chart showing staff by department
 - **Employee Status**: Pie chart visualizing active vs inactive employees
 - **Hiring Trends**: Bar chart showing new hires over last 6 months
-- **Navigation**: Accessible via Analytics button in dashboard header
 
 ### User Interface
 - **Theme Toggle**: Light/dark mode with persistent preference
@@ -47,13 +76,17 @@ A professional staff management web application with secure authentication and a
 ### Frontend (`client/`)
 - **Pages**:
   - `login.tsx` - Authentication page
-  - `dashboard.tsx` - Staff directory with CRUD operations, filtering, and search
+  - `dashboard.tsx` - Overview dashboard with quick stats and navigation
+  - `staff-directory.tsx` - Staff management with CRUD operations, filtering, and search
   - `staff-detail.tsx` - Individual employee detail view
+  - `deposits.tsx` - Deposit section with transaction management
+  - `call-reports.tsx` - Call reports tracking and logging
   - `analytics.tsx` - Analytics dashboard with charts and statistics
 - **Components**:
+  - `app-sidebar.tsx` - Main sidebar navigation component
   - `theme-provider.tsx` - Dark/light mode management
   - `theme-toggle.tsx` - Theme switch button
-  - `ui/` - Shadcn UI components (Button, Card, Input, Table, Dialog, etc.)
+  - `ui/` - Shadcn UI components (Button, Card, Input, Table, Dialog, Sidebar, etc.)
 
 ### Backend (`server/`)
 - **Routes** (`routes.ts`):
@@ -107,15 +140,18 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
-- **Database Migration**: Migrated from in-memory storage to PostgreSQL with Drizzle ORM
-- **CRUD Operations**: Added full create, edit, delete functionality for staff members
-- **Filtering System**: Implemented department, role, and status filters
-- **Employee Details**: Created dedicated detail view page for individual staff members
-- **CSV Export**: Added data export functionality with proper field quoting
-- **Analytics Dashboard**: Built comprehensive analytics page with Recharts visualizations
-- **Navigation**: Added Analytics button in dashboard header for easy access
+- **Sidebar Navigation**: Implemented professional collapsible sidebar with 5 main sections
+- **New Sections**: Added Deposit Section and Call Reports pages with full interfaces
+- **Reorganized Dashboard**: Created overview dashboard with quick stats and section cards
+- **Renamed Pages**: Staff management moved to dedicated Staff Directory section
+- **Layout Improvements**: All pages now use consistent sidebar layout
+- **User Menu**: Moved logout and user info to header-based dropdown menu
+- Database Migration: PostgreSQL with Drizzle ORM
+- Full CRUD operations for staff members
+- Department, role, and status filtering
+- CSV export with proper field quoting
+- Analytics with Recharts visualizations
 - All features tested with end-to-end Playwright tests
-- All LSP diagnostics resolved
 
 ## User Preferences
 - Professional corporate aesthetic
