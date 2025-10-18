@@ -4,7 +4,7 @@ import session from "express-session";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
-import { loginSchema, insertDepositSchema, type SessionData as UserSessionData } from "@shared/schema";
+import { loginSchema, insertDepositSchema, insertCallReportSchema, type SessionData as UserSessionData } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -289,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Excel import endpoint
+  // Excel import endpoint for deposits
   const upload = multer({ storage: multer.memoryStorage() });
 
   app.post("/api/deposits/import/excel", requireAuth, upload.single("file"), async (req: Request, res: Response) => {
@@ -327,6 +327,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Excel import error:", error);
       res.status(500).json({ message: "Failed to import Excel file" });
+    }
+  });
+
+  // Call Reports endpoints
+  app.get("/api/call-reports", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const callReportsList = await storage.getAllCallReports();
+      res.json(callReportsList);
+    } catch (error) {
+      console.error("Get call reports error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/call-reports/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const callReport = await storage.getCallReportById(req.params.id);
+      
+      if (!callReport) {
+        return res.status(404).json({ message: "Call report not found" });
+      }
+
+      res.json(callReport);
+    } catch (error) {
+      console.error("Get call report by ID error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/call-reports", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const result = insertCallReportSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid input",
+          errors: result.error.errors 
+        });
+      }
+
+      const callReport = await storage.createCallReport(result.data);
+      res.status(201).json(callReport);
+    } catch (error) {
+      console.error("Create call report error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/call-reports/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const callReport = await storage.updateCallReport(req.params.id, req.body);
+      
+      if (!callReport) {
+        return res.status(404).json({ message: "Call report not found" });
+      }
+
+      res.json(callReport);
+    } catch (error) {
+      console.error("Update call report error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/call-reports/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteCallReport(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Call report not found" });
+      }
+
+      res.json({ message: "Call report deleted successfully" });
+    } catch (error) {
+      console.error("Delete call report error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Excel import endpoint for call reports
+  app.post("/api/call-reports/import/excel", requireAuth, upload.single("file"), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+
+      const callReports = data.map((row: any) => ({
+        userName: String(row["User Name"] || row.userName || row["user_name"] || ""),
+        callAgentName: String(row["Call Agent Name"] || row.callAgentName || row["call_agent_name"] || ""),
+        phoneNumber: String(row["Phone Number"] || row.phoneNumber || row["phone_number"] || ""),
+        callStatus: String(row["Call Status"] || row.callStatus || row["call_status"] || "Completed"),
+        duration: String(row.Duration || row.duration || ""),
+        callType: String(row["Call Type"] || row.callType || row["call_type"] || ""),
+        remarks: String(row.Remarks || row.remarks || ""),
+        dateTime: row["Date Time"] || row.dateTime || row["date_time"] ? new Date(row["Date Time"] || row.dateTime || row["date_time"]).toISOString() : undefined,
+      }));
+
+      const validCallReports = callReports.filter(c => c.userName && c.callAgentName && c.phoneNumber && c.callStatus);
+
+      if (validCallReports.length === 0) {
+        return res.status(400).json({ message: "No valid call reports found in Excel file" });
+      }
+
+      const createdCallReports = await storage.createManyCallReports(validCallReports);
+
+      res.status(201).json({
+        message: `Successfully imported ${createdCallReports.length} call reports`,
+        callReports: createdCallReports,
+      });
+    } catch (error) {
+      console.error("Excel import error:", error);
+      res.status(500).json({ message: "Failed to import Excel file" });
+    }
+  });
+
+  // Sample Excel template download for call reports
+  app.get("/api/call-reports/sample/template", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const sampleData = [
+        {
+          "User Name": "John Customer",
+          "Call Agent Name": "Sarah Agent",
+          "Phone Number": "+1-555-0101",
+          "Call Status": "Completed",
+          "Duration": "15 mins",
+          "Call Type": "Support",
+          "Remarks": "Issue resolved successfully",
+          "Date Time": new Date().toISOString(),
+        },
+        {
+          "User Name": "Jane Smith",
+          "Call Agent Name": "Mike Support",
+          "Phone Number": "+1-555-0102",
+          "Call Status": "Follow-up Required",
+          "Duration": "8 mins",
+          "Call Type": "Sales",
+          "Remarks": "Customer interested in premium plan",
+          "Date Time": new Date().toISOString(),
+        },
+        {
+          "User Name": "Bob Johnson",
+          "Call Agent Name": "Emily Care",
+          "Phone Number": "+1-555-0103",
+          "Call Status": "Missed",
+          "Duration": "0 mins",
+          "Call Type": "Support",
+          "Remarks": "Left voicemail",
+          "Date Time": new Date().toISOString(),
+        },
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(sampleData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Call Reports");
+
+      const excelBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename="call-reports-template.xlsx"');
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Sample template error:", error);
+      res.status(500).json({ message: "Failed to generate sample template" });
     }
   });
 
