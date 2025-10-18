@@ -46,6 +46,7 @@ import {
   Filter,
   X,
   Download,
+  BarChart3,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -305,6 +306,12 @@ export default function Dashboard() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link href="/analytics">
+              <Button variant="ghost" size="sm" data-testid="button-analytics">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Analytics
+              </Button>
+            </Link>
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
