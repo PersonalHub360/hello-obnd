@@ -25,9 +25,17 @@ A professional staff management web application with secure authentication and a
 - **Responsive**: Sidebar collapses on smaller screens
 
 ### Dashboard (Overview)
-- **Quick Statistics**: Total staff, active employees, department count, system status
-- **Section Cards**: Clickable cards linking to main sections with descriptions
-- **Quick Actions**: Fast access to common operations across all sections
+- **Date Filtering**: Select from Today, Yesterday, This Week, Last Week, This Month, Last Month, or All Time
+- **Business Metrics** (filtered by selected date range):
+  - **Total Calls**: Count of all call activities in the period
+  - **Total Deposit**: Sum of all deposit amounts with transaction count
+  - **Total FTD**: Unique depositors (First Time Deposit tracking)
+  - **Successful Calls**: Count of completed calls
+  - **Conversion Rate**: Success ratio calculated as (Successful Calls / (FTD + Deposits)) × 100%
+- **Staff Overview**: Total staff, active employees, departments, average team size
+- **Quick Access Cards**: Clickable cards linking to main sections with descriptions
+- **Quick Actions**: Fast access buttons for common operations across all sections
+- **Real-time Metrics**: All statistics update automatically when date filter changes
 
 ### Staff Directory
 - **Complete CRUD**: Create, edit, and delete staff members with dialog forms
@@ -159,6 +167,8 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Dashboard Enhancements**: Added date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, All Time) and comprehensive business metrics
+- **Business Metrics**: Total Calls, Total Deposit, Total FTD (unique depositors), Successful Calls, and Conversion Rate with real-time filtering
 - **Call Reports Excel Import**: Added bulk upload feature with enhanced schema (userName, callAgentName, dateTime, callStatus, phoneNumber, duration, callType, remarks)
 - **Call Reports Database Integration**: Full PostgreSQL persistence with call_reports table
 - **Call Reports CRUD API**: Complete backend routes for creating, reading, updating, and deleting call reports
