@@ -16,6 +16,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -36,6 +43,8 @@ import {
   Pencil,
   Trash2,
   MoreVertical,
+  Filter,
+  X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -46,6 +55,9 @@ import { DeleteStaffDialog } from "@/components/delete-staff-dialog";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -180,14 +192,35 @@ export default function Dashboard() {
 
   const filteredStaff = staffList.filter((staff) => {
     const searchLower = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       staff.firstName.toLowerCase().includes(searchLower) ||
       staff.lastName.toLowerCase().includes(searchLower) ||
       staff.email.toLowerCase().includes(searchLower) ||
       staff.department.toLowerCase().includes(searchLower) ||
-      staff.role.toLowerCase().includes(searchLower)
-    );
+      staff.role.toLowerCase().includes(searchLower);
+
+    const matchesDepartment =
+      departmentFilter === "all" || staff.department === departmentFilter;
+    const matchesRole = roleFilter === "all" || staff.role === roleFilter;
+    const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
+
+    return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
   });
+
+  const departments = Array.from(new Set(staffList.map((s) => s.department))).sort();
+  const roles = Array.from(new Set(staffList.map((s) => s.role))).sort();
+
+  const activeFiltersCount = [
+    departmentFilter !== "all",
+    roleFilter !== "all",
+    statusFilter !== "all",
+  ].filter(Boolean).length;
+
+  const handleClearFilters = () => {
+    setDepartmentFilter("all");
+    setRoleFilter("all");
+    setStatusFilter("all");
+  };
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -310,6 +343,68 @@ export default function Dashboard() {
               data-testid="input-search"
             />
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Filter className="h-4 w-4" />
+            <span className="font-medium">Filters:</span>
+          </div>
+
+          <Select
+            value={departmentFilter}
+            onValueChange={setDepartmentFilter}
+          >
+            <SelectTrigger className="w-[180px]" data-testid="select-department-filter">
+              <SelectValue placeholder="Department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              {departments.map((dept) => (
+                <SelectItem key={dept} value={dept}>
+                  {dept}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[180px]" data-testid="select-role-filter">
+              <SelectValue placeholder="Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              {roles.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]" data-testid="select-status-filter">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              className="gap-2"
+              data-testid="button-clear-filters"
+            >
+              <X className="h-4 w-4" />
+              Clear {activeFiltersCount} {activeFiltersCount === 1 ? "filter" : "filters"}
+            </Button>
+          )}
         </div>
 
         {staffLoading ? (
