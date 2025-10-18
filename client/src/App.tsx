@@ -30,6 +30,7 @@ import Deposits from "@/pages/deposits";
 import CallReports from "@/pages/call-reports";
 import StaffDetail from "@/pages/staff-detail";
 import Analytics from "@/pages/analytics";
+import PerformanceCheck from "@/pages/performance-check";
 
 function AuthenticatedLayout() {
   const [location, setLocation] = useLocation();
@@ -126,6 +127,7 @@ function AuthenticatedLayout() {
               <Route path="/staff-directory" component={StaffDirectory} />
               <Route path="/deposits" component={Deposits} />
               <Route path="/call-reports" component={CallReports} />
+              <Route path="/performance-check" component={PerformanceCheck} />
               <Route path="/analytics" component={Analytics} />
               <Route path="/staff/:id" component={StaffDetail} />
               <Route>
