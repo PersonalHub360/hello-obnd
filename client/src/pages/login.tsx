@@ -6,7 +6,6 @@ import { loginSchema, type LoginCredentials } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -51,29 +50,46 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="absolute top-4 right-4">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 dark:from-primary/30 dark:via-purple-600/30 dark:to-pink-600/30"></div>
+      <div className="absolute inset-0 bg-gradient-to-tl from-blue-500/20 via-cyan-500/20 to-teal-500/20 dark:from-blue-600/30 dark:via-cyan-600/30 dark:to-teal-600/30 animate-pulse"></div>
+      
+      {/* Floating orbs for glass effect depth */}
+      <div className="absolute top-20 left-20 w-72 h-72 bg-primary/30 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+
+      {/* Theme toggle */}
+      <div className="absolute top-4 right-4 z-50">
         <ThemeToggle />
       </div>
 
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4 text-center">
-          <div className="flex justify-center">
-            <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
-              <Building2 className="h-7 w-7 text-primary-foreground" />
+      {/* Glass card */}
+      <div className="relative z-10 w-full max-w-md">
+        {/* Glass effect container */}
+        <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 border border-white/20 dark:border-gray-700/30 rounded-2xl shadow-2xl p-8">
+          {/* Logo and branding */}
+          <div className="text-center space-y-4 mb-8">
+            <div className="flex justify-center">
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg backdrop-blur-sm">
+                <Building2 className="h-9 w-9 text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                AuroraMY
+              </h1>
+              <p className="text-sm text-foreground/70 mt-2 font-medium">
+                Staff Management System
+              </p>
             </div>
           </div>
-          <div>
-            <CardTitle className="text-3xl font-semibold">AuroraMY</CardTitle>
-            <CardDescription className="text-base mt-2">
-              Staff Management System
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
+
+          {/* Login form */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
                 Email Address
               </Label>
               <Input
@@ -82,17 +98,17 @@ export default function Login() {
                 placeholder="james.bond@auroramy.com"
                 data-testid="input-email"
                 {...form.register("email")}
-                className="h-11"
+                className="h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-white/30 dark:border-gray-700/50 focus:border-primary/50 focus:ring-primary/20"
               />
               {form.formState.errors.email && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-destructive font-medium">
                   {form.formState.errors.email.message}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
                 Password
               </Label>
               <div className="relative">
@@ -102,7 +118,7 @@ export default function Login() {
                   placeholder="Enter your password"
                   data-testid="input-password"
                   {...form.register("password")}
-                  className="h-11 pr-10"
+                  className="h-12 pr-10 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-white/30 dark:border-gray-700/50 focus:border-primary/50 focus:ring-primary/20"
                 />
                 <button
                   type="button"
@@ -119,7 +135,7 @@ export default function Login() {
                 </button>
               </div>
               {form.formState.errors.password && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-destructive font-medium">
                   {form.formState.errors.password.message}
                 </p>
               )}
@@ -127,7 +143,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full h-11 font-medium"
+              className="w-full h-12 font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
               disabled={loginMutation.isPending}
               data-testid="button-login"
             >
@@ -135,17 +151,21 @@ export default function Login() {
             </Button>
           </form>
 
+          {/* Helper link */}
           <div className="mt-6 text-center">
             <button
               type="button"
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
               data-testid="link-forgot-password"
             >
               Forgot your password?
             </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Subtle glow effect under card */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 via-purple-500/20 to-pink-500/20 blur-3xl opacity-50"></div>
+      </div>
     </div>
   );
 }
