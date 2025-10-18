@@ -22,7 +22,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Calendar, CheckCircle, Clock, XCircle, Upload, Download, RefreshCw } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { DollarSign, TrendingUp, Calendar, CheckCircle, Clock, XCircle, Upload, Download, RefreshCw, Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -36,6 +54,16 @@ export default function Deposits() {
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("");
   const [depositor, setDepositor] = useState("");
+
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
+
+  const [editAmount, setEditAmount] = useState("");
+  const [editType, setEditType] = useState("");
+  const [editDepositor, setEditDepositor] = useState("");
+  const [editStatus, setEditStatus] = useState("");
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -211,6 +239,96 @@ export default function Deposits() {
       }
       updateImportMutation.mutate(file);
     }
+  };
+
+  const updateDepositMutation = useMutation({
+    mutationFn: async (data: { id: string; amount: string; type: string; depositor: string; status: string }) => {
+      const { id, ...updateData } = data;
+      return await apiRequest("PATCH", `/api/deposits/${id}`, updateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      toast({
+        title: "Success",
+        description: "Deposit updated successfully",
+      });
+      setEditDialogOpen(false);
+      setSelectedDeposit(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update deposit",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteDepositMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/deposits/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      toast({
+        title: "Success",
+        description: "Deposit deleted successfully",
+      });
+      setDeleteDialogOpen(false);
+      setSelectedDeposit(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete deposit",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleViewDeposit = (deposit: Deposit) => {
+    setSelectedDeposit(deposit);
+    setViewDialogOpen(true);
+  };
+
+  const handleEditDeposit = (deposit: Deposit) => {
+    setSelectedDeposit(deposit);
+    setEditAmount(deposit.amount);
+    setEditType(deposit.type);
+    setEditDepositor(deposit.depositor);
+    setEditStatus(deposit.status);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteDeposit = (deposit: Deposit) => {
+    setSelectedDeposit(deposit);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmEdit = () => {
+    if (!selectedDeposit) return;
+    
+    if (!editAmount || !editType || !editDepositor || !editStatus) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateDepositMutation.mutate({
+      id: selectedDeposit.id,
+      amount: editAmount,
+      type: editType,
+      depositor: editDepositor,
+      status: editStatus,
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedDeposit) return;
+    deleteDepositMutation.mutate(selectedDeposit.id);
   };
 
   const handleDownloadSample = async () => {
@@ -463,6 +581,7 @@ export default function Deposits() {
                     <TableHead>Amount</TableHead>
                     <TableHead>Reference</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -492,6 +611,34 @@ export default function Deposits() {
                           {deposit.status}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewDeposit(deposit)}
+                            data-testid={`button-view-${deposit.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditDeposit(deposit)}
+                            data-testid={`button-edit-${deposit.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteDeposit(deposit)}
+                            data-testid={`button-delete-${deposit.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -499,6 +646,167 @@ export default function Deposits() {
             )}
           </CardContent>
         </Card>
+
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Deposit Details</DialogTitle>
+              <DialogDescription>View complete deposit information</DialogDescription>
+            </DialogHeader>
+            {selectedDeposit && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-muted-foreground">Reference</Label>
+                    <p className="font-mono text-sm">{selectedDeposit.reference}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Date</Label>
+                    <p className="font-medium">{format(new Date(selectedDeposit.date), "MMMM d, yyyy")}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Depositor</Label>
+                    <p className="font-medium">{selectedDeposit.depositor}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Type</Label>
+                    <p className="font-medium">{selectedDeposit.type}</p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Amount</Label>
+                    <p className="text-2xl font-bold text-green-600">
+                      ${parseFloat(selectedDeposit.amount).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Status</Label>
+                    <div className="mt-1">
+                      <Badge
+                        variant={
+                          selectedDeposit.status === "completed"
+                            ? "default"
+                            : selectedDeposit.status === "pending"
+                            ? "secondary"
+                            : "destructive"
+                        }
+                        className="gap-1"
+                      >
+                        {getStatusIcon(selectedDeposit.status)}
+                        {selectedDeposit.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Deposit</DialogTitle>
+              <DialogDescription>Update deposit information</DialogDescription>
+            </DialogHeader>
+            {selectedDeposit && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-amount">Amount</Label>
+                  <Input
+                    id="edit-amount"
+                    type="number"
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    data-testid="input-edit-amount"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-type">Type</Label>
+                  <Select value={editType} onValueChange={setEditType}>
+                    <SelectTrigger id="edit-type" data-testid="select-edit-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Check">Check</SelectItem>
+                      <SelectItem value="Wire Transfer">Wire Transfer</SelectItem>
+                      <SelectItem value="ACH">ACH</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-depositor">Depositor</Label>
+                  <Input
+                    id="edit-depositor"
+                    value={editDepositor}
+                    onChange={(e) => setEditDepositor(e.target.value)}
+                    data-testid="input-edit-depositor"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select value={editStatus} onValueChange={setEditStatus}>
+                    <SelectTrigger id="edit-status" data-testid="select-edit-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="bg-muted p-3 rounded-md">
+                  <Label className="text-muted-foreground">Reference</Label>
+                  <p className="font-mono text-sm">{selectedDeposit.reference}</p>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmEdit}
+                disabled={updateDepositMutation.isPending}
+                data-testid="button-confirm-edit"
+              >
+                {updateDepositMutation.isPending ? "Updating..." : "Update Deposit"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Deposit</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this deposit? This action cannot be undone.
+                {selectedDeposit && (
+                  <div className="mt-4 p-3 bg-muted rounded-md">
+                    <p className="font-semibold">{selectedDeposit.depositor}</p>
+                    <p className="text-sm">Amount: ${parseFloat(selectedDeposit.amount).toLocaleString()}</p>
+                    <p className="text-sm font-mono">Ref: {selectedDeposit.reference}</p>
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                data-testid="button-confirm-delete"
+              >
+                {deleteDepositMutation.isPending ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
