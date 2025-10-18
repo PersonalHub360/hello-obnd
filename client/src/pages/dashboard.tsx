@@ -270,10 +270,10 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600" data-testid="text-total-deposit">
-                  ${totalDepositAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {totalDepositsCount}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {totalDepositsCount} transactions
+                  Deposit transactions
                 </p>
               </CardContent>
             </Card>

@@ -365,7 +365,7 @@ export default function Deposits() {
     }
   };
 
-  const totalDeposits = deposits.reduce((sum, d) => sum + parseFloat(d.amount || "0"), 0);
+  const totalDeposits = deposits.length;
   const pendingDeposits = deposits.filter((d) => d.status === "pending").length;
   const completedToday = deposits.filter(
     (d) =>
@@ -461,14 +461,14 @@ export default function Deposits() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Deposits</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold" data-testid="text-total-deposits">
-                ${totalDeposits.toLocaleString()}
+                {totalDeposits}
               </div>
               <p className="text-xs text-muted-foreground">
-                {deposits.length} total transactions
+                All transactions
               </p>
             </CardContent>
           </Card>
