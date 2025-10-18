@@ -2,11 +2,11 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
-import { loginSchema, type SessionData } from "@shared/schema";
+import { loginSchema, type SessionData as UserSessionData } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
-    user?: SessionData;
+    user?: UserSessionData;
   }
 }
 

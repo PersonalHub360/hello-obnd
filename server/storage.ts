@@ -34,7 +34,7 @@ export class MemStorage implements IStorage {
     };
     this.authUsers.set(adminUser.id, adminUser);
 
-    const sampleStaff: InsertStaff[] = [
+    const sampleStaff: Omit<Staff, 'id' | 'joinDate'>[] = [
       {
         firstName: "Sarah",
         lastName: "Johnson",
@@ -43,7 +43,7 @@ export class MemStorage implements IStorage {
         department: "Engineering",
         phone: "+1 (555) 123-4567",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "Michael",
@@ -53,7 +53,7 @@ export class MemStorage implements IStorage {
         department: "Product",
         phone: "+1 (555) 234-5678",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "Emily",
@@ -63,7 +63,7 @@ export class MemStorage implements IStorage {
         department: "Design",
         phone: "+1 (555) 345-6789",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "David",
@@ -73,7 +73,7 @@ export class MemStorage implements IStorage {
         department: "Engineering",
         phone: "+1 (555) 456-7890",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "Jessica",
@@ -83,7 +83,7 @@ export class MemStorage implements IStorage {
         department: "Marketing",
         phone: "+1 (555) 567-8901",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "Ryan",
@@ -93,7 +93,7 @@ export class MemStorage implements IStorage {
         department: "Analytics",
         phone: "+1 (555) 678-9012",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "Amanda",
@@ -103,7 +103,7 @@ export class MemStorage implements IStorage {
         department: "Human Resources",
         phone: "+1 (555) 789-0123",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "Christopher",
@@ -113,7 +113,7 @@ export class MemStorage implements IStorage {
         department: "Sales",
         phone: "+1 (555) 890-1234",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "Nicole",
@@ -123,7 +123,7 @@ export class MemStorage implements IStorage {
         department: "Marketing",
         phone: "+1 (555) 901-2345",
         status: "inactive",
-        avatar: undefined,
+        avatar: null,
       },
       {
         firstName: "James",
@@ -133,7 +133,7 @@ export class MemStorage implements IStorage {
         department: "Executive",
         phone: "+1 (555) 007-0007",
         status: "active",
-        avatar: undefined,
+        avatar: null,
       },
     ];
 
@@ -179,7 +179,9 @@ export class MemStorage implements IStorage {
   async createStaff(insertStaff: InsertStaff): Promise<Staff> {
     const id = randomUUID();
     const staff: Staff = { 
-      ...insertStaff, 
+      ...insertStaff,
+      status: insertStaff.status || "active",
+      avatar: insertStaff.avatar || null,
       id,
       joinDate: new Date(),
     };

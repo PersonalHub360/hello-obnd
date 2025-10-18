@@ -1,137 +1,106 @@
 # AuroraMY Staff Management System
 
 ## Overview
+A professional staff management web application with secure authentication and a beautiful, responsive dashboard interface. Built with React, Express, and TypeScript.
 
-AuroraMY is a professional staff management system designed to efficiently manage employee data, departments, and team member information. The application provides a clean, modern interface for viewing, searching, and managing staff records with a focus on data clarity and professional presentation.
+## Features Implemented
 
-The system is built as a full-stack web application with a React-based frontend and Express backend, using session-based authentication and an in-memory data storage system (with PostgreSQL schema defined for future database integration).
+### Authentication System
+- **Secure Login Page**: Clean, professional design with email and password inputs
+- **Session Management**: Cookie-based sessions with 24-hour expiration
+- **Protected Routes**: Dashboard requires authentication, automatic redirect to login
+- **Logout Functionality**: Graceful logout with session cleanup
+
+### Staff Management Dashboard
+- **Staff Directory**: Displays all team members in a professional table layout
+- **Responsive Design**: Table view on desktop, card layout on mobile devices
+- **Search Functionality**: Real-time search by name, email, department, or role
+- **Staff Information**: Avatar, name, role, department, email, phone, status, join date
+- **Status Badges**: Visual indicators for active/inactive staff members
+- **Color-coded Avatars**: Unique background colors with initials fallback
+
+### User Interface
+- **Theme Toggle**: Light/dark mode with persistent preference
+- **Professional Design**: Material Design-inspired with corporate blue color scheme
+- **Responsive Layout**: Works seamlessly on desktop, tablet, and mobile
+- **Loading States**: Beautiful loading indicators during data fetching
+- **Error Handling**: Graceful error messages and user feedback via toasts
+
+## Project Structure
+
+### Frontend (`client/`)
+- **Pages**:
+  - `login.tsx` - Authentication page
+  - `dashboard.tsx` - Staff directory and management
+- **Components**:
+  - `theme-provider.tsx` - Dark/light mode management
+  - `theme-toggle.tsx` - Theme switch button
+  - `ui/` - Shadcn UI components (Button, Card, Input, Table, etc.)
+
+### Backend (`server/`)
+- **Routes** (`routes.ts`):
+  - `POST /api/auth/login` - User authentication
+  - `POST /api/auth/logout` - Session termination
+  - `GET /api/auth/session` - Check authentication status
+  - `GET /api/staff` - Retrieve all staff members (protected)
+  - `GET /api/staff/:id` - Get staff member by ID (protected)
+- **Storage** (`storage.ts`): In-memory data storage with seeded sample data
+
+### Shared (`shared/`)
+- **Schema** (`schema.ts`): TypeScript types and Zod validation schemas for Staff and Auth
+
+## Login Credentials
+- **Email**: james.bond@auroramy.com
+- **Password**: Sp123456@
+
+## Sample Staff Data
+The system includes 10 pre-seeded staff members across various departments:
+- Engineering (Sarah Johnson, David Kim)
+- Product (Michael Chen)
+- Design (Emily Rodriguez)
+- Marketing (Jessica Martinez, Nicole Anderson)
+- Analytics (Ryan Patel)
+- Human Resources (Amanda Williams)
+- Sales (Christopher Taylor)
+- Executive (James Bond - CEO)
+
+## Technical Stack
+- **Frontend**: React 18, TypeScript, Wouter (routing), TanStack Query
+- **UI Components**: Shadcn UI with Radix UI primitives
+- **Styling**: Tailwind CSS with custom design tokens
+- **Backend**: Express.js, TypeScript
+- **Session**: express-session with in-memory storage
+- **Validation**: Zod schemas
+- **Icons**: Lucide React
+- **Date Formatting**: date-fns
+
+## Design System
+- **Primary Color**: Professional Blue (HSL: 221 83% 53%)
+- **Typography**: Inter (sans-serif), JetBrains Mono (monospace)
+- **Spacing**: Consistent 4/8/16/24/32px scale
+- **Shadows**: Subtle elevation system for cards and modals
+- **Animations**: Smooth transitions for hover/focus states
+
+## Recent Changes
+- Fixed critical React rendering issue with authentication redirects
+- Implemented proper session error handling with useEffect
+- Added query guards to prevent unauthorized API calls
+- Fixed TypeScript type issues in storage and routes
+- All LSP diagnostics resolved
+- End-to-end tests passing successfully
 
 ## User Preferences
+- Professional corporate aesthetic
+- Clean, modern interface design
+- Emphasis on data clarity and usability
+- Responsive across all device sizes
 
-Preferred communication style: Simple, everyday language.
-
-## System Architecture
-
-### Frontend Architecture
-
-**Framework & Build System:**
-- React 18+ with TypeScript for type safety
-- Vite as the build tool and development server
-- Wouter for client-side routing (lightweight alternative to React Router)
-
-**UI Component System:**
-- shadcn/ui component library (New York style variant) with Radix UI primitives
-- Tailwind CSS for styling with custom design tokens
-- Design system follows Material Design principles with modern SaaS aesthetics (Linear/Notion-inspired)
-- Comprehensive component library including tables, forms, dialogs, dropdowns, and more
-
-**State Management:**
-- TanStack Query (React Query) for server state management and data fetching
-- React Hook Form with Zod validation for form handling
-- Local React state for UI interactions
-
-**Design System:**
-- Custom color palette supporting light and dark modes
-- Inter font family for primary typography, JetBrains Mono for monospace
-- Consistent spacing and border radius system
-- Professional blue primary color (HSL: 221 83% 53%) for trust and corporate feel
-
-**Rationale:** The frontend prioritizes developer experience with TypeScript and modern React patterns while maintaining a professional, accessible UI through the shadcn/ui system. The design focuses on clarity over decoration, making it ideal for data-heavy staff management interfaces.
-
-### Backend Architecture
-
-**Server Framework:**
-- Express.js as the HTTP server
-- TypeScript for type-safe server code
-- ESM module system for modern JavaScript practices
-
-**Authentication & Sessions:**
-- Express-session middleware for session management
-- Session-based authentication (no JWT tokens)
-- Cookie-based session storage with configurable security options
-- Session secret configurable via environment variable (SESSION_SECRET)
-- 24-hour session lifetime by default
-
-**Data Layer:**
-- In-memory storage implementation (MemStorage class) for development
-- IStorage interface defines the contract for data operations
-- Seeded with sample staff and admin user data for immediate testing
-- PostgreSQL schema defined using Drizzle ORM for production database integration
-
-**API Structure:**
-- RESTful API endpoints under `/api` prefix
-- Auth endpoints: `/api/auth/login`, `/api/auth/logout`, `/api/auth/session`
-- Staff endpoints: `/api/staff` (CRUD operations)
-- Consistent error handling middleware
-- Request/response logging for API calls
-
-**Rationale:** The backend is designed with a clear separation between the storage interface and implementation, allowing easy transition from in-memory storage to PostgreSQL without changing API logic. Session-based auth provides security without the complexity of token management.
-
-### Data Storage Solutions
-
-**Current Implementation:**
-- In-memory Map-based storage for development and testing
-- Pre-seeded with admin user (james.bond@auroramy.com / Sp123456@)
-- Sample staff data included for immediate functionality
-
-**Production Database Schema (Drizzle ORM):**
-
-**Staff Table:**
-- Primary key: UUID (auto-generated)
-- Fields: firstName, lastName, email (unique), role, department, phone, status, avatar
-- joinDate timestamp with default to current time
-- Email uniqueness constraint for data integrity
-
-**Auth Users Table:**
-- Primary key: UUID (auto-generated)  
-- Fields: email (unique), password, name
-- Stores authentication credentials separately from staff records
-
-**Migration System:**
-- Drizzle Kit configured for PostgreSQL migrations
-- Migration files stored in `/migrations` directory
-- Schema defined in `shared/schema.ts` for code sharing between client and server
-
-**Rationale:** The dual-storage approach allows rapid development with in-memory data while maintaining a production-ready database schema. Drizzle ORM provides type-safe database operations and automatic TypeScript type generation from the schema.
-
-### External Dependencies
-
-**UI & Styling:**
-- Radix UI (@radix-ui/*) - Unstyled, accessible component primitives
-- Tailwind CSS with PostCSS - Utility-first CSS framework
-- class-variance-authority - Type-safe component variants
-- clsx & tailwind-merge - Utility for merging CSS classes
-
-**Data Fetching & Forms:**
-- @tanstack/react-query - Server state management
-- react-hook-form - Performant form handling
-- @hookform/resolvers - Form validation integration
-- zod - TypeScript-first schema validation
-- drizzle-zod - Zod schema generation from Drizzle schemas
-
-**Database & ORM:**
-- Drizzle ORM - TypeScript ORM for SQL databases
-- @neondatabase/serverless - Neon PostgreSQL serverless driver
-- connect-pg-simple - PostgreSQL session store (for production sessions)
-
-**Development Tools:**
-- tsx - TypeScript execution for Node.js
-- esbuild - Fast JavaScript bundler for production builds
-- Vite plugins: @replit/vite-plugin-runtime-error-modal, cartographer, dev-banner
-
-**Utility Libraries:**
-- date-fns - Modern date utility library
-- nanoid - Unique ID generator
-- cmdk - Command palette component
-- embla-carousel-react - Carousel/slider component
-
-**Google Fonts:**
-- Inter - Primary font family for clean, professional text
-- JetBrains Mono - Monospace font for technical content (emails, IDs)
-
-**Environment Configuration:**
-- DATABASE_URL - PostgreSQL connection string (required for database operations)
-- SESSION_SECRET - Secret key for session encryption (defaults to development key)
-- NODE_ENV - Environment mode (development/production)
-
-**Rationale:** Dependencies are carefully selected to provide production-grade functionality while maintaining simplicity. The combination of Radix UI and Tailwind enables rapid UI development with accessibility built-in. Drizzle ORM offers excellent TypeScript integration while remaining lightweight compared to heavier ORMs.
+## Next Steps (Future Enhancements)
+- Add CRUD operations for staff (create, edit, delete)
+- Implement employee detail view with full profile
+- Add department and role filtering
+- Export staff data to CSV
+- Employee performance metrics dashboard
+- User registration and password reset
+- Profile picture upload functionality
+- Pagination for large staff lists
