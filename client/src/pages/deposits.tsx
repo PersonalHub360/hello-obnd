@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Calendar, CheckCircle, Clock, XCircle, Upload } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, CheckCircle, Clock, XCircle, Upload, Download, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -31,6 +31,7 @@ export default function Deposits() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const updateFileInputRef = useRef<HTMLInputElement>(null);
 
   const [amount, setAmount] = useState("");
   const [type, setType] = useState("");
@@ -115,6 +116,46 @@ export default function Deposits() {
     },
   });
 
+  const updateImportMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/deposits/import/excel/update", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update from Excel file");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      toast({
+        title: "Success",
+        description: data.message || "Deposits updated successfully",
+      });
+      if (updateFileInputRef.current) {
+        updateFileInputRef.current.value = "";
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update from Excel file",
+        variant: "destructive",
+      });
+      if (updateFileInputRef.current) {
+        updateFileInputRef.current.value = "";
+      }
+    },
+  });
+
   const handleCreateDeposit = () => {
     if (!amount || !type || !depositor) {
       toast({
@@ -151,6 +192,58 @@ export default function Deposits() {
         return;
       }
       importExcelMutation.mutate(file);
+    }
+  };
+
+  const handleUpdateFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+        toast({
+          title: "Error",
+          description: "Please upload an Excel file (.xlsx or .xls)",
+          variant: "destructive",
+        });
+        if (updateFileInputRef.current) {
+          updateFileInputRef.current.value = "";
+        }
+        return;
+      }
+      updateImportMutation.mutate(file);
+    }
+  };
+
+  const handleDownloadSample = async () => {
+    try {
+      const response = await fetch("/api/deposits/sample/template", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to download sample template");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "deposits-template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Success",
+        description: "Sample template downloaded successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download sample template",
+        variant: "destructive",
+      });
     }
   };
 
@@ -201,6 +294,14 @@ export default function Deposits() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleDownloadSample}
+              data-testid="button-download-sample"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download Sample
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
@@ -217,6 +318,23 @@ export default function Deposits() {
             >
               <Upload className="mr-2 h-4 w-4" />
               {importExcelMutation.isPending ? "Importing..." : "Import Excel"}
+            </Button>
+            <input
+              ref={updateFileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={handleUpdateFileChange}
+              className="hidden"
+              data-testid="input-update-excel-file"
+            />
+            <Button
+              variant="outline"
+              onClick={() => updateFileInputRef.current?.click()}
+              disabled={updateImportMutation.isPending}
+              data-testid="button-update-import"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {updateImportMutation.isPending ? "Updating..." : "Update Import"}
             </Button>
           </div>
         </div>

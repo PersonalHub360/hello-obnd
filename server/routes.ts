@@ -346,15 +346,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amount: String(row.Amount || row.amount || "0"),
         type: String(row.Type || row.type || "Cash"),
         status: String(row.Status || row.status || "pending"),
-        reference: String(row.Reference || row.reference || ""),
+        reference: String(row.Reference || row.reference || "").trim(),
         depositor: String(row.Depositor || row.depositor || ""),
         date: row.Date || row.date ? new Date(row.Date || row.date).toISOString() : undefined,
       }));
 
-      const validDeposits = deposits.filter(d => d.reference);
+      const validDeposits = deposits.filter(d => d.reference && d.reference.length > 0);
 
       if (validDeposits.length === 0) {
-        return res.status(400).json({ message: "No valid deposits found in Excel file" });
+        return res.status(400).json({ 
+          message: "No valid deposits found in Excel file. All rows must have a non-empty Reference number." 
+        });
       }
 
       let updatedCount = 0;

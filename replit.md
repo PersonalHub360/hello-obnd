@@ -50,10 +50,13 @@ A professional staff management web application with secure authentication and a
 - **Deposit Tracking**: View and manage all financial deposits from database
 - **Statistics Cards**: Total deposits, pending count, completed today
 - **New Deposit Form**: Record new deposits with type, amount, depositor
-- **Excel Import**: Bulk upload deposits from Excel files (.xlsx or .xls)
+- **Excel Import**: Bulk upload new deposits from Excel files (.xlsx or .xls)
+- **Excel Update Import**: Update existing deposits by uploading Excel file with reference numbers
+- **Sample Template**: Downloadable Excel template with proper column headers and sample data
 - **Transaction Table**: Recent deposits with status, reference numbers, and amounts
 - **Auto-generated References**: Unique reference numbers (REF-YYYY-XXXXXXX format)
-- **Real-time Updates**: Statistics and table refresh after create/import operations
+- **Reference Matching**: Update operations match deposits by reference number for accurate updates
+- **Real-time Updates**: Statistics and table refresh after create/import/update operations
 
 ### Call Reports
 - **Call Logging**: Track all customer call activities with comprehensive details
@@ -116,7 +119,9 @@ A professional staff management web application with secure authentication and a
   - `GET /api/deposits` - Retrieve all deposits (protected)
   - `GET /api/deposits/:id` - Get deposit by ID (protected)
   - `POST /api/deposits` - Create new deposit (protected)
-  - `POST /api/deposits/import/excel` - Import deposits from Excel file (protected)
+  - `POST /api/deposits/import/excel` - Import new deposits from Excel file (protected)
+  - `POST /api/deposits/import/excel/update` - Update existing deposits from Excel by reference number (protected)
+  - `GET /api/deposits/sample/template` - Download sample Excel template (protected)
   - `PATCH /api/deposits/:id` - Update deposit (protected)
   - `DELETE /api/deposits/:id` - Delete deposit (protected)
   - `GET /api/call-reports` - Retrieve all call reports (protected)
@@ -167,6 +172,7 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Deposit Excel Features**: Added sample template download and Excel update import (matches by reference number) with validation
 - **Dashboard Enhancements**: Added date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, All Time) and comprehensive business metrics
 - **Business Metrics**: Total Calls, Total Deposit, Total FTD (unique depositors), Successful Calls, and Conversion Rate with real-time filtering
 - **Call Reports Excel Import**: Added bulk upload feature with enhanced schema (userName, callAgentName, dateTime, callStatus, phoneNumber, duration, callType, remarks)
