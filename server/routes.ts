@@ -20,9 +20,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
+      proxy: true, // Trust the reverse proxy
       cookie: {
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "strict",
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
       },
     })
