@@ -41,6 +41,8 @@ A professional staff management web application with secure authentication and a
 - **Complete CRUD**: Create, edit, and delete staff members with dialog forms
 - **Search**: Real-time search by name, email, department, or role
 - **Filtering**: Filter by department, role, and status with dropdown selectors
+- **Excel Import**: Bulk upload new employees from Excel files (.xlsx or .xls)
+- **Sample Template**: Downloadable Excel template with proper column headers and sample data
 - **CSV Export**: Download staff data as properly formatted CSV
 - **Table/Card Views**: Responsive table view on desktop, card layout on mobile
 - **Color-coded Avatars**: Unique background colors with initials fallback
@@ -113,6 +115,8 @@ A professional staff management web application with secure authentication and a
   - `GET /api/staff` - Retrieve all staff members with optional filters (protected)
   - `GET /api/staff/:id` - Get staff member by ID (protected)
   - `POST /api/staff` - Create new staff member (protected)
+  - `POST /api/staff/import/excel` - Import new staff members from Excel file (protected)
+  - `GET /api/staff/sample/template` - Download sample Excel template (protected)
   - `PATCH /api/staff/:id` - Update staff member (protected)
   - `DELETE /api/staff/:id` - Delete staff member (protected)
   - `GET /api/staff/export/csv` - Export staff data as CSV (protected)
@@ -172,6 +176,7 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Staff Directory Excel Import**: Added bulk upload feature for staff members from Excel files (.xlsx or .xls) with sample template download
 - **Deposit Excel Features**: Added sample template download and Excel update import (matches by reference number) with validation
 - **Dashboard Enhancements**: Added date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, All Time) and comprehensive business metrics
 - **Business Metrics**: Total Calls, Total Deposit, Total FTD (unique depositors), Successful Calls, and Conversion Rate with real-time filtering
@@ -211,7 +216,6 @@ The system includes 10 pre-seeded staff members across various departments:
 - Pagination for large staff lists
 - Advanced role-based permissions (admin vs viewer)
 - Email notifications for new hires
-- Bulk import of staff data from CSV
 - Performance reviews and ratings system
 - Time-off tracking and vacation management
 - Organizational chart visualization
