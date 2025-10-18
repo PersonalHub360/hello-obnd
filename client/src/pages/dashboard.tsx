@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { type Staff, type SessionData, type InsertStaff } from "@shared/schema";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -450,23 +450,25 @@ export default function Dashboard() {
                         data-testid={`row-staff-${staff.id}`}
                       >
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              {staff.avatar ? (
-                                <AvatarImage src={staff.avatar} alt={`${staff.firstName} ${staff.lastName}`} />
-                              ) : null}
-                              <AvatarFallback
-                                className={`${getAvatarColor(staff.firstName)} text-white font-medium`}
-                              >
-                                {getInitials(staff.firstName, staff.lastName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">
-                                {staff.firstName} {staff.lastName}
+                          <Link href={`/staff/${staff.id}`}>
+                            <div className="flex items-center gap-3 hover-elevate cursor-pointer rounded-md p-2 -m-2">
+                              <Avatar className="h-10 w-10">
+                                {staff.avatar ? (
+                                  <AvatarImage src={staff.avatar} alt={`${staff.firstName} ${staff.lastName}`} />
+                                ) : null}
+                                <AvatarFallback
+                                  className={`${getAvatarColor(staff.firstName)} text-white font-medium`}
+                                >
+                                  {getInitials(staff.firstName, staff.lastName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-medium">
+                                  {staff.firstName} {staff.lastName}
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          </Link>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
@@ -556,32 +558,32 @@ export default function Dashboard() {
 
             <div className="grid gap-4 md:hidden">
               {filteredStaff.map((staff) => (
-                <Card
-                  key={staff.id}
-                  className="p-4"
-                  data-testid={`card-staff-${staff.id}`}
-                >
-                  <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12">
-                      {staff.avatar ? (
-                        <AvatarImage src={staff.avatar} alt={`${staff.firstName} ${staff.lastName}`} />
-                      ) : null}
-                      <AvatarFallback
-                        className={`${getAvatarColor(staff.firstName)} text-white font-medium`}
-                      >
-                        {getInitials(staff.firstName, staff.lastName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">
-                            {staff.firstName} {staff.lastName}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {staff.role}
-                          </p>
-                        </div>
+                <Link key={staff.id} href={`/staff/${staff.id}`}>
+                  <Card
+                    className="p-4 hover-elevate cursor-pointer"
+                    data-testid={`card-staff-${staff.id}`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <Avatar className="h-12 w-12">
+                        {staff.avatar ? (
+                          <AvatarImage src={staff.avatar} alt={`${staff.firstName} ${staff.lastName}`} />
+                        ) : null}
+                        <AvatarFallback
+                          className={`${getAvatarColor(staff.firstName)} text-white font-medium`}
+                        >
+                          {getInitials(staff.firstName, staff.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <h3 className="font-semibold">
+                              {staff.firstName} {staff.lastName}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {staff.role}
+                            </p>
+                          </div>
                         <div className="flex items-center gap-2">
                           <Badge
                             variant={
@@ -645,7 +647,8 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                </Card>
+                  </Card>
+                </Link>
               ))}
             </div>
           </>
