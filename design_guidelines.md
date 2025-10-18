@@ -63,6 +63,36 @@
 
 ### D. Component Library
 
+**Sidebar (Gradient Design):**
+1. **Gradient Background**
+   - Main gradient: Blue to purple diagonal (from-blue-600 via-purple-600 to-blue-700)
+   - Direction: Top-left to bottom-right (bg-gradient-to-br)
+   - Overlay: Subtle black gradient for depth (from-black/20 to-transparent)
+   - Always visible in both light and dark modes
+
+2. **Floating Blur Orbs**
+   - Purple orb: Top-right corner (w-64 h-64, purple-500/30, blur-3xl)
+   - Blue orb: Bottom-left corner (w-64 h-64, blue-500/30, blur-3xl)
+   - Creates dynamic depth and visual interest
+
+3. **Header Section**
+   - Logo container with glass effect (bg-white/20, backdrop-blur-sm)
+   - Border: border-white/30 with shadow-lg
+   - Company name: "AuroraMY" in white, font-semibold
+   - Subtitle: "Staff Management" in white/70
+
+4. **Navigation Items**
+   - Default: text-white/90 with white/80 icons
+   - Hover: bg-white/10 with smooth transition (200ms)
+   - Active: bg-white/20, border-l-2 border-white, shadow-lg with glow effect
+   - Font: Medium weight for better readability
+
+5. **User Profile Footer**
+   - Glass container: bg-white/10, backdrop-blur-sm
+   - Border: border-white/20, rounded-lg
+   - Avatar: Ring-2 with white/30, white initials on white/20 background
+   - User info: White name, white/70 email
+
 **Login Page Components (Glass Effect Design):**
 1. **Background**
    - Animated gradient overlay with multiple layers
