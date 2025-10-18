@@ -330,6 +330,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Excel update import endpoint for deposits
+  app.post("/api/deposits/import/excel/update", requireAuth, upload.single("file"), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(worksheet);
+
+      const deposits = data.map((row: any) => ({
+        amount: String(row.Amount || row.amount || "0"),
+        type: String(row.Type || row.type || "Cash"),
+        status: String(row.Status || row.status || "pending"),
+        reference: String(row.Reference || row.reference || ""),
+        depositor: String(row.Depositor || row.depositor || ""),
+        date: row.Date || row.date ? new Date(row.Date || row.date).toISOString() : undefined,
+      }));
+
+      const validDeposits = deposits.filter(d => d.reference);
+
+      if (validDeposits.length === 0) {
+        return res.status(400).json({ message: "No valid deposits found in Excel file" });
+      }
+
+      let updatedCount = 0;
+      let notFoundCount = 0;
+
+      for (const depositData of validDeposits) {
+        const existing = await storage.getDepositByReference(depositData.reference);
+        if (existing) {
+          await storage.updateDepositByReference(depositData.reference, depositData);
+          updatedCount++;
+        } else {
+          notFoundCount++;
+        }
+      }
+
+      res.status(200).json({
+        message: `Successfully updated ${updatedCount} deposits${notFoundCount > 0 ? `, ${notFoundCount} not found` : ''}`,
+        updated: updatedCount,
+        notFound: notFoundCount,
+      });
+    } catch (error) {
+      console.error("Excel update import error:", error);
+      res.status(500).json({ message: "Failed to update from Excel file" });
+    }
+  });
+
+  // Sample Excel template download for deposits
+  app.get("/api/deposits/sample/template", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const sampleData = [
+        {
+          "Reference": "REF-2025-ABC1234",
+          "Amount": "5000",
+          "Type": "Wire Transfer",
+          "Status": "completed",
+          "Depositor": "John Customer",
+          "Date": new Date().toISOString(),
+        },
+        {
+          "Reference": "REF-2025-XYZ5678",
+          "Amount": "2500",
+          "Type": "Cash",
+          "Status": "pending",
+          "Depositor": "Jane Smith",
+          "Date": new Date().toISOString(),
+        },
+        {
+          "Reference": "REF-2025-DEF9012",
+          "Amount": "7500",
+          "Type": "Check",
+          "Status": "completed",
+          "Depositor": "Bob Johnson",
+          "Date": new Date().toISOString(),
+        },
+      ];
+
+      const worksheet = XLSX.utils.json_to_sheet(sampleData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Deposits");
+
+      const excelBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename="deposits-template.xlsx"');
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error("Sample template error:", error);
+      res.status(500).json({ message: "Failed to generate sample template" });
+    }
+  });
+
   // Call Reports endpoints
   app.get("/api/call-reports", requireAuth, async (req: Request, res: Response) => {
     try {
