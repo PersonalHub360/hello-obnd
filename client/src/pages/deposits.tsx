@@ -700,7 +700,9 @@ export default function Deposits() {
               </div>
             )}
             <DialogFooter>
-              <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+              <Button onClick={() => setViewDialogOpen(false)} data-testid="button-close-view">
+                Close
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -766,7 +768,7 @@ export default function Deposits() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)} data-testid="button-cancel-edit">
                 Cancel
               </Button>
               <Button
@@ -796,7 +798,7 @@ export default function Deposits() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
