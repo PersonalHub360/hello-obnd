@@ -18,6 +18,22 @@ A professional staff management web application with secure authentication and a
 - **Staff Information**: Avatar, name, role, department, email, phone, status, join date
 - **Status Badges**: Visual indicators for active/inactive staff members
 - **Color-coded Avatars**: Unique background colors with initials fallback
+- **CRUD Operations**: Create, edit, and delete staff members with dialog forms
+- **Filtering**: Filter staff by department, role, and status with dropdown selectors
+- **CSV Export**: Download staff data as CSV file with proper field quoting
+
+### Employee Detail View
+- **Detailed Profile**: Full employee information on dedicated page
+- **Navigation**: Click on staff member from dashboard to view details
+- **Actions**: Edit or delete employee directly from detail view
+- **Professional Layout**: Card-based design with organized sections
+
+### Analytics Dashboard
+- **Overview Statistics**: Total employees, active/inactive counts, recent hires, departments
+- **Department Distribution**: Interactive pie chart showing staff by department
+- **Employee Status**: Pie chart visualizing active vs inactive employees
+- **Hiring Trends**: Bar chart showing new hires over last 6 months
+- **Navigation**: Accessible via Analytics button in dashboard header
 
 ### User Interface
 - **Theme Toggle**: Light/dark mode with persistent preference
@@ -31,20 +47,27 @@ A professional staff management web application with secure authentication and a
 ### Frontend (`client/`)
 - **Pages**:
   - `login.tsx` - Authentication page
-  - `dashboard.tsx` - Staff directory and management
+  - `dashboard.tsx` - Staff directory with CRUD operations, filtering, and search
+  - `staff-detail.tsx` - Individual employee detail view
+  - `analytics.tsx` - Analytics dashboard with charts and statistics
 - **Components**:
   - `theme-provider.tsx` - Dark/light mode management
   - `theme-toggle.tsx` - Theme switch button
-  - `ui/` - Shadcn UI components (Button, Card, Input, Table, etc.)
+  - `ui/` - Shadcn UI components (Button, Card, Input, Table, Dialog, etc.)
 
 ### Backend (`server/`)
 - **Routes** (`routes.ts`):
   - `POST /api/auth/login` - User authentication
   - `POST /api/auth/logout` - Session termination
   - `GET /api/auth/session` - Check authentication status
-  - `GET /api/staff` - Retrieve all staff members (protected)
+  - `GET /api/staff` - Retrieve all staff members with optional filters (protected)
   - `GET /api/staff/:id` - Get staff member by ID (protected)
-- **Storage** (`storage.ts`): In-memory data storage with seeded sample data
+  - `POST /api/staff` - Create new staff member (protected)
+  - `PATCH /api/staff/:id` - Update staff member (protected)
+  - `DELETE /api/staff/:id` - Delete staff member (protected)
+  - `GET /api/staff/export/csv` - Export staff data as CSV (protected)
+- **Database** (`db/`): PostgreSQL with Drizzle ORM for data persistence
+- **Storage** (`storage.ts`): Database storage interface with seed data
 
 ### Shared (`shared/`)
 - **Schema** (`schema.ts`): TypeScript types and Zod validation schemas for Staff and Auth
@@ -68,8 +91,10 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Frontend**: React 18, TypeScript, Wouter (routing), TanStack Query
 - **UI Components**: Shadcn UI with Radix UI primitives
 - **Styling**: Tailwind CSS with custom design tokens
+- **Charts**: Recharts for data visualization
 - **Backend**: Express.js, TypeScript
-- **Session**: express-session with in-memory storage
+- **Database**: PostgreSQL (Neon) with Drizzle ORM
+- **Session**: express-session with PostgreSQL store
 - **Validation**: Zod schemas
 - **Icons**: Lucide React
 - **Date Formatting**: date-fns
@@ -82,12 +107,15 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
-- Fixed critical React rendering issue with authentication redirects
-- Implemented proper session error handling with useEffect
-- Added query guards to prevent unauthorized API calls
-- Fixed TypeScript type issues in storage and routes
+- **Database Migration**: Migrated from in-memory storage to PostgreSQL with Drizzle ORM
+- **CRUD Operations**: Added full create, edit, delete functionality for staff members
+- **Filtering System**: Implemented department, role, and status filters
+- **Employee Details**: Created dedicated detail view page for individual staff members
+- **CSV Export**: Added data export functionality with proper field quoting
+- **Analytics Dashboard**: Built comprehensive analytics page with Recharts visualizations
+- **Navigation**: Added Analytics button in dashboard header for easy access
+- All features tested with end-to-end Playwright tests
 - All LSP diagnostics resolved
-- End-to-end tests passing successfully
 
 ## User Preferences
 - Professional corporate aesthetic
@@ -95,12 +123,14 @@ The system includes 10 pre-seeded staff members across various departments:
 - Emphasis on data clarity and usability
 - Responsive across all device sizes
 
-## Next Steps (Future Enhancements)
-- Add CRUD operations for staff (create, edit, delete)
-- Implement employee detail view with full profile
-- Add department and role filtering
-- Export staff data to CSV
-- Employee performance metrics dashboard
-- User registration and password reset
-- Profile picture upload functionality
+## Future Enhancements (Optional)
+- User registration and multi-user authentication
+- Password reset functionality
+- Profile picture upload with image storage
 - Pagination for large staff lists
+- Advanced role-based permissions (admin vs viewer)
+- Email notifications for new hires
+- Bulk import of staff data from CSV
+- Performance reviews and ratings system
+- Time-off tracking and vacation management
+- Organizational chart visualization
