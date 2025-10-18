@@ -21,8 +21,9 @@ import {
   DollarSign,
   Percent,
   Award,
+  Calendar,
 } from "lucide-react";
-import { format, startOfDay, startOfMonth, startOfYear, isAfter, isBefore } from "date-fns";
+import { format, startOfDay, startOfMonth, startOfYear, endOfMonth, isAfter, isBefore, isWithinInterval } from "date-fns";
 
 interface PerformanceData {
   calls: CallReport[];
@@ -39,8 +40,28 @@ interface PerformanceMetrics {
   performanceStatus: "Good" | "Average" | "Bad";
 }
 
+const MONTHS = [
+  { value: "0", label: "January" },
+  { value: "1", label: "February" },
+  { value: "2", label: "March" },
+  { value: "3", label: "April" },
+  { value: "4", label: "May" },
+  { value: "5", label: "June" },
+  { value: "6", label: "July" },
+  { value: "7", label: "August" },
+  { value: "8", label: "September" },
+  { value: "9", label: "October" },
+  { value: "10", label: "November" },
+  { value: "11", label: "December" },
+];
+
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
 export default function PerformanceCheck() {
   const [selectedStaff, setSelectedStaff] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
+  const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [, setLocation] = useLocation();
 
   const { data: session, isLoading: sessionLoading, isError: sessionError } = useQuery<SessionData>({
@@ -250,13 +271,22 @@ export default function PerformanceCheck() {
       )
     : null;
 
-  const monthlyMetrics = performanceData
-    ? calculateMetrics(
-        performanceData.calls,
-        performanceData.deposits,
-        (date) => isAfter(date, startOfMonth(new Date())) || date.getTime() === startOfMonth(new Date()).getTime()
-      )
-    : null;
+  const getMonthMetrics = () => {
+    if (!performanceData) return null;
+    
+    const year = parseInt(selectedYear);
+    const month = parseInt(selectedMonth);
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = endOfMonth(monthStart);
+
+    return calculateMetrics(
+      performanceData.calls,
+      performanceData.deposits,
+      (date) => isWithinInterval(date, { start: monthStart, end: monthEnd })
+    );
+  };
+
+  const monthMetrics = getMonthMetrics();
 
   const yearlyMetrics = performanceData
     ? calculateMetrics(
@@ -265,6 +295,8 @@ export default function PerformanceCheck() {
         (date) => isAfter(date, startOfYear(new Date())) || date.getTime() === startOfYear(new Date()).getTime()
       )
     : null;
+
+  const selectedMonthName = MONTHS.find(m => m.value === selectedMonth)?.label || "Month";
 
   return (
     <div className="flex-1 overflow-auto">
@@ -318,11 +350,11 @@ export default function PerformanceCheck() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
                 <p className="text-muted-foreground mt-4">Loading performance data...</p>
               </div>
-            ) : performanceData && (dailyMetrics && monthlyMetrics && yearlyMetrics) ? (
+            ) : performanceData && (dailyMetrics && monthMetrics && yearlyMetrics) ? (
               <Tabs defaultValue="daily" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="daily" data-testid="tab-daily">Daily</TabsTrigger>
-                  <TabsTrigger value="monthly" data-testid="tab-monthly">Monthly</TabsTrigger>
+                  <TabsTrigger value="monthly" data-testid="tab-monthly">By Month</TabsTrigger>
                   <TabsTrigger value="yearly" data-testid="tab-yearly">Yearly</TabsTrigger>
                 </TabsList>
 
@@ -330,22 +362,65 @@ export default function PerformanceCheck() {
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp className="h-5 w-5 text-primary" />
                     <h3 className="text-lg font-semibold">Today's Performance</h3>
+                    <span className="text-sm text-muted-foreground">
+                      {format(new Date(), 'MMMM dd, yyyy')}
+                    </span>
                   </div>
                   {renderMetricsCards(dailyMetrics)}
                 </TabsContent>
 
                 <TabsContent value="monthly" className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">This Month's Performance</h3>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="flex-1">
+                        <label className="text-sm font-medium mb-2 block">Select Month</label>
+                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                          <SelectTrigger data-testid="select-month">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {MONTHS.map((month) => (
+                              <SelectItem key={month.value} value={month.value}>
+                                {month.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-sm font-medium mb-2 block">Select Year</label>
+                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                          <SelectTrigger data-testid="select-year">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {YEARS.map((year) => (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      <h3 className="text-lg font-semibold">
+                        {selectedMonthName} {selectedYear} Performance
+                      </h3>
+                    </div>
+                    {renderMetricsCards(monthMetrics)}
                   </div>
-                  {renderMetricsCards(monthlyMetrics)}
                 </TabsContent>
 
                 <TabsContent value="yearly" className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp className="h-5 w-5 text-primary" />
                     <h3 className="text-lg font-semibold">This Year's Performance</h3>
+                    <span className="text-sm text-muted-foreground">
+                      {currentYear}
+                    </span>
                   </div>
                   {renderMetricsCards(yearlyMetrics)}
                 </TabsContent>
