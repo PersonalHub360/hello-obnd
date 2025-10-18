@@ -63,38 +63,56 @@
 
 ### D. Component Library
 
-**Login Page Components:**
-1. **Login Card**
+**Login Page Components (Glass Effect Design):**
+1. **Background**
+   - Animated gradient overlay with multiple layers
+   - Floating orbs with blur effects for depth
+   - Gradient colors: Primary blue, purple, pink, cyan, teal
+   - Animated pulse effects for dynamic feel
+
+2. **Glass Card**
    - Centered vertically and horizontally
-   - White/dark surface with subtle shadow (shadow-lg)
-   - Rounded corners (rounded-xl)
-   - Padding: p-8 to p-12
+   - Semi-transparent background with backdrop blur (backdrop-blur-xl)
+   - Background: bg-white/40 (light) or bg-gray-900/40 (dark)
+   - Border: border-white/20 (light) or border-gray-700/30 (dark)
+   - Rounded corners: rounded-2xl
+   - Shadow: shadow-2xl for elevation
+   - Padding: p-8
    - Max width: max-w-md
+   - Glow effect underneath card
 
-2. **Logo/Branding**
-   - Top of card or separate above
-   - Company name: "AuroraMY" in primary color
-   - Subtitle: "Staff Management System" in text-secondary
+3. **Logo/Branding**
+   - Gradient logo container (h-16 w-16)
+   - Background: gradient from primary to primary/80
+   - Rounded: rounded-2xl with shadow
+   - Company name: Gradient text (primary → purple → pink)
+   - Text effect: bg-gradient-to-r with bg-clip-text
+   - Subtitle: "Staff Management System" with reduced opacity
 
-3. **Input Fields**
-   - Email field with type="email"
-   - Password field with toggle visibility icon
-   - Label above input (text-sm font-medium)
-   - Full width inputs with border focus:ring-2 ring-primary
+4. **Input Fields**
+   - Email and password fields with glass effect
+   - Background: bg-white/50 (light) or bg-gray-800/50 (dark)
+   - Backdrop blur on inputs for consistency
+   - Border: border-white/30 (light) or border-gray-700/50 (dark)
+   - Focus state: border-primary/50 with ring-primary/20
+   - Password toggle icon in absolute position
+   - Height: h-12 (48px for better touch targets)
    - Placeholder text in text-secondary
-   - Height: h-11 (44px for touch targets)
 
-4. **Login Button**
+5. **Login Button**
    - Full width (w-full)
-   - Primary color background
-   - Height: h-11
-   - Rounded: rounded-lg
-   - Font: font-medium
-   - Hover state with brightness adjustment
+   - Gradient background: from-primary to-primary/90
+   - Height: h-12
+   - Font: font-semibold
+   - Shadow: shadow-lg with shadow-xl on hover
+   - Smooth transitions for all states
+   - Loading state with "Signing in..." text
 
-5. **Helper Links**
+6. **Helper Links**
    - "Forgot password?" link (text-sm text-primary)
-   - Positioned below password field or button
+   - Font: font-medium
+   - Hover state with reduced opacity
+   - Positioned below form with top margin
 
 **Dashboard Components:**
 1. **Top Navigation Bar**
