@@ -81,8 +81,8 @@ export default function PerformanceCheck() {
     const totalFTD = uniqueDepositors.size;
     const totalDeposits = filteredDeposits.length;
 
-    const conversionRatio = totalFTD + totalDeposits > 0
-      ? (successfulCalls / (totalFTD + totalDeposits)) * 100
+    const conversionRatio = totalCalls > 0
+      ? (successfulCalls / totalCalls) * 100
       : 0;
 
     let performanceStatus: "Good" | "Average" | "Bad" = "Bad";

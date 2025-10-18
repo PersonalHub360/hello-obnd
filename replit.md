@@ -176,6 +176,7 @@ The system includes 10 pre-seeded staff members across various departments:
 - **Animations**: Smooth transitions for hover/focus states
 
 ## Recent Changes
+- **Staff Performance Check**: Added new performance tracking feature with daily/monthly/yearly metrics, conversion ratio calculation, and color-coded status indicators (Good/Average/Bad)
 - **Staff Directory Excel Import**: Added bulk upload feature for staff members from Excel files (.xlsx or .xls) with sample template download
 - **Deposit Excel Features**: Added sample template download and Excel update import (matches by reference number) with validation
 - **Dashboard Enhancements**: Added date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, All Time) and comprehensive business metrics
