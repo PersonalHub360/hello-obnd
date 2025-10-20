@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertStaffSchema, type InsertStaff, type Staff } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
+import { insertStaffSchema, type InsertStaff, type Staff, type Role, type Department } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,14 @@ export function StaffFormDialog({
   onSubmit,
   isPending,
 }: StaffFormDialogProps) {
+  const { data: roles = [] } = useQuery<Role[]>({
+    queryKey: ["/api/roles"],
+  });
+
+  const { data: departments = [] } = useQuery<Department[]>({
+    queryKey: ["/api/departments"],
+  });
+
   const form = useForm<InsertStaff>({
     resolver: zodResolver(insertStaffSchema),
     defaultValues: staff
@@ -50,6 +59,8 @@ export function StaffFormDialog({
           name: staff.name,
           email: staff.email,
           position: staff.position,
+          role: staff.role || undefined,
+          department: staff.department || undefined,
           country: staff.country,
           status: staff.status,
           joinDate: staff.joinDate ? new Date(staff.joinDate).toISOString().split('T')[0] : undefined,
@@ -59,6 +70,8 @@ export function StaffFormDialog({
           name: "",
           email: "",
           position: "",
+          role: undefined,
+          department: undefined,
           country: "",
           status: "active",
           joinDate: undefined,
@@ -170,6 +183,64 @@ export function StaffFormDialog({
                         data-testid="input-country"
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger data-testid="select-role">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {roles.map((role) => (
+                          <SelectItem key={role.id} value={role.name}>
+                            {role.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger data-testid="select-department">
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.name}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
