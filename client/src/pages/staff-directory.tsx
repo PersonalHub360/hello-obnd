@@ -55,8 +55,8 @@ import { DeleteStaffDialog } from "@/components/delete-staff-dialog";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [positionFilter, setPositionFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -223,26 +223,26 @@ export default function Dashboard() {
       staff.position.toLowerCase().includes(searchLower) ||
       staff.country.toLowerCase().includes(searchLower);
 
-    const matchesDepartment =
-      departmentFilter === "all" || staff.country === departmentFilter;
-    const matchesRole = roleFilter === "all" || staff.position === roleFilter;
+    const matchesCountry =
+      countryFilter === "all" || staff.country === countryFilter;
+    const matchesPosition = positionFilter === "all" || staff.position === positionFilter;
     const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
 
-    return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
+    return matchesSearch && matchesCountry && matchesPosition && matchesStatus;
   });
 
-  const departments = Array.from(new Set(staffList.map((s) => s.country))).sort();
-  const roles = Array.from(new Set(staffList.map((s) => s.position))).sort();
+  const countries = Array.from(new Set(staffList.map((s) => s.country))).sort();
+  const positions = Array.from(new Set(staffList.map((s) => s.position))).sort();
 
   const activeFiltersCount = [
-    departmentFilter !== "all",
-    roleFilter !== "all",
+    countryFilter !== "all",
+    positionFilter !== "all",
     statusFilter !== "all",
   ].filter(Boolean).length;
 
   const handleClearFilters = () => {
-    setDepartmentFilter("all");
-    setRoleFilter("all");
+    setCountryFilter("all");
+    setPositionFilter("all");
     setStatusFilter("all");
   };
 
@@ -442,31 +442,31 @@ export default function Dashboard() {
           </div>
 
           <Select
-            value={departmentFilter}
-            onValueChange={setDepartmentFilter}
+            value={countryFilter}
+            onValueChange={setCountryFilter}
           >
-            <SelectTrigger className="w-[180px]" data-testid="select-department-filter">
-              <SelectValue placeholder="Department" />
+            <SelectTrigger className="w-[180px]" data-testid="select-country-filter">
+              <SelectValue placeholder="Country" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              {departments.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
+              <SelectItem value="all">All Countries</SelectItem>
+              {countries.map((country) => (
+                <SelectItem key={country} value={country}>
+                  {country}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[180px]" data-testid="select-role-filter">
-              <SelectValue placeholder="Role" />
+          <Select value={positionFilter} onValueChange={setPositionFilter}>
+            <SelectTrigger className="w-[180px]" data-testid="select-position-filter">
+              <SelectValue placeholder="Position" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              {roles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
+              <SelectItem value="all">All Positions</SelectItem>
+              {positions.map((position) => (
+                <SelectItem key={position} value={position}>
+                  {position}
                 </SelectItem>
               ))}
             </SelectContent>
