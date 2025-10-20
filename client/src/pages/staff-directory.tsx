@@ -55,8 +55,8 @@ import { DeleteStaffDialog } from "@/components/delete-staff-dialog";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [countryFilter, setCountryFilter] = useState<string>("all");
-  const [positionFilter, setPositionFilter] = useState<string>("all");
+  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -223,26 +223,26 @@ export default function Dashboard() {
       staff.position.toLowerCase().includes(searchLower) ||
       staff.country.toLowerCase().includes(searchLower);
 
-    const matchesCountry =
-      countryFilter === "all" || staff.country === countryFilter;
-    const matchesPosition = positionFilter === "all" || staff.position === positionFilter;
+    const matchesDepartment =
+      departmentFilter === "all" || staff.country === departmentFilter;
+    const matchesRole = roleFilter === "all" || staff.position === roleFilter;
     const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
 
-    return matchesSearch && matchesCountry && matchesPosition && matchesStatus;
+    return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
   });
 
-  const countries = Array.from(new Set(staffList.map((s) => s.country))).sort();
-  const positions = Array.from(new Set(staffList.map((s) => s.position))).sort();
+  const departments = Array.from(new Set(staffList.map((s) => s.country))).sort();
+  const roles = Array.from(new Set(staffList.map((s) => s.position))).sort();
 
   const activeFiltersCount = [
-    countryFilter !== "all",
-    positionFilter !== "all",
+    departmentFilter !== "all",
+    roleFilter !== "all",
     statusFilter !== "all",
   ].filter(Boolean).length;
 
   const handleClearFilters = () => {
-    setCountryFilter("all");
-    setPositionFilter("all");
+    setDepartmentFilter("all");
+    setRoleFilter("all");
     setStatusFilter("all");
   };
 
@@ -442,31 +442,31 @@ export default function Dashboard() {
           </div>
 
           <Select
-            value={countryFilter}
-            onValueChange={setCountryFilter}
+            value={departmentFilter}
+            onValueChange={setDepartmentFilter}
           >
-            <SelectTrigger className="w-[180px]" data-testid="select-country-filter">
-              <SelectValue placeholder="Country" />
+            <SelectTrigger className="w-[180px]" data-testid="select-department-filter">
+              <SelectValue placeholder="Department" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Countries</SelectItem>
-              {countries.map((country) => (
-                <SelectItem key={country} value={country}>
-                  {country}
+              <SelectItem value="all">All Departments</SelectItem>
+              {departments.map((dept) => (
+                <SelectItem key={dept} value={dept}>
+                  {dept}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
-          <Select value={positionFilter} onValueChange={setPositionFilter}>
-            <SelectTrigger className="w-[180px]" data-testid="select-position-filter">
-              <SelectValue placeholder="Position" />
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[180px]" data-testid="select-role-filter">
+              <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Positions</SelectItem>
-              {positions.map((position) => (
-                <SelectItem key={position} value={position}>
-                  {position}
+              <SelectItem value="all">All Roles</SelectItem>
+              {roles.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
                 </SelectItem>
               ))}
             </SelectContent>

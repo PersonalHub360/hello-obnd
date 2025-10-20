@@ -36,10 +36,10 @@ The application is built as a full-stack web application using a React, Express,
 - **Authentication System:** Secure login, session management with role-based access control, protected routes, and logout. Sessions are stored in PostgreSQL for persistence and security.
 - **Navigation:** Collapsible sidebar with main sections: Dashboard, Deposit Section, Call Reports, Staff Directory, Staff Performance Check, Analytics, and Settings.
 - **Dashboard:** Provides an overview with date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, By Month, All Time), dynamic month selection, and key business metrics (Total Calls, Total Deposit, Total FTD, Successful Calls, Conversion Rate). Includes quick access cards and action buttons.
-- **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (position, country, status), Excel import/export, and responsive table/card views. Includes a detailed employee profile view. Staff fields include: Employee ID, Name, Email, Position, Country, Status, and Joining Date.
+- **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (department, role, status), Excel import/export, and responsive table/card views. Includes a detailed employee profile view.
 - **Deposit Section:** Manages financial deposits with statistics, new deposit forms, Excel import/update, and auto-generated reference numbers.
 - **Call Reports:** Tracks customer call activities with logging forms (user name, agent, phone, status, duration, type, remarks), statistics, and Excel import.
-- **Analytics Dashboard:** Visualizes key HR and operational data with charts for country distribution, employee status, and hiring trends.
+- **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
 - **Settings Section:** Multi-section settings page including:
   - **Interface:** Theme selection (Light/Dark), UI preferences (compact mode, animations, sidebar collapse)
   - **Notifications:** Email, push, and sound notification preferences
