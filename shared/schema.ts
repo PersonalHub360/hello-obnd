@@ -68,18 +68,18 @@ export interface SessionData {
 // Deposits table
 export const deposits = pgTable("deposits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  date: timestamp("date").notNull().defaultNow(),
-  amount: text("amount").notNull(),
+  staffName: text("staff_name").notNull(),
   type: text("type").notNull(),
-  status: text("status").notNull().default("pending"),
-  reference: text("reference").notNull(),
-  depositor: text("depositor").notNull(),
+  date: timestamp("date").notNull().defaultNow(),
 });
 
 export const insertDepositSchema = createInsertSchema(deposits).omit({
   id: true,
 }).extend({
-  amount: z.string().min(1, "Amount is required"),
+  staffName: z.string().min(1, "Staff name is required"),
+  type: z.enum(["FTD", "Deposit"], {
+    errorMap: () => ({ message: "Type must be either FTD or Deposit" }),
+  }),
   date: z.string().optional(),
 });
 
