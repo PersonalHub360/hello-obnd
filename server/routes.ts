@@ -1,9 +1,11 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
+import { pool } from "./db";
 import { loginSchema, insertDepositSchema, insertCallReportSchema, type SessionData as UserSessionData } from "@shared/schema";
 
 declare module "express-session" {
@@ -15,8 +17,16 @@ declare module "express-session" {
 export async function registerRoutes(app: Express): Promise<Server> {
   const sessionSecret = process.env.SESSION_SECRET || "aurora-my-secret-key-change-in-production";
   
+  // Set up PostgreSQL session store for persistence
+  const PgSession = connectPgSimple(session);
+  
   app.use(
     session({
+      store: new PgSession({
+        pool: pool, // Use the same database connection pool
+        tableName: 'session', // Table name for storing sessions
+        createTableIfMissing: true, // Automatically create the session table
+      }),
       secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
