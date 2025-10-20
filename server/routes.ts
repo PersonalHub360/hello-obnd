@@ -6,7 +6,7 @@ import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
 import { pool } from "./db";
-import { loginSchema, insertDepositSchema, insertCallReportSchema, updateAuthUserSchema, type SessionData as UserSessionData } from "@shared/schema";
+import { loginSchema, insertDepositSchema, insertCallReportSchema, updateAuthUserSchema, insertAuthUserSchema, type SessionData as UserSessionData } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -168,6 +168,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/users", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Validate request body
+      const result = insertAuthUserSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid input",
+          errors: result.error.errors 
+        });
+      }
+
+      const newUser = await storage.createAuthUser(result.data);
+      
+      // Don't send password to frontend
+      const { password, ...user } = newUser;
+      res.status(201).json(user);
+    } catch (error: any) {
+      console.error("Create user error:", error);
+      if (error.message?.includes("duplicate key") || error.message?.includes("unique constraint")) {
+        res.status(400).json({ message: "Email address already exists" });
+      } else {
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+  });
+
   app.patch("/api/users/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
       // Validate request body
@@ -192,6 +219,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error) {
       console.error("Update user error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/users/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const deleted = await storage.deleteAuthUser(req.params.id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Delete user error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
