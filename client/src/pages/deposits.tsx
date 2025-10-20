@@ -40,7 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, Calendar, CheckCircle, Clock, XCircle, Upload, Download, RefreshCw, Eye, Edit, Trash2 } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -49,21 +49,19 @@ export default function Deposits() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const updateFileInputRef = useRef<HTMLInputElement>(null);
 
-  const [amount, setAmount] = useState("");
+  const [staffName, setStaffName] = useState("");
   const [type, setType] = useState("");
-  const [depositor, setDepositor] = useState("");
+  const [date, setDate] = useState("");
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
 
-  const [editAmount, setEditAmount] = useState("");
+  const [editStaffName, setEditStaffName] = useState("");
   const [editType, setEditType] = useState("");
-  const [editDepositor, setEditDepositor] = useState("");
-  const [editStatus, setEditStatus] = useState("");
+  const [editDate, setEditDate] = useState("");
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -82,7 +80,7 @@ export default function Deposits() {
   }, [session, sessionLoading, setLocation]);
 
   const createDepositMutation = useMutation({
-    mutationFn: async (data: { amount: string; type: string; depositor: string; reference: string; status: string }) => {
+    mutationFn: async (data: { staffName: string; type: string; date?: string }) => {
       return await apiRequest("POST", "/api/deposits", data);
     },
     onSuccess: () => {
@@ -91,9 +89,9 @@ export default function Deposits() {
         title: "Success",
         description: "Deposit created successfully",
       });
-      setAmount("");
+      setStaffName("");
       setType("");
-      setDepositor("");
+      setDate("");
     },
     onError: () => {
       toast({
@@ -144,64 +142,29 @@ export default function Deposits() {
     },
   });
 
-  const updateImportMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/deposits/import/excel/update", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to update from Excel file");
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
-      toast({
-        title: "Success",
-        description: data.message || "Deposits updated successfully",
-      });
-      if (updateFileInputRef.current) {
-        updateFileInputRef.current.value = "";
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update from Excel file",
-        variant: "destructive",
-      });
-      if (updateFileInputRef.current) {
-        updateFileInputRef.current.value = "";
-      }
-    },
-  });
-
   const handleCreateDeposit = () => {
-    if (!amount || !type || !depositor) {
+    if (!staffName || !type) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in Staff Name and Type",
         variant: "destructive",
       });
       return;
     }
 
-    const reference = `REF-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-    
+    if (type !== "FTD" && type !== "Deposit") {
+      toast({
+        title: "Error",
+        description: "Type must be either FTD or Deposit",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createDepositMutation.mutate({
-      amount,
+      staffName,
       type,
-      depositor,
-      reference,
-      status: "pending",
+      date: date || undefined,
     });
   };
 
@@ -223,26 +186,8 @@ export default function Deposits() {
     }
   };
 
-  const handleUpdateFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-        toast({
-          title: "Error",
-          description: "Please upload an Excel file (.xlsx or .xls)",
-          variant: "destructive",
-        });
-        if (updateFileInputRef.current) {
-          updateFileInputRef.current.value = "";
-        }
-        return;
-      }
-      updateImportMutation.mutate(file);
-    }
-  };
-
   const updateDepositMutation = useMutation({
-    mutationFn: async (data: { id: string; amount: string; type: string; depositor: string; status: string }) => {
+    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string }) => {
       const { id, ...updateData } = data;
       return await apiRequest("PATCH", `/api/deposits/${id}`, updateData);
     },
@@ -293,25 +238,28 @@ export default function Deposits() {
 
   const handleEditDeposit = (deposit: Deposit) => {
     setSelectedDeposit(deposit);
-    setEditAmount(deposit.amount);
+    setEditStaffName(deposit.staffName);
     setEditType(deposit.type);
-    setEditDepositor(deposit.depositor);
-    setEditStatus(deposit.status);
+    setEditDate(deposit.date ? format(new Date(deposit.date), "yyyy-MM-dd") : "");
     setEditDialogOpen(true);
   };
 
-  const handleDeleteDeposit = (deposit: Deposit) => {
-    setSelectedDeposit(deposit);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmEdit = () => {
+  const handleUpdateDeposit = () => {
     if (!selectedDeposit) return;
-    
-    if (!editAmount || !editType || !editDepositor || !editStatus) {
+
+    if (!editStaffName || !editType) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in Staff Name and Type",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editType !== "FTD" && editType !== "Deposit") {
+      toast({
+        title: "Error",
+        description: "Type must be either FTD or Deposit",
         variant: "destructive",
       });
       return;
@@ -319,19 +267,24 @@ export default function Deposits() {
 
     updateDepositMutation.mutate({
       id: selectedDeposit.id,
-      amount: editAmount,
+      staffName: editStaffName,
       type: editType,
-      depositor: editDepositor,
-      status: editStatus,
+      date: editDate || undefined,
     });
   };
 
-  const handleConfirmDelete = () => {
-    if (!selectedDeposit) return;
-    deleteDepositMutation.mutate(selectedDeposit.id);
+  const handleDeleteDeposit = (deposit: Deposit) => {
+    setSelectedDeposit(deposit);
+    setDeleteDialogOpen(true);
   };
 
-  const handleDownloadSample = async () => {
+  const confirmDelete = () => {
+    if (selectedDeposit) {
+      deleteDepositMutation.mutate(selectedDeposit.id);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
     try {
       const response = await fetch("/api/deposits/sample/template", {
         method: "GET",
@@ -339,7 +292,7 @@ export default function Deposits() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to download sample template");
+        throw new Error("Failed to download template");
       }
 
       const blob = await response.blob();
@@ -354,44 +307,27 @@ export default function Deposits() {
 
       toast({
         title: "Success",
-        description: "Sample template downloaded successfully",
+        description: "Template downloaded successfully",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to download sample template",
+        description: "Failed to download template",
         variant: "destructive",
       });
     }
   };
 
   const totalDeposits = deposits.length;
-  const pendingDeposits = deposits.filter((d) => d.status === "pending").length;
-  const completedToday = deposits.filter(
-    (d) =>
-      d.status === "completed" &&
-      new Date(d.date).toDateString() === new Date().toDateString()
-  ).length;
+  const ftdCount = deposits.filter(d => d.type === "FTD").length;
+  const depositCount = deposits.filter(d => d.type === "Deposit").length;
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "pending":
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-      case "cancelled":
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      default:
-        return null;
-    }
-  };
-
-  if (sessionLoading || depositsLoading) {
+  if (sessionLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center space-y-4">
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -402,217 +338,197 @@ export default function Deposits() {
   }
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="container mx-auto p-4 md:p-8 space-y-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Deposit Section</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage and track all financial deposits
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleDownloadSample}
-              data-testid="button-download-sample"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download Sample
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileChange}
-              className="hidden"
-              data-testid="input-excel-file"
-            />
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importExcelMutation.isPending}
-              data-testid="button-import-excel"
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {importExcelMutation.isPending ? "Importing..." : "Import Excel"}
-            </Button>
-            <input
-              ref={updateFileInputRef}
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleUpdateFileChange}
-              className="hidden"
-              data-testid="input-update-excel-file"
-            />
-            <Button
-              variant="outline"
-              onClick={() => updateFileInputRef.current?.click()}
-              disabled={updateImportMutation.isPending}
-              data-testid="button-update-import"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              {updateImportMutation.isPending ? "Updating..." : "Update Import"}
-            </Button>
-          </div>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold" data-testid="text-deposits-title">Deposit Section</h1>
+          <p className="text-muted-foreground">Manage and track deposits</p>
         </div>
+      </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Deposits</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="text-total-deposits">
-                {totalDeposits}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                All transactions
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600" data-testid="text-pending-deposits">
-                {pendingDeposits}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Awaiting confirmation
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600" data-testid="text-completed-today">
-                {completedToday}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Processed successfully
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>New Deposit</CardTitle>
-            <CardDescription>Record a new deposit transaction</CardDescription>
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card data-testid="card-total-deposits">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Deposits</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  data-testid="input-deposit-amount"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={type} onValueChange={setType}>
-                  <SelectTrigger id="type" data-testid="select-deposit-type">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Check">Check</SelectItem>
-                    <SelectItem value="Wire Transfer">Wire Transfer</SelectItem>
-                    <SelectItem value="ACH">ACH</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="depositor">Depositor</Label>
-                <Input
-                  id="depositor"
-                  placeholder="Name"
-                  value={depositor}
-                  onChange={(e) => setDepositor(e.target.value)}
-                  data-testid="input-depositor"
-                />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  className="w-full"
-                  onClick={handleCreateDeposit}
-                  disabled={createDepositMutation.isPending}
-                  data-testid="button-add-deposit"
-                >
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  {createDepositMutation.isPending ? "Adding..." : "Add Deposit"}
-                </Button>
-              </div>
-            </div>
+            <div className="text-2xl font-bold" data-testid="text-total-deposits">{totalDeposits}</div>
+            <p className="text-xs text-muted-foreground">All deposit records</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Deposits</CardTitle>
-            <CardDescription>View and manage deposit transactions</CardDescription>
+        <Card data-testid="card-ftd-count">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">FTD</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {deposits.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No deposits found. Add a deposit or import from Excel.
+            <div className="text-2xl font-bold" data-testid="text-ftd-count">{ftdCount}</div>
+            <p className="text-xs text-muted-foreground">First Time Deposits</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-deposit-count">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Deposits</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-deposit-count">{depositCount}</div>
+            <p className="text-xs text-muted-foreground">Regular deposits</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card data-testid="card-new-deposit">
+          <CardHeader>
+            <CardTitle>New Deposit</CardTitle>
+            <CardDescription>Add a new deposit record</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="staffName">Staff Name</Label>
+              <Input
+                id="staffName"
+                data-testid="input-staff-name"
+                placeholder="Enter staff name"
+                value={staffName}
+                onChange={(e) => setStaffName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger id="type" data-testid="select-type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FTD" data-testid="select-item-ftd">FTD</SelectItem>
+                  <SelectItem value="Deposit" data-testid="select-item-deposit">Deposit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="date">Date (Optional)</Label>
+              <Input
+                id="date"
+                data-testid="input-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
+
+            <Button 
+              onClick={handleCreateDeposit} 
+              className="w-full"
+              disabled={createDepositMutation.isPending}
+              data-testid="button-create-deposit"
+            >
+              {createDepositMutation.isPending ? "Creating..." : "Create Deposit"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-import-export">
+          <CardHeader>
+            <CardTitle>Import & Export</CardTitle>
+            <CardDescription>Manage deposits in bulk</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Import from Excel</Label>
+              <div className="flex gap-2">
+                <Input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileChange}
+                  disabled={importExcelMutation.isPending}
+                  data-testid="input-import-file"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={importExcelMutation.isPending}
+                  data-testid="button-trigger-import"
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
               </div>
-            ) : (
+              <p className="text-xs text-muted-foreground">
+                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), and Date columns
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Download Sample Template</Label>
+              <Button
+                variant="outline"
+                onClick={handleDownloadTemplate}
+                className="w-full"
+                data-testid="button-download-template"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Template
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card data-testid="card-deposits-list">
+        <CardHeader>
+          <CardTitle>Deposits List</CardTitle>
+          <CardDescription>View and manage all deposit records</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {depositsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Loading deposits...</p>
+              </div>
+            </div>
+          ) : deposits.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No deposits found</p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Depositor</TableHead>
+                    <TableHead>Staff Name</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {deposits.map((deposit) => (
                     <TableRow key={deposit.id} data-testid={`row-deposit-${deposit.id}`}>
-                      <TableCell>{format(new Date(deposit.date), "MMM d, yyyy")}</TableCell>
-                      <TableCell>{deposit.depositor}</TableCell>
-                      <TableCell>{deposit.type}</TableCell>
-                      <TableCell className="font-semibold">
-                        ${parseFloat(deposit.amount).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
-                        {deposit.reference}
+                      <TableCell className="font-medium" data-testid={`text-staff-name-${deposit.id}`}>
+                        {deposit.staffName}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={
-                            deposit.status === "completed"
-                              ? "default"
-                              : deposit.status === "pending"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                          className="gap-1"
+                        <Badge 
+                          variant={deposit.type === "FTD" ? "default" : "secondary"}
+                          data-testid={`badge-type-${deposit.id}`}
                         >
-                          {getStatusIcon(deposit.status)}
-                          {deposit.status}
+                          {deposit.type}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
+                      <TableCell data-testid={`text-date-${deposit.id}`}>
+                        {format(new Date(deposit.date), "MMM dd, yyyy")}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -635,7 +551,7 @@ export default function Deposits() {
                             onClick={() => handleDeleteDeposit(deposit)}
                             data-testid={`button-delete-${deposit.id}`}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -643,173 +559,123 @@ export default function Deposits() {
                   ))}
                 </TableBody>
               </Table>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Deposit Details</DialogTitle>
-              <DialogDescription>View complete deposit information</DialogDescription>
-            </DialogHeader>
-            {selectedDeposit && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-muted-foreground">Reference</Label>
-                    <p className="font-mono text-sm">{selectedDeposit.reference}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Date</Label>
-                    <p className="font-medium">{format(new Date(selectedDeposit.date), "MMMM d, yyyy")}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Depositor</Label>
-                    <p className="font-medium">{selectedDeposit.depositor}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Type</Label>
-                    <p className="font-medium">{selectedDeposit.type}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Amount</Label>
-                    <p className="text-2xl font-bold text-green-600">
-                      ${parseFloat(selectedDeposit.amount).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Status</Label>
-                    <div className="mt-1">
-                      <Badge
-                        variant={
-                          selectedDeposit.status === "completed"
-                            ? "default"
-                            : selectedDeposit.status === "pending"
-                            ? "secondary"
-                            : "destructive"
-                        }
-                        className="gap-1"
-                      >
-                        {getStatusIcon(selectedDeposit.status)}
-                        {selectedDeposit.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent data-testid="dialog-view-deposit">
+          <DialogHeader>
+            <DialogTitle>Deposit Details</DialogTitle>
+            <DialogDescription>View deposit information</DialogDescription>
+          </DialogHeader>
+          {selectedDeposit && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-muted-foreground">Staff Name</Label>
+                <p className="font-medium" data-testid="text-view-staff-name">{selectedDeposit.staffName}</p>
               </div>
-            )}
-            <DialogFooter>
-              <Button onClick={() => setViewDialogOpen(false)} data-testid="button-close-view">
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Deposit</DialogTitle>
-              <DialogDescription>Update deposit information</DialogDescription>
-            </DialogHeader>
-            {selectedDeposit && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-amount">Amount</Label>
-                  <Input
-                    id="edit-amount"
-                    type="number"
-                    value={editAmount}
-                    onChange={(e) => setEditAmount(e.target.value)}
-                    data-testid="input-edit-amount"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-type">Type</Label>
-                  <Select value={editType} onValueChange={setEditType}>
-                    <SelectTrigger id="edit-type" data-testid="select-edit-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Check">Check</SelectItem>
-                      <SelectItem value="Wire Transfer">Wire Transfer</SelectItem>
-                      <SelectItem value="ACH">ACH</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-depositor">Depositor</Label>
-                  <Input
-                    id="edit-depositor"
-                    value={editDepositor}
-                    onChange={(e) => setEditDepositor(e.target.value)}
-                    data-testid="input-edit-depositor"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-status">Status</Label>
-                  <Select value={editStatus} onValueChange={setEditStatus}>
-                    <SelectTrigger id="edit-status" data-testid="select-edit-status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="bg-muted p-3 rounded-md">
-                  <Label className="text-muted-foreground">Reference</Label>
-                  <p className="font-mono text-sm">{selectedDeposit.reference}</p>
-                </div>
+              <div>
+                <Label className="text-muted-foreground">Type</Label>
+                <p className="font-medium" data-testid="text-view-type">{selectedDeposit.type}</p>
               </div>
-            )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)} data-testid="button-cancel-edit">
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConfirmEdit}
-                disabled={updateDepositMutation.isPending}
-                data-testid="button-confirm-edit"
-              >
-                {updateDepositMutation.isPending ? "Updating..." : "Update Deposit"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <div>
+                <Label className="text-muted-foreground">Date</Label>
+                <p className="font-medium" data-testid="text-view-date">
+                  {format(new Date(selectedDeposit.date), "MMMM dd, yyyy")}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setViewDialogOpen(false)} data-testid="button-close-view">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Deposit</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this deposit? This action cannot be undone.
-                {selectedDeposit && (
-                  <div className="mt-4 p-3 bg-muted rounded-md">
-                    <p className="font-semibold">{selectedDeposit.depositor}</p>
-                    <p className="text-sm">Amount: ${parseFloat(selectedDeposit.amount).toLocaleString()}</p>
-                    <p className="text-sm font-mono">Ref: {selectedDeposit.reference}</p>
-                  </div>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleConfirmDelete}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                data-testid="button-confirm-delete"
-              >
-                {deleteDepositMutation.isPending ? "Deleting..." : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </div>
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent data-testid="dialog-edit-deposit">
+          <DialogHeader>
+            <DialogTitle>Edit Deposit</DialogTitle>
+            <DialogDescription>Update deposit information</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-staffName">Staff Name</Label>
+              <Input
+                id="edit-staffName"
+                data-testid="input-edit-staff-name"
+                value={editStaffName}
+                onChange={(e) => setEditStaffName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-type">Type</Label>
+              <Select value={editType} onValueChange={setEditType}>
+                <SelectTrigger id="edit-type" data-testid="select-edit-type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FTD" data-testid="select-edit-item-ftd">FTD</SelectItem>
+                  <SelectItem value="Deposit" data-testid="select-edit-item-deposit">Deposit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-date">Date</Label>
+              <Input
+                id="edit-date"
+                data-testid="input-edit-date"
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              data-testid="button-cancel-edit"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateDeposit}
+              disabled={updateDepositMutation.isPending}
+              data-testid="button-update-deposit"
+            >
+              {updateDepositMutation.isPending ? "Updating..." : "Update"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent data-testid="dialog-delete-deposit">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the deposit record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleteDepositMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteDepositMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
