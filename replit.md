@@ -17,7 +17,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Typography:** Inter (sans-serif) for general text and JetBrains Mono for monospace.
 - **Responsiveness:** Layouts are fully responsive, adapting to desktop, tablet, and mobile screens.
 - **Interactive Elements:** Features a collapsible sidebar navigation with a stunning blue-to-purple gradient background, floating blur orbs, glassmorphism effects, and glowing active states. The login page also incorporates a glassmorphism design with animated backgrounds.
-- **Theming:** Supports light/dark mode with persistent user preference. The gradient sidebar maintains consistent appearance across both themes.
+- **Theming:** Supports 5 theme options (Light, Dark, Blue, Green, Purple) with persistent user preference stored in localStorage. Each theme provides a complete color scheme with carefully designed contrast and readability. The gradient sidebar maintains consistent appearance across all themes.
 - **User Feedback:** Includes loading states and toast notifications for error handling and user feedback.
 
 **Technical Implementations:**
@@ -41,7 +41,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Call Reports:** Tracks customer call activities with logging forms (user name, agent, phone, status, duration, type, remarks), statistics, and Excel import.
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
 - **Settings Section:** Multi-section settings page including:
-  - **Interface:** Theme selection (Light/Dark), UI preferences (compact mode, animations, sidebar collapse)
+  - **Interface:** Theme selection (Light, Dark, Blue, Green, Purple), UI preferences (compact mode, animations, sidebar collapse)
   - **Notifications:** Email, push, and sound notification preferences
   - **Account:** Display user information and change password option
   - **User Management (Admin Only):** Role-based user administration with inline editing of user roles and status (Active/Deactivated). Admin users can view all system users and manage their access levels.
