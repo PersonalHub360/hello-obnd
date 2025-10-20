@@ -31,6 +31,7 @@ import CallReports from "@/pages/call-reports";
 import StaffDetail from "@/pages/staff-detail";
 import Analytics from "@/pages/analytics";
 import PerformanceCheck from "@/pages/performance-check";
+import Settings from "@/pages/settings";
 
 function AuthenticatedLayout() {
   const [location, setLocation] = useLocation();
@@ -129,6 +130,7 @@ function AuthenticatedLayout() {
               <Route path="/call-reports" component={CallReports} />
               <Route path="/performance-check" component={PerformanceCheck} />
               <Route path="/analytics" component={Analytics} />
+              <Route path="/settings" component={Settings} />
               <Route path="/staff/:id" component={StaffDetail} />
               <Route>
                 <Redirect to="/dashboard" />
