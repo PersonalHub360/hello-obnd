@@ -1,4 +1,4 @@
-import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type UpdateAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, staff, authUsers, deposits, callReports } from "@shared/schema";
+import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type UpdateAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, type Role, type InsertRole, type Department, type InsertDepartment, staff, authUsers, deposits, callReports, roles, departments } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -42,6 +42,20 @@ export interface IStorage {
     calls: CallReport[];
     deposits: Deposit[];
   }>;
+  
+  // Role methods
+  getAllRoles(): Promise<Role[]>;
+  getRoleById(id: string): Promise<Role | undefined>;
+  createRole(role: InsertRole): Promise<Role>;
+  updateRole(id: string, role: Partial<InsertRole>): Promise<Role | undefined>;
+  deleteRole(id: string): Promise<boolean>;
+  
+  // Department methods
+  getAllDepartments(): Promise<Department[]>;
+  getDepartmentById(id: string): Promise<Department | undefined>;
+  createDepartment(department: InsertDepartment): Promise<Department>;
+  updateDepartment(id: string, department: Partial<InsertDepartment>): Promise<Department | undefined>;
+  deleteDepartment(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -266,6 +280,62 @@ export class DatabaseStorage implements IStorage {
       calls,
       deposits: relatedDeposits,
     };
+  }
+
+  async getAllRoles(): Promise<Role[]> {
+    return await db.select().from(roles).orderBy(roles.name);
+  }
+
+  async getRoleById(id: string): Promise<Role | undefined> {
+    const [role] = await db.select().from(roles).where(eq(roles.id, id));
+    return role || undefined;
+  }
+
+  async createRole(insertRole: InsertRole): Promise<Role> {
+    const [role] = await db.insert(roles).values(insertRole).returning();
+    return role;
+  }
+
+  async updateRole(id: string, updates: Partial<InsertRole>): Promise<Role | undefined> {
+    const [role] = await db
+      .update(roles)
+      .set(updates)
+      .where(eq(roles.id, id))
+      .returning();
+    return role || undefined;
+  }
+
+  async deleteRole(id: string): Promise<boolean> {
+    const result = await db.delete(roles).where(eq(roles.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getAllDepartments(): Promise<Department[]> {
+    return await db.select().from(departments).orderBy(departments.name);
+  }
+
+  async getDepartmentById(id: string): Promise<Department | undefined> {
+    const [department] = await db.select().from(departments).where(eq(departments.id, id));
+    return department || undefined;
+  }
+
+  async createDepartment(insertDepartment: InsertDepartment): Promise<Department> {
+    const [department] = await db.insert(departments).values(insertDepartment).returning();
+    return department;
+  }
+
+  async updateDepartment(id: string, updates: Partial<InsertDepartment>): Promise<Department | undefined> {
+    const [department] = await db
+      .update(departments)
+      .set(updates)
+      .where(eq(departments.id, id))
+      .returning();
+    return department || undefined;
+  }
+
+  async deleteDepartment(id: string): Promise<boolean> {
+    const result = await db.delete(departments).where(eq(departments.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
   }
 }
 
