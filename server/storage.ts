@@ -1,6 +1,6 @@
 import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type UpdateAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, type Role, type InsertRole, type Department, type InsertDepartment, staff, authUsers, deposits, callReports, roles, departments } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Auth methods
@@ -138,7 +138,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllDeposits(): Promise<Deposit[]> {
-    return await db.select().from(deposits).orderBy(deposits.date);
+    return await db.select().from(deposits).orderBy(desc(deposits.date));
   }
 
   async getDepositById(id: string): Promise<Deposit | undefined> {
