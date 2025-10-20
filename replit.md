@@ -27,7 +27,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Authorization:** Two-tier middleware system:
   - `requireAuth`: Protects routes requiring any authenticated user
   - `requireAdmin`: Restricts routes to users with admin role
-- **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, and Users (admin only).
+- **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, Users, Roles, and Departments (admin only).
 - **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits.
 - **Data Export:** CSV export for staff data.
 - **Validation:** Zod schemas are used for robust data validation on all API endpoints.
@@ -45,6 +45,8 @@ The application is built as a full-stack web application using a React, Express,
   - **Notifications:** Email, push, and sound notification preferences
   - **Account:** Display user information and change password option
   - **User Management (Admin Only):** Role-based user administration with inline editing of user roles and status (Active/Deactivated). Admin users can view all system users and manage their access levels.
+  - **Role Management (Admin Only):** Configure and manage available roles in the system. Supports full CRUD operations (Create, Read, Update, Delete) with role names and descriptions. Default roles include Manager, Senior Developer, Developer, Designer, HR Specialist, and Sales Executive.
+  - **Department Management (Admin Only):** Configure and manage organizational departments. Supports full CRUD operations with department names and descriptions. Default departments include Engineering, Human Resources, Sales, Marketing, Finance, and Operations.
 
 ## External Dependencies
 - **Database:** PostgreSQL (specifically Neon for cloud hosting) for persistent data storage.

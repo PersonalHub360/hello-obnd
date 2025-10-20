@@ -996,7 +996,7 @@ export default function Settings() {
                             <FormItem>
                               <FormLabel>Description</FormLabel>
                               <FormControl>
-                                <Input placeholder="Optional description" data-testid="input-add-role-description" {...field} />
+                                <Input placeholder="Optional description" data-testid="input-add-role-description" {...field} value={field.value ?? ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1121,7 +1121,7 @@ export default function Settings() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Input placeholder="Optional description" data-testid="input-edit-role-description" {...field} />
+                          <Input placeholder="Optional description" data-testid="input-edit-role-description" {...field} value={field.value ?? ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1224,7 +1224,7 @@ export default function Settings() {
                             <FormItem>
                               <FormLabel>Description</FormLabel>
                               <FormControl>
-                                <Input placeholder="Optional description" data-testid="input-add-department-description" {...field} />
+                                <Input placeholder="Optional description" data-testid="input-add-department-description" {...field} value={field.value ?? ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -1349,7 +1349,7 @@ export default function Settings() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Input placeholder="Optional description" data-testid="input-edit-department-description" {...field} />
+                          <Input placeholder="Optional description" data-testid="input-edit-department-description" {...field} value={field.value ?? ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
