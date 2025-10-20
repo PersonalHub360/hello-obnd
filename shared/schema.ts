@@ -10,6 +10,8 @@ export const staff = pgTable("staff", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   position: text("position").notNull(),
+  role: text("role"),
+  department: text("department"),
   country: text("country").notNull(),
   status: text("status").notNull().default("active"),
   joinDate: timestamp("join_date").notNull().defaultNow(),
