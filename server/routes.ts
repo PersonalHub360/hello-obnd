@@ -6,7 +6,7 @@ import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
 import { pool } from "./db";
-import { loginSchema, insertDepositSchema, insertCallReportSchema, updateAuthUserSchema, insertAuthUserSchema, type SessionData as UserSessionData } from "@shared/schema";
+import { loginSchema, insertDepositSchema, insertCallReportSchema, updateAuthUserSchema, insertAuthUserSchema, insertRoleSchema, insertDepartmentSchema, type SessionData as UserSessionData } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -831,6 +831,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(performanceData);
     } catch (error) {
       console.error("Get staff performance error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Role endpoints
+  app.get("/api/roles", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const roles = await storage.getAllRoles();
+      res.json(roles);
+    } catch (error) {
+      console.error("Get all roles error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/roles/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const role = await storage.getRoleById(req.params.id);
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+      res.json(role);
+    } catch (error) {
+      console.error("Get role error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/roles", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const result = insertRoleSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid input",
+          errors: result.error.errors 
+        });
+      }
+
+      const role = await storage.createRole(result.data);
+      res.status(201).json(role);
+    } catch (error: any) {
+      console.error("Create role error:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ message: "Role name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/roles/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const result = insertRoleSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid input",
+          errors: result.error.errors 
+        });
+      }
+
+      const role = await storage.updateRole(req.params.id, result.data);
+      if (!role) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+      res.json(role);
+    } catch (error: any) {
+      console.error("Update role error:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ message: "Role name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/roles/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const success = await storage.deleteRole(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Role not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete role error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Department endpoints
+  app.get("/api/departments", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const departments = await storage.getAllDepartments();
+      res.json(departments);
+    } catch (error) {
+      console.error("Get all departments error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/departments/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const department = await storage.getDepartmentById(req.params.id);
+      if (!department) {
+        return res.status(404).json({ message: "Department not found" });
+      }
+      res.json(department);
+    } catch (error) {
+      console.error("Get department error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/departments", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const result = insertDepartmentSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid input",
+          errors: result.error.errors 
+        });
+      }
+
+      const department = await storage.createDepartment(result.data);
+      res.status(201).json(department);
+    } catch (error: any) {
+      console.error("Create department error:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ message: "Department name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/departments/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const result = insertDepartmentSchema.partial().safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid input",
+          errors: result.error.errors 
+        });
+      }
+
+      const department = await storage.updateDepartment(req.params.id, result.data);
+      if (!department) {
+        return res.status(404).json({ message: "Department not found" });
+      }
+      res.json(department);
+    } catch (error: any) {
+      console.error("Update department error:", error);
+      if (error.code === '23505') {
+        return res.status(400).json({ message: "Department name already exists" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/departments/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const success = await storage.deleteDepartment(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Department not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete department error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
