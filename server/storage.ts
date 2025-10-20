@@ -78,7 +78,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllStaff(): Promise<Staff[]> {
-    return await db.select().from(staff).orderBy(staff.lastName);
+    return await db.select().from(staff).orderBy(staff.name);
   }
 
   async getStaffById(id: string): Promise<Staff | undefined> {
@@ -87,7 +87,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStaff(insertStaff: InsertStaff): Promise<Staff> {
-    const [staffMember] = await db.insert(staff).values(insertStaff).returning();
+    const staffData: any = { ...insertStaff };
+    if (staffData.joinDate && typeof staffData.joinDate === 'string') {
+      staffData.joinDate = new Date(staffData.joinDate);
+    }
+    const [staffMember] = await db.insert(staff).values(staffData).returning();
     return staffMember;
   }
 
@@ -104,9 +108,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateStaff(id: string, updates: Partial<InsertStaff>): Promise<Staff | undefined> {
+    const updateData: any = { ...updates };
+    if (updateData.joinDate && typeof updateData.joinDate === 'string') {
+      updateData.joinDate = new Date(updateData.joinDate);
+    }
     const [staffMember] = await db
       .update(staff)
-      .set(updates)
+      .set(updateData)
       .where(eq(staff.id, id))
       .returning();
     return staffMember || undefined;

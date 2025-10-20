@@ -35,7 +35,7 @@ export function DeleteStaffDialog({
               <>
                 This will permanently delete{" "}
                 <span className="font-semibold">
-                  {staff.firstName} {staff.lastName}
+                  {staff.name}
                 </span>{" "}
                 from the system. This action cannot be undone.
               </>
