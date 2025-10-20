@@ -35,9 +35,9 @@ export default function Analytics() {
     enabled: !!session,
   });
 
-  const departmentData = Object.entries(
+  const countryData = Object.entries(
     staffList.reduce((acc, staff) => {
-      acc[staff.department] = (acc[staff.department] || 0) + 1;
+      acc[staff.country] = (acc[staff.country] || 0) + 1;
       return acc;
     }, {} as Record<string, number>)
   ).map(([name, value]) => ({ name, value }));
@@ -178,16 +178,16 @@ export default function Analytics() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Departments
+                Countries
               </CardTitle>
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold" data-testid="text-departments">
-                {departmentData.length}
+              <div className="text-2xl font-bold" data-testid="text-countries">
+                {countryData.length}
               </div>
               <p className="text-xs text-muted-foreground">
-                Active departments
+                Active countries
               </p>
             </CardContent>
           </Card>
@@ -196,13 +196,13 @@ export default function Analytics() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Department Distribution</CardTitle>
+              <CardTitle>Country Distribution</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={departmentData}
+                    data={countryData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -213,7 +213,7 @@ export default function Analytics() {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {departmentData.map((entry, index) => (
+                    {countryData.map((entry: any, index: number) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}

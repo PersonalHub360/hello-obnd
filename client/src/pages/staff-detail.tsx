@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
   Mail,
-  Phone,
   Briefcase,
   Calendar,
   Building2,
@@ -104,8 +103,12 @@ export default function StaffDetail() {
     }
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   };
 
   const getAvatarColor = (name: string) => {
@@ -190,29 +193,28 @@ export default function StaffDetail() {
           <CardHeader className="pb-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               <Avatar className="h-24 w-24">
-                {staff.avatar ? (
-                  <AvatarImage
-                    src={staff.avatar}
-                    alt={`${staff.firstName} ${staff.lastName}`}
-                  />
-                ) : null}
                 <AvatarFallback
-                  className={`${getAvatarColor(staff.firstName)} text-white text-2xl font-medium`}
+                  className={`${getAvatarColor(staff.name)} text-white text-2xl font-medium`}
                 >
-                  {getInitials(staff.firstName, staff.lastName)}
+                  {getInitials(staff.name)}
                 </AvatarFallback>
               </Avatar>
 
               <div className="flex-1 text-center sm:text-left space-y-3">
                 <div>
-                  <h1
-                    className="text-3xl font-semibold"
-                    data-testid="text-staff-name"
-                  >
-                    {staff.firstName} {staff.lastName}
-                  </h1>
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
+                    <h1
+                      className="text-3xl font-semibold"
+                      data-testid="text-staff-name"
+                    >
+                      {staff.name}
+                    </h1>
+                    <span className="text-sm font-mono text-muted-foreground">
+                      {staff.employeeId}
+                    </span>
+                  </div>
                   <p className="text-lg text-muted-foreground mt-1">
-                    {staff.role}
+                    {staff.position}
                   </p>
                 </div>
 
@@ -254,20 +256,6 @@ export default function StaffDetail() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                      <Phone className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Phone</p>
-                      <p
-                        className="font-medium font-mono text-sm"
-                        data-testid="text-phone"
-                      >
-                        {staff.phone}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -282,9 +270,9 @@ export default function StaffDetail() {
                       <Building2 className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Department</p>
-                      <p className="font-medium" data-testid="text-department">
-                        {staff.department}
+                      <p className="text-sm text-muted-foreground">Country</p>
+                      <p className="font-medium" data-testid="text-country">
+                        {staff.country}
                       </p>
                     </div>
                   </div>
@@ -294,9 +282,9 @@ export default function StaffDetail() {
                       <Briefcase className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Role</p>
-                      <p className="font-medium" data-testid="text-role">
-                        {staff.role}
+                      <p className="text-sm text-muted-foreground">Position</p>
+                      <p className="font-medium" data-testid="text-position">
+                        {staff.position}
                       </p>
                     </div>
                   </div>

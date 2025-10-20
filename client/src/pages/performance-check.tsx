@@ -332,9 +332,9 @@ export default function PerformanceCheck() {
                   {staffList.map((staff) => (
                     <SelectItem 
                       key={staff.id} 
-                      value={`${staff.firstName} ${staff.lastName}`}
+                      value={staff.name}
                     >
-                      {staff.firstName} {staff.lastName} - {staff.department}
+                      {staff.name} - {staff.position}
                     </SelectItem>
                   ))}
                 </SelectContent>
