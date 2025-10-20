@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type SessionData, type AuthUser, insertAuthUserSchema, type InsertAuthUser } from "@shared/schema";
+import { type SessionData, type AuthUser, insertAuthUserSchema, type InsertAuthUser, type Role, type InsertRole, insertRoleSchema, type Department, type InsertDepartment, insertDepartmentSchema } from "@shared/schema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -66,6 +66,8 @@ import {
   Plus,
   Eye,
   Trash2,
+  Briefcase,
+  Building2,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
@@ -86,6 +88,20 @@ export default function Settings() {
   const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithoutPassword | null>(null);
 
+  // Role management state
+  const [addRoleDialogOpen, setAddRoleDialogOpen] = useState(false);
+  const [editRoleDialogOpen, setEditRoleDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [deleteRoleDialogOpen, setDeleteRoleDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+
+  // Department management state
+  const [addDepartmentDialogOpen, setAddDepartmentDialogOpen] = useState(false);
+  const [editDepartmentDialogOpen, setEditDepartmentDialogOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [deleteDepartmentDialogOpen, setDeleteDepartmentDialogOpen] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
+
   const addUserForm = useForm<InsertAuthUser>({
     resolver: zodResolver(insertAuthUserSchema),
     defaultValues: {
@@ -94,6 +110,38 @@ export default function Settings() {
       password: "",
       role: "user",
       status: "active",
+    },
+  });
+
+  const addRoleForm = useForm<InsertRole>({
+    resolver: zodResolver(insertRoleSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  const editRoleForm = useForm<InsertRole>({
+    resolver: zodResolver(insertRoleSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  const addDepartmentForm = useForm<InsertDepartment>({
+    resolver: zodResolver(insertDepartmentSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  const editDepartmentForm = useForm<InsertDepartment>({
+    resolver: zodResolver(insertDepartmentSchema),
+    defaultValues: {
+      name: "",
+      description: "",
     },
   });
 
@@ -170,6 +218,158 @@ export default function Settings() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Role queries and mutations
+  const { data: roles = [], isLoading: rolesLoading } = useQuery<Role[]>({
+    queryKey: ["/api/roles"],
+    enabled: !!session,
+  });
+
+  const addRoleMutation = useMutation({
+    mutationFn: async (data: InsertRole) => {
+      const response = await apiRequest("POST", "/api/roles", data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      setAddRoleDialogOpen(false);
+      addRoleForm.reset();
+      toast({
+        title: "Success",
+        description: "Role created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertRole> }) => {
+      const response = await apiRequest("PUT", `/api/roles/${id}`, data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      setEditRoleDialogOpen(false);
+      setSelectedRole(null);
+      editRoleForm.reset();
+      toast({
+        title: "Success",
+        description: "Role updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/roles/${id}`);
+      if (!response.ok) throw new Error("Failed to delete role");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
+      setDeleteRoleDialogOpen(false);
+      setRoleToDelete(null);
+      toast({
+        title: "Success",
+        description: "Role deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete role",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Department queries and mutations
+  const { data: departments = [], isLoading: departmentsLoading } = useQuery<Department[]>({
+    queryKey: ["/api/departments"],
+    enabled: !!session,
+  });
+
+  const addDepartmentMutation = useMutation({
+    mutationFn: async (data: InsertDepartment) => {
+      const response = await apiRequest("POST", "/api/departments", data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      setAddDepartmentDialogOpen(false);
+      addDepartmentForm.reset();
+      toast({
+        title: "Success",
+        description: "Department created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create department",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateDepartmentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertDepartment> }) => {
+      const response = await apiRequest("PUT", `/api/departments/${id}`, data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      setEditDepartmentDialogOpen(false);
+      setSelectedDepartment(null);
+      editDepartmentForm.reset();
+      toast({
+        title: "Success",
+        description: "Department updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update department",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteDepartmentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/departments/${id}`);
+      if (!response.ok) throw new Error("Failed to delete department");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      setDeleteDepartmentDialogOpen(false);
+      setDepartmentToDelete(null);
+      toast({
+        title: "Success",
+        description: "Department deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete department",
         variant: "destructive",
       });
     },
@@ -741,6 +941,462 @@ export default function Settings() {
                 data-testid="button-confirm-delete-user"
               >
                 {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Role Management Section */}
+        {session?.role === "admin" && (
+          <Card data-testid="card-role-management">
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>Role Management</CardTitle>
+                    <CardDescription>
+                      Configure available roles in the system
+                    </CardDescription>
+                  </div>
+                </div>
+                <Dialog open={addRoleDialogOpen} onOpenChange={setAddRoleDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-role">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Role
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent data-testid="dialog-add-role">
+                    <DialogHeader>
+                      <DialogTitle>Add New Role</DialogTitle>
+                      <DialogDescription>
+                        Create a new role configuration
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...addRoleForm}>
+                      <form onSubmit={addRoleForm.handleSubmit((data) => addRoleMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={addRoleForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Role Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., Senior Developer" data-testid="input-add-role-name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={addRoleForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Optional description" data-testid="input-add-role-description" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setAddRoleDialogOpen(false)}
+                            disabled={addRoleMutation.isPending}
+                            data-testid="button-cancel-add-role"
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={addRoleMutation.isPending} data-testid="button-submit-add-role">
+                            {addRoleMutation.isPending ? "Creating..." : "Create Role"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {rolesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Role Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {roles.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground">
+                            No roles found
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        roles.map((role) => (
+                          <TableRow key={role.id} data-testid={`row-role-${role.id}`}>
+                            <TableCell className="font-medium" data-testid={`text-role-name-${role.id}`}>{role.name}</TableCell>
+                            <TableCell className="text-muted-foreground" data-testid={`text-role-description-${role.id}`}>{role.description || "-"}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedRole(role);
+                                    editRoleForm.reset({ name: role.name, description: role.description || "" });
+                                    setEditRoleDialogOpen(true);
+                                  }}
+                                  data-testid={`button-edit-role-${role.id}`}
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setRoleToDelete(role);
+                                    setDeleteRoleDialogOpen(true);
+                                  }}
+                                  data-testid={`button-delete-role-${role.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Edit Role Dialog */}
+        <Dialog open={editRoleDialogOpen} onOpenChange={setEditRoleDialogOpen}>
+          <DialogContent data-testid="dialog-edit-role">
+            <DialogHeader>
+              <DialogTitle>Edit Role</DialogTitle>
+              <DialogDescription>
+                Update role information
+              </DialogDescription>
+            </DialogHeader>
+            {selectedRole && (
+              <Form {...editRoleForm}>
+                <form onSubmit={editRoleForm.handleSubmit((data) => updateRoleMutation.mutate({ id: selectedRole.id, data }))} className="space-y-4">
+                  <FormField
+                    control={editRoleForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Role Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Senior Developer" data-testid="input-edit-role-name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editRoleForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Optional description" data-testid="input-edit-role-description" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setEditRoleDialogOpen(false)}
+                      disabled={updateRoleMutation.isPending}
+                      data-testid="button-cancel-edit-role"
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={updateRoleMutation.isPending} data-testid="button-submit-edit-role">
+                      {updateRoleMutation.isPending ? "Updating..." : "Update Role"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Role Confirmation Dialog */}
+        <AlertDialog open={deleteRoleDialogOpen} onOpenChange={setDeleteRoleDialogOpen}>
+          <AlertDialogContent data-testid="dialog-delete-role">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the role{" "}
+                <span className="font-semibold">{roleToDelete?.name}</span>.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-delete-role">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (roleToDelete) {
+                    deleteRoleMutation.mutate(roleToDelete.id);
+                  }
+                }}
+                className="bg-destructive hover:bg-destructive/90"
+                data-testid="button-confirm-delete-role"
+              >
+                {deleteRoleMutation.isPending ? "Deleting..." : "Delete Role"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Department Management Section */}
+        {session?.role === "admin" && (
+          <Card data-testid="card-department-management">
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>Department Management</CardTitle>
+                    <CardDescription>
+                      Configure departments in your organization
+                    </CardDescription>
+                  </div>
+                </div>
+                <Dialog open={addDepartmentDialogOpen} onOpenChange={setAddDepartmentDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-department">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Department
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent data-testid="dialog-add-department">
+                    <DialogHeader>
+                      <DialogTitle>Add New Department</DialogTitle>
+                      <DialogDescription>
+                        Create a new department
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...addDepartmentForm}>
+                      <form onSubmit={addDepartmentForm.handleSubmit((data) => addDepartmentMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={addDepartmentForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Department Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., Engineering" data-testid="input-add-department-name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={addDepartmentForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Optional description" data-testid="input-add-department-description" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setAddDepartmentDialogOpen(false)}
+                            disabled={addDepartmentMutation.isPending}
+                            data-testid="button-cancel-add-department"
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={addDepartmentMutation.isPending} data-testid="button-submit-add-department">
+                            {addDepartmentMutation.isPending ? "Creating..." : "Create Department"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {departmentsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Department Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {departments.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground">
+                            No departments found
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        departments.map((department) => (
+                          <TableRow key={department.id} data-testid={`row-department-${department.id}`}>
+                            <TableCell className="font-medium" data-testid={`text-department-name-${department.id}`}>{department.name}</TableCell>
+                            <TableCell className="text-muted-foreground" data-testid={`text-department-description-${department.id}`}>{department.description || "-"}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedDepartment(department);
+                                    editDepartmentForm.reset({ name: department.name, description: department.description || "" });
+                                    setEditDepartmentDialogOpen(true);
+                                  }}
+                                  data-testid={`button-edit-department-${department.id}`}
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setDepartmentToDelete(department);
+                                    setDeleteDepartmentDialogOpen(true);
+                                  }}
+                                  data-testid={`button-delete-department-${department.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Edit Department Dialog */}
+        <Dialog open={editDepartmentDialogOpen} onOpenChange={setEditDepartmentDialogOpen}>
+          <DialogContent data-testid="dialog-edit-department">
+            <DialogHeader>
+              <DialogTitle>Edit Department</DialogTitle>
+              <DialogDescription>
+                Update department information
+              </DialogDescription>
+            </DialogHeader>
+            {selectedDepartment && (
+              <Form {...editDepartmentForm}>
+                <form onSubmit={editDepartmentForm.handleSubmit((data) => updateDepartmentMutation.mutate({ id: selectedDepartment.id, data }))} className="space-y-4">
+                  <FormField
+                    control={editDepartmentForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Department Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Engineering" data-testid="input-edit-department-name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editDepartmentForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Optional description" data-testid="input-edit-department-description" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setEditDepartmentDialogOpen(false)}
+                      disabled={updateDepartmentMutation.isPending}
+                      data-testid="button-cancel-edit-department"
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={updateDepartmentMutation.isPending} data-testid="button-submit-edit-department">
+                      {updateDepartmentMutation.isPending ? "Updating..." : "Update Department"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Department Confirmation Dialog */}
+        <AlertDialog open={deleteDepartmentDialogOpen} onOpenChange={setDeleteDepartmentDialogOpen}>
+          <AlertDialogContent data-testid="dialog-delete-department">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the department{" "}
+                <span className="font-semibold">{departmentToDelete?.name}</span>.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-delete-department">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (departmentToDelete) {
+                    deleteDepartmentMutation.mutate(departmentToDelete.id);
+                  }
+                }}
+                className="bg-destructive hover:bg-destructive/90"
+                data-testid="button-confirm-delete-department"
+              >
+                {deleteDepartmentMutation.isPending ? "Deleting..." : "Delete Department"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
