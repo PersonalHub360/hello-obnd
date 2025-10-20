@@ -1,7 +1,9 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { type SessionData, type AuthUser } from "@shared/schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type SessionData, type AuthUser, insertAuthUserSchema, type InsertAuthUser } from "@shared/schema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -9,6 +11,32 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -35,6 +63,9 @@ import {
   Edit,
   Check,
   X,
+  Plus,
+  Eye,
+  Trash2,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
@@ -49,6 +80,22 @@ export default function Settings() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState("");
   const [editStatus, setEditStatus] = useState<"active" | "deactivated">("active");
+  const [addUserDialogOpen, setAddUserDialogOpen] = useState(false);
+  const [viewUserDialogOpen, setViewUserDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserWithoutPassword | null>(null);
+  const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserWithoutPassword | null>(null);
+
+  const addUserForm = useForm<InsertAuthUser>({
+    resolver: zodResolver(insertAuthUserSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      role: "user",
+      status: "active",
+    },
+  });
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -58,6 +105,29 @@ export default function Settings() {
   const { data: users = [], isLoading: usersLoading } = useQuery<UserWithoutPassword[]>({
     queryKey: ["/api/users"],
     enabled: !!session,
+  });
+
+  const addUserMutation = useMutation({
+    mutationFn: async (data: InsertAuthUser) => {
+      const response = await apiRequest("POST", "/api/users", data);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setAddUserDialogOpen(false);
+      addUserForm.reset();
+      toast({
+        title: "Success",
+        description: "User created successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create user",
+        variant: "destructive",
+      });
+    },
   });
 
   const updateUserMutation = useMutation({
@@ -77,6 +147,29 @@ export default function Settings() {
       toast({
         title: "Error",
         description: error.message || "Failed to update user",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/users/${id}`);
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setDeleteUserDialogOpen(false);
+      setUserToDelete(null);
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user",
         variant: "destructive",
       });
     },
@@ -286,13 +379,124 @@ export default function Settings() {
 
           <Card data-testid="card-user-management">
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-primary" />
-                <CardTitle>User Management</CardTitle>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  <div>
+                    <CardTitle>User Management</CardTitle>
+                    <CardDescription>
+                      Manage user roles and access permissions
+                    </CardDescription>
+                  </div>
+                </div>
+                <Dialog open={addUserDialogOpen} onOpenChange={setAddUserDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-user">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add User
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent data-testid="dialog-add-user">
+                    <DialogHeader>
+                      <DialogTitle>Add New User</DialogTitle>
+                      <DialogDescription>
+                        Create a new user account with access credentials
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...addUserForm}>
+                      <form onSubmit={addUserForm.handleSubmit((data) => addUserMutation.mutate(data))} className="space-y-4">
+                        <FormField
+                          control={addUserForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="John Doe" data-testid="input-add-user-name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={addUserForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="john.doe@example.com" data-testid="input-add-user-email" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={addUserForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Password</FormLabel>
+                              <FormControl>
+                                <Input type="password" placeholder="Enter password" data-testid="input-add-user-password" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={addUserForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Role</FormLabel>
+                              <FormControl>
+                                <Input placeholder="user" data-testid="input-add-user-role" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={addUserForm.control}
+                          name="status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Status</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-add-user-status">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="active">Active</SelectItem>
+                                  <SelectItem value="deactivated">Deactivated</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setAddUserDialogOpen(false)}
+                            disabled={addUserMutation.isPending}
+                            data-testid="button-cancel-add-user"
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" disabled={addUserMutation.isPending} data-testid="button-submit-add-user">
+                            {addUserMutation.isPending ? "Creating..." : "Create User"}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
               </div>
-              <CardDescription>
-                Manage user roles and access permissions
-              </CardDescription>
             </CardHeader>
             <CardContent>
               {usersLoading ? (
@@ -396,19 +600,42 @@ export default function Settings() {
                                   </Button>
                                 </div>
                               ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setEditingUserId(user.id);
-                                    setEditRole(user.role);
-                                    setEditStatus(user.status as "active" | "deactivated");
-                                  }}
-                                  data-testid={`button-edit-${user.id}`}
-                                >
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </Button>
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedUser(user);
+                                      setViewUserDialogOpen(true);
+                                    }}
+                                    data-testid={`button-view-${user.id}`}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setEditingUserId(user.id);
+                                      setEditRole(user.role);
+                                      setEditStatus(user.status as "active" | "deactivated");
+                                    }}
+                                    data-testid={`button-edit-${user.id}`}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setUserToDelete(user);
+                                      setDeleteUserDialogOpen(true);
+                                    }}
+                                    data-testid={`button-delete-${user.id}`}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
                               )}
                             </TableCell>
                           </TableRow>
@@ -421,6 +648,103 @@ export default function Settings() {
             </CardContent>
           </Card>
         </div>
+
+        {/* View User Dialog */}
+        <Dialog open={viewUserDialogOpen} onOpenChange={setViewUserDialogOpen}>
+          <DialogContent data-testid="dialog-view-user">
+            <DialogHeader>
+              <DialogTitle>User Details</DialogTitle>
+              <DialogDescription>
+                View user information and access details
+              </DialogDescription>
+            </DialogHeader>
+            {selectedUser && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">User ID</Label>
+                  <p className="text-sm font-mono" data-testid="view-user-id">{selectedUser.id}</p>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Name</Label>
+                  <p className="text-sm font-medium" data-testid="view-user-name">{selectedUser.name}</p>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                  <p className="text-sm font-mono" data-testid="view-user-email">{selectedUser.email}</p>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Role</Label>
+                  <div>
+                    <Badge variant="secondary" data-testid="view-user-role">{selectedUser.role}</Badge>
+                  </div>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                  <div>
+                    <Badge 
+                      variant={selectedUser.status === "active" ? "default" : "secondary"}
+                      className={selectedUser.status === "active" ? "bg-green-600" : ""}
+                      data-testid="view-user-status"
+                    >
+                      {selectedUser.status === "active" ? "Active" : "Deactivated"}
+                    </Badge>
+                  </div>
+                </div>
+                {selectedUser.createdAt && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Created At</Label>
+                      <p className="text-sm" data-testid="view-user-created-at">
+                        {new Date(selectedUser.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </>
+                )}
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setViewUserDialogOpen(false)}
+                    data-testid="button-close-view-user"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete User Confirmation Dialog */}
+        <AlertDialog open={deleteUserDialogOpen} onOpenChange={setDeleteUserDialogOpen}>
+          <AlertDialogContent data-testid="dialog-delete-user">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the user account for{" "}
+                <span className="font-semibold">{userToDelete?.name}</span> ({userToDelete?.email}).
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-delete-user">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (userToDelete) {
+                    deleteUserMutation.mutate(userToDelete.id);
+                  }
+                }}
+                className="bg-destructive hover:bg-destructive/90"
+                data-testid="button-confirm-delete-user"
+              >
+                {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
