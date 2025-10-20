@@ -540,7 +540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         d.staffName && 
         d.type && 
         (d.type === "FTD" || d.type === "Deposit")
-      );
+      ) as { staffName: string; type: "FTD" | "Deposit"; date?: string }[];
 
       if (validDeposits.length === 0) {
         return res.status(400).json({ message: "No valid deposits found in Excel file. Ensure Staff Name and Type (FTD or Deposit) are provided." });
