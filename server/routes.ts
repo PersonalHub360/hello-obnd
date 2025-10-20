@@ -531,18 +531,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = XLSX.utils.sheet_to_json(worksheet);
 
       const deposits = data.map((row: any) => ({
-        amount: String(row.Amount || row.amount || "0"),
-        type: String(row.Type || row.type || "Cash"),
-        status: String(row.Status || row.status || "pending"),
-        reference: String(row.Reference || row.reference || ""),
-        depositor: String(row.Depositor || row.depositor || ""),
+        staffName: String(row["Staff Name"] || row.staffName || row["Staff name"] || ""),
+        type: String(row.Type || row.type || ""),
         date: row.Date || row.date ? new Date(row.Date || row.date).toISOString() : undefined,
       }));
 
-      const validDeposits = deposits.filter(d => d.amount && d.reference && d.depositor);
+      const validDeposits = deposits.filter(d => 
+        d.staffName && 
+        d.type && 
+        (d.type === "FTD" || d.type === "Deposit")
+      );
 
       if (validDeposits.length === 0) {
-        return res.status(400).json({ message: "No valid deposits found in Excel file" });
+        return res.status(400).json({ message: "No valid deposits found in Excel file. Ensure Staff Name and Type (FTD or Deposit) are provided." });
       }
 
       const createdDeposits = await storage.createManyDeposits(validDeposits);
@@ -557,85 +558,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Excel update import endpoint for deposits
-  app.post("/api/deposits/import/excel/update", requireAuth, upload.single("file"), async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(worksheet);
-
-      const deposits = data.map((row: any) => ({
-        amount: String(row.Amount || row.amount || "0"),
-        type: String(row.Type || row.type || "Cash"),
-        status: String(row.Status || row.status || "pending"),
-        reference: String(row.Reference || row.reference || "").trim(),
-        depositor: String(row.Depositor || row.depositor || ""),
-        date: row.Date || row.date ? new Date(row.Date || row.date).toISOString() : undefined,
-      }));
-
-      const validDeposits = deposits.filter(d => d.reference && d.reference.length > 0);
-
-      if (validDeposits.length === 0) {
-        return res.status(400).json({ 
-          message: "No valid deposits found in Excel file. All rows must have a non-empty Reference number." 
-        });
-      }
-
-      let updatedCount = 0;
-      let notFoundCount = 0;
-
-      for (const depositData of validDeposits) {
-        const existing = await storage.getDepositByReference(depositData.reference);
-        if (existing) {
-          await storage.updateDepositByReference(depositData.reference, depositData);
-          updatedCount++;
-        } else {
-          notFoundCount++;
-        }
-      }
-
-      res.status(200).json({
-        message: `Successfully updated ${updatedCount} deposits${notFoundCount > 0 ? `, ${notFoundCount} not found` : ''}`,
-        updated: updatedCount,
-        notFound: notFoundCount,
-      });
-    } catch (error) {
-      console.error("Excel update import error:", error);
-      res.status(500).json({ message: "Failed to update from Excel file" });
-    }
-  });
-
   // Sample Excel template download for deposits
   app.get("/api/deposits/sample/template", requireAuth, async (req: Request, res: Response) => {
     try {
       const sampleData = [
         {
-          "Reference": "REF-2025-ABC1234",
-          "Amount": "5000",
-          "Type": "Wire Transfer",
-          "Status": "completed",
-          "Depositor": "John Customer",
+          "Staff Name": "John Smith",
+          "Type": "FTD",
           "Date": new Date().toISOString(),
         },
         {
-          "Reference": "REF-2025-XYZ5678",
-          "Amount": "2500",
-          "Type": "Cash",
-          "Status": "pending",
-          "Depositor": "Jane Smith",
+          "Staff Name": "Jane Doe",
+          "Type": "Deposit",
           "Date": new Date().toISOString(),
         },
         {
-          "Reference": "REF-2025-DEF9012",
-          "Amount": "7500",
-          "Type": "Check",
-          "Status": "completed",
-          "Depositor": "Bob Johnson",
+          "Staff Name": "Bob Johnson",
+          "Type": "FTD",
           "Date": new Date().toISOString(),
         },
       ];

@@ -22,11 +22,9 @@ export interface IStorage {
   // Deposit methods
   getAllDeposits(): Promise<Deposit[]>;
   getDepositById(id: string): Promise<Deposit | undefined>;
-  getDepositByReference(reference: string): Promise<Deposit | undefined>;
   createDeposit(deposit: InsertDeposit): Promise<Deposit>;
   createManyDeposits(deposits: InsertDeposit[]): Promise<Deposit[]>;
   updateDeposit(id: string, deposit: Partial<InsertDeposit>): Promise<Deposit | undefined>;
-  updateDepositByReference(reference: string, deposit: Partial<InsertDeposit>): Promise<Deposit | undefined>;
   deleteDeposit(id: string): Promise<boolean>;
   
   // Call Report methods
@@ -148,11 +146,6 @@ export class DatabaseStorage implements IStorage {
     return deposit || undefined;
   }
 
-  async getDepositByReference(reference: string): Promise<Deposit | undefined> {
-    const [deposit] = await db.select().from(deposits).where(eq(deposits.reference, reference));
-    return deposit || undefined;
-  }
-
   async createDeposit(insertDeposit: InsertDeposit): Promise<Deposit> {
     const depositData: any = { ...insertDeposit };
     if (depositData.date && typeof depositData.date === 'string') {
@@ -183,19 +176,6 @@ export class DatabaseStorage implements IStorage {
       .update(deposits)
       .set(updateData)
       .where(eq(deposits.id, id))
-      .returning();
-    return deposit || undefined;
-  }
-
-  async updateDepositByReference(reference: string, updates: Partial<InsertDeposit>): Promise<Deposit | undefined> {
-    const updateData: any = { ...updates };
-    if (updateData.date && typeof updateData.date === 'string') {
-      updateData.date = new Date(updateData.date);
-    }
-    const [deposit] = await db
-      .update(deposits)
-      .set(updateData)
-      .where(eq(deposits.reference, reference))
       .returning();
     return deposit || undefined;
   }
@@ -271,7 +251,7 @@ export class DatabaseStorage implements IStorage {
       const allDeposits = await db.select().from(deposits);
       relatedDeposits = allDeposits.filter(d => 
         uniqueUserNames.some(userName => 
-          userName.toLowerCase() === d.depositor.toLowerCase()
+          userName.toLowerCase() === d.staffName.toLowerCase()
         )
       );
     }
