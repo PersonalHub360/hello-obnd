@@ -423,7 +423,7 @@ export default function Settings() {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-medium mb-3">Theme</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <Button
                       variant={theme === "light" ? "default" : "outline"}
                       onClick={() => setTheme("light")}
@@ -449,6 +449,48 @@ export default function Settings() {
                         <div className="font-medium">Dark</div>
                         <div className="text-xs text-muted-foreground">
                           Easy on the eyes
+                        </div>
+                      </div>
+                    </Button>
+                    <Button
+                      variant={theme === "blue" ? "default" : "outline"}
+                      onClick={() => setTheme("blue")}
+                      className="justify-start gap-2 h-auto py-3"
+                      data-testid="button-theme-blue"
+                    >
+                      <div className="h-4 w-4 rounded-full bg-blue-500" />
+                      <div className="text-left">
+                        <div className="font-medium">Blue</div>
+                        <div className="text-xs text-muted-foreground">
+                          Ocean breeze
+                        </div>
+                      </div>
+                    </Button>
+                    <Button
+                      variant={theme === "green" ? "default" : "outline"}
+                      onClick={() => setTheme("green")}
+                      className="justify-start gap-2 h-auto py-3"
+                      data-testid="button-theme-green"
+                    >
+                      <div className="h-4 w-4 rounded-full bg-green-500" />
+                      <div className="text-left">
+                        <div className="font-medium">Green</div>
+                        <div className="text-xs text-muted-foreground">
+                          Nature fresh
+                        </div>
+                      </div>
+                    </Button>
+                    <Button
+                      variant={theme === "purple" ? "default" : "outline"}
+                      onClick={() => setTheme("purple")}
+                      className="justify-start gap-2 h-auto py-3"
+                      data-testid="button-theme-purple"
+                    >
+                      <div className="h-4 w-4 rounded-full bg-purple-500" />
+                      <div className="text-left">
+                        <div className="font-medium">Purple</div>
+                        <div className="text-xs text-muted-foreground">
+                          Royal elegance
                         </div>
                       </div>
                     </Button>
