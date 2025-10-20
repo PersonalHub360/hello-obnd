@@ -1,4 +1,4 @@
-import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, staff, authUsers, deposits, callReports } from "@shared/schema";
+import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type UpdateAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, staff, authUsers, deposits, callReports } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -6,7 +6,9 @@ export interface IStorage {
   // Auth methods
   getAuthUser(id: string): Promise<AuthUser | undefined>;
   getAuthUserByEmail(email: string): Promise<AuthUser | undefined>;
+  getAllAuthUsers(): Promise<AuthUser[]>;
   createAuthUser(user: InsertAuthUser): Promise<AuthUser>;
+  updateAuthUser(id: string, user: UpdateAuthUser): Promise<AuthUser | undefined>;
   
   // Staff methods
   getAllStaff(): Promise<Staff[]>;
@@ -55,6 +57,18 @@ export class DatabaseStorage implements IStorage {
   async createAuthUser(insertUser: InsertAuthUser): Promise<AuthUser> {
     const [user] = await db.insert(authUsers).values(insertUser).returning();
     return user;
+  }
+
+  async getAllAuthUsers(): Promise<AuthUser[]> {
+    return await db.select().from(authUsers).orderBy(authUsers.name);
+  }
+
+  async updateAuthUser(id: string, updateUser: UpdateAuthUser): Promise<AuthUser | undefined> {
+    const [user] = await db.update(authUsers)
+      .set(updateUser)
+      .where(eq(authUsers.id, id))
+      .returning();
+    return user || undefined;
   }
 
   async getAllStaff(): Promise<Staff[]> {

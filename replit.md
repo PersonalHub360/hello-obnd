@@ -23,20 +23,28 @@ The application is built as a full-stack web application using a React, Express,
 **Technical Implementations:**
 - **Frontend:** Developed with React 18 and TypeScript, utilizing Wouter for routing, TanStack Query for data fetching, and Shadcn UI (built on Radix UI primitives) for components. Recharts is used for data visualization.
 - **Backend:** Implemented using Express.js and TypeScript, providing RESTful APIs for all functionalities.
-- **Authentication:** Secure cookie-based session management with protected routes.
-- **Data Management:** Full CRUD operations for Staff, Deposits, and Call Reports.
+- **Authentication:** Secure server-side session management using express-session with PostgreSQL storage (connect-pg-simple). Sessions include user role for authorization. Supports role-based access control with admin and user roles.
+- **Authorization:** Two-tier middleware system:
+  - `requireAuth`: Protects routes requiring any authenticated user
+  - `requireAdmin`: Restricts routes to users with admin role
+- **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, and Users (admin only).
 - **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits.
 - **Data Export:** CSV export for staff data.
-- **Validation:** Zod schemas are used for robust data validation.
+- **Validation:** Zod schemas are used for robust data validation on all API endpoints.
 
 **Feature Specifications:**
-- **Authentication System:** Secure login, session management, protected routes, and logout.
-- **Navigation:** Collapsible sidebar with five main sections: Dashboard, Deposit Section, Call Reports, Staff Directory, and Analytics.
+- **Authentication System:** Secure login, session management with role-based access control, protected routes, and logout. Sessions are stored in PostgreSQL for persistence and security.
+- **Navigation:** Collapsible sidebar with main sections: Dashboard, Deposit Section, Call Reports, Staff Directory, Staff Performance Check, Analytics, and Settings.
 - **Dashboard:** Provides an overview with date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, By Month, All Time), dynamic month selection, and key business metrics (Total Calls, Total Deposit, Total FTD, Successful Calls, Conversion Rate). Includes quick access cards and action buttons.
 - **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (department, role, status), Excel import/export, and responsive table/card views. Includes a detailed employee profile view.
 - **Deposit Section:** Manages financial deposits with statistics, new deposit forms, Excel import/update, and auto-generated reference numbers.
 - **Call Reports:** Tracks customer call activities with logging forms (user name, agent, phone, status, duration, type, remarks), statistics, and Excel import.
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
+- **Settings Section:** Multi-section settings page including:
+  - **Interface:** Theme selection (Light/Dark), UI preferences (compact mode, animations, sidebar collapse)
+  - **Notifications:** Email, push, and sound notification preferences
+  - **Account:** Display user information and change password option
+  - **User Management (Admin Only):** Role-based user administration with inline editing of user roles and status (Active/Deactivated). Admin users can view all system users and manage their access levels.
 
 ## External Dependencies
 - **Database:** PostgreSQL (specifically Neon for cloud hosting) for persistent data storage.

@@ -6,7 +6,7 @@ import multer from "multer";
 import * as XLSX from "xlsx";
 import { storage } from "./storage";
 import { pool } from "./db";
-import { loginSchema, insertDepositSchema, insertCallReportSchema, type SessionData as UserSessionData } from "@shared/schema";
+import { loginSchema, insertDepositSchema, insertCallReportSchema, updateAuthUserSchema, type SessionData as UserSessionData } from "@shared/schema";
 
 declare module "express-session" {
   interface SessionData {
@@ -87,6 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
       };
 
       await new Promise<void>((resolve, reject) => {
@@ -102,6 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
         }
       });
     } catch (error) {
@@ -141,6 +143,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     next();
   };
+
+  // Middleware to check admin role
+  const requireAdmin = (req: Request, res: Response, next: Function) => {
+    if (!req.session.user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    if (req.session.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    next();
+  };
+
+  // User Management endpoints (Admin only)
+  app.get("/api/users", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getAllAuthUsers();
+      // Don't send passwords to frontend
+      const sanitizedUsers = users.map(({ password, ...user }) => user);
+      res.json(sanitizedUsers);
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/users/:id", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Validate request body
+      const result = updateAuthUserSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid input",
+          errors: result.error.errors 
+        });
+      }
+
+      const { role, status } = result.data;
+      const updated = await storage.updateAuthUser(req.params.id, { role, status });
+      
+      if (!updated) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Don't send password to frontend
+      const { password, ...user } = updated;
+      res.json(user);
+    } catch (error) {
+      console.error("Update user error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   // Staff endpoints
   app.get("/api/staff", requireAuth, async (req: Request, res: Response) => {

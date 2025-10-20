@@ -9,6 +9,8 @@ async function seed() {
     email: "james.bond@auroramy.com",
     password: "Sp123456@",
     name: "James Bond",
+    role: "admin",
+    status: "active",
   };
 
   await db.insert(authUsers).values(adminUser).onConflictDoNothing();

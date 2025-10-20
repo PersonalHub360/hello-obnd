@@ -31,14 +31,24 @@ export const authUsers = pgTable("auth_users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
+  role: text("role").notNull().default("user"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertAuthUserSchema = createInsertSchema(authUsers).omit({
   id: true,
+  createdAt: true,
+});
+
+export const updateAuthUserSchema = z.object({
+  role: z.string().optional(),
+  status: z.enum(["active", "deactivated"]).optional(),
 });
 
 export type InsertAuthUser = z.infer<typeof insertAuthUserSchema>;
 export type AuthUser = typeof authUsers.$inferSelect;
+export type UpdateAuthUser = z.infer<typeof updateAuthUserSchema>;
 
 // Login schema
 export const loginSchema = z.object({
@@ -53,6 +63,7 @@ export interface SessionData {
   userId: string;
   email: string;
   name: string;
+  role: string;
 }
 
 // Deposits table

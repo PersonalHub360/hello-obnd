@@ -1,12 +1,29 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { type SessionData } from "@shared/schema";
+import { type SessionData, type AuthUser } from "@shared/schema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Palette,
   Bell,
@@ -14,16 +31,55 @@ import {
   User,
   Moon,
   Sun,
+  Users,
+  Edit,
+  Check,
+  X,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+
+type UserWithoutPassword = Omit<AuthUser, 'password'>;
 
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editRole, setEditRole] = useState("");
+  const [editStatus, setEditStatus] = useState<"active" | "deactivated">("active");
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
     retry: false,
+  });
+
+  const { data: users = [], isLoading: usersLoading } = useQuery<UserWithoutPassword[]>({
+    queryKey: ["/api/users"],
+    enabled: !!session,
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, role, status }: { id: string; role?: string; status?: "active" | "deactivated" }) => {
+      const response = await apiRequest("PATCH", `/api/users/${id}`, { role, status });
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setEditingUserId(null);
+      toast({
+        title: "Success",
+        description: "User updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user",
+        variant: "destructive",
+      });
+    },
   });
 
   useEffect(() => {
@@ -225,6 +281,143 @@ export default function Settings() {
                 <Lock className="h-4 w-4 mr-2" />
                 Change Password
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="card-user-management">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-primary" />
+                <CardTitle>User Management</CardTitle>
+              </div>
+              <CardDescription>
+                Manage user roles and access permissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {usersLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User ID</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            No users found
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        users.map((user) => (
+                          <TableRow key={user.id} data-testid={`user-row-${user.id}`}>
+                            <TableCell className="font-mono text-xs" data-testid={`user-id-${user.id}`}>
+                              {user.id.substring(0, 8)}...
+                            </TableCell>
+                            <TableCell data-testid={`user-name-${user.id}`}>
+                              {user.name}
+                            </TableCell>
+                            <TableCell className="font-mono text-sm" data-testid={`user-email-${user.id}`}>
+                              {user.email}
+                            </TableCell>
+                            <TableCell data-testid={`user-role-${user.id}`}>
+                              {editingUserId === user.id ? (
+                                <Input
+                                  value={editRole}
+                                  onChange={(e) => setEditRole(e.target.value)}
+                                  placeholder="Enter role"
+                                  className="h-8 max-w-[150px]"
+                                  data-testid={`input-role-${user.id}`}
+                                />
+                              ) : (
+                                <Badge variant="secondary">{user.role}</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell data-testid={`user-status-${user.id}`}>
+                              {editingUserId === user.id ? (
+                                <Select
+                                  value={editStatus}
+                                  onValueChange={(value: "active" | "deactivated") => setEditStatus(value)}
+                                >
+                                  <SelectTrigger className="h-8 max-w-[130px]" data-testid={`select-status-${user.id}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="deactivated">Deactivated</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <Badge 
+                                  variant={user.status === "active" ? "default" : "secondary"}
+                                  className={user.status === "active" ? "bg-green-600" : ""}
+                                >
+                                  {user.status === "active" ? "Active" : "Deactivated"}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {editingUserId === user.id ? (
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={() => {
+                                      updateUserMutation.mutate({
+                                        id: user.id,
+                                        role: editRole,
+                                        status: editStatus,
+                                      });
+                                    }}
+                                    disabled={updateUserMutation.isPending}
+                                    data-testid={`button-save-${user.id}`}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setEditingUserId(null)}
+                                    disabled={updateUserMutation.isPending}
+                                    data-testid={`button-cancel-${user.id}`}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setEditingUserId(user.id);
+                                    setEditRole(user.role);
+                                    setEditStatus(user.status as "active" | "deactivated");
+                                  }}
+                                  data-testid={`button-edit-${user.id}`}
+                                >
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
