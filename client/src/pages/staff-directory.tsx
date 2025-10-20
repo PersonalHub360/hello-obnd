@@ -217,22 +217,22 @@ export default function Dashboard() {
   const filteredStaff = staffList.filter((staff) => {
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
-      staff.firstName.toLowerCase().includes(searchLower) ||
-      staff.lastName.toLowerCase().includes(searchLower) ||
+      staff.name.toLowerCase().includes(searchLower) ||
       staff.email.toLowerCase().includes(searchLower) ||
-      staff.department.toLowerCase().includes(searchLower) ||
-      staff.role.toLowerCase().includes(searchLower);
+      staff.employeeId.toLowerCase().includes(searchLower) ||
+      staff.position.toLowerCase().includes(searchLower) ||
+      staff.country.toLowerCase().includes(searchLower);
 
     const matchesDepartment =
-      departmentFilter === "all" || staff.department === departmentFilter;
-    const matchesRole = roleFilter === "all" || staff.role === roleFilter;
+      departmentFilter === "all" || staff.country === departmentFilter;
+    const matchesRole = roleFilter === "all" || staff.position === roleFilter;
     const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
 
     return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
   });
 
-  const departments = Array.from(new Set(staffList.map((s) => s.department))).sort();
-  const roles = Array.from(new Set(staffList.map((s) => s.role))).sort();
+  const departments = Array.from(new Set(staffList.map((s) => s.country))).sort();
+  const roles = Array.from(new Set(staffList.map((s) => s.position))).sort();
 
   const activeFiltersCount = [
     departmentFilter !== "all",
@@ -331,8 +331,12 @@ export default function Dashboard() {
     fileInputRef.current?.click();
   };
 
-  const getInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getInitials = (name: string) => {
+    const names = name.trim().split(/\s+/);
+    if (names.length === 1) {
+      return names[0].substring(0, 2).toUpperCase();
+    }
+    return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
   };
 
   const getAvatarColor = (name: string) => {
@@ -519,13 +523,13 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[250px]">Name</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Department</TableHead>
+                      <TableHead className="w-[120px]">Employee ID</TableHead>
+                      <TableHead className="w-[200px]">Name</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
+                      <TableHead>Position</TableHead>
+                      <TableHead>Country</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Join Date</TableHead>
+                      <TableHead>Joining Date</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -536,33 +540,28 @@ export default function Dashboard() {
                         data-testid={`row-staff-${staff.id}`}
                       >
                         <TableCell>
+                          <span className="font-mono text-sm font-medium">
+                            {staff.employeeId}
+                          </span>
+                        </TableCell>
+                        <TableCell>
                           <Link href={`/staff/${staff.id}`}>
                             <div className="flex items-center gap-3 hover-elevate cursor-pointer rounded-md p-2 -m-2">
                               <Avatar className="h-10 w-10">
-                                {staff.avatar ? (
-                                  <AvatarImage src={staff.avatar} alt={`${staff.firstName} ${staff.lastName}`} />
-                                ) : null}
                                 <AvatarFallback
-                                  className={`${getAvatarColor(staff.firstName)} text-white font-medium`}
+                                  className={`${getAvatarColor(staff.name)} text-white font-medium`}
                                 >
-                                  {getInitials(staff.firstName, staff.lastName)}
+                                  {getInitials(staff.name)}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <div className="font-medium">
-                                  {staff.firstName} {staff.lastName}
+                                  {staff.name}
                                 </div>
                               </div>
                             </div>
                           </Link>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Briefcase className="h-4 w-4 text-muted-foreground" />
-                            <span>{staff.role}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{staff.department}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
@@ -573,12 +572,11 @@ export default function Dashboard() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-mono text-sm">
-                              {staff.phone}
-                            </span>
+                            <Briefcase className="h-4 w-4 text-muted-foreground" />
+                            <span>{staff.position}</span>
                           </div>
                         </TableCell>
+                        <TableCell>{staff.country}</TableCell>
                         <TableCell>
                           <Badge
                             variant={
@@ -651,23 +649,25 @@ export default function Dashboard() {
                   >
                     <div className="flex items-start gap-4">
                       <Avatar className="h-12 w-12">
-                        {staff.avatar ? (
-                          <AvatarImage src={staff.avatar} alt={`${staff.firstName} ${staff.lastName}`} />
-                        ) : null}
                         <AvatarFallback
-                          className={`${getAvatarColor(staff.firstName)} text-white font-medium`}
+                          className={`${getAvatarColor(staff.name)} text-white font-medium`}
                         >
-                          {getInitials(staff.firstName, staff.lastName)}
+                          {getInitials(staff.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
-                            <h3 className="font-semibold">
-                              {staff.firstName} {staff.lastName}
-                            </h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold">
+                                {staff.name}
+                              </h3>
+                              <span className="text-xs font-mono text-muted-foreground">
+                                {staff.employeeId}
+                              </span>
+                            </div>
                             <p className="text-sm text-muted-foreground">
-                              {staff.role}
+                              {staff.position}
                             </p>
                           </div>
                         <div className="flex items-center gap-2">
@@ -714,15 +714,11 @@ export default function Dashboard() {
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Briefcase className="h-4 w-4" />
-                          <span>{staff.department}</span>
+                          <span>{staff.country}</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Mail className="h-4 w-4" />
                           <span className="font-mono">{staff.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Phone className="h-4 w-4" />
-                          <span className="font-mono">{staff.phone}</span>
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="h-4 w-4" />

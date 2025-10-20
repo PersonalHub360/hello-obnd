@@ -6,20 +6,19 @@ import { z } from "zod";
 // Staff table
 export const staff = pgTable("staff", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
+  employeeId: text("employee_id").notNull().unique(),
+  name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  role: text("role").notNull(),
-  department: text("department").notNull(),
-  phone: text("phone").notNull(),
+  position: text("position").notNull(),
+  country: text("country").notNull(),
   status: text("status").notNull().default("active"),
-  avatar: text("avatar"),
   joinDate: timestamp("join_date").notNull().defaultNow(),
 });
 
 export const insertStaffSchema = createInsertSchema(staff).omit({
   id: true,
-  joinDate: true,
+}).extend({
+  joinDate: z.string().optional(),
 });
 
 export type InsertStaff = z.infer<typeof insertStaffSchema>;

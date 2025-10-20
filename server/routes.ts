@@ -309,23 +309,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const staffList = await storage.getAllStaff();
       
       const headers = [
-        "First Name",
-        "Last Name",
+        "Employee ID",
+        "Name",
         "Email",
-        "Phone",
-        "Role",
-        "Department",
+        "Position",
+        "Country",
         "Status",
-        "Join Date"
+        "Joining Date"
       ];
       
       const rows = staffList.map(staff => [
-        staff.firstName,
-        staff.lastName,
+        staff.employeeId,
+        staff.name,
         staff.email,
-        staff.phone,
-        staff.role,
-        staff.department,
+        staff.position,
+        staff.country,
         staff.status,
         new Date(staff.joinDate).toISOString().split('T')[0]
       ]);
@@ -357,27 +355,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = XLSX.utils.sheet_to_json(worksheet);
 
       const staffList = data.map((row: any) => ({
-        firstName: String(row["First Name"] || row.firstName || row["first_name"] || "").trim(),
-        lastName: String(row["Last Name"] || row.lastName || row["last_name"] || "").trim(),
+        employeeId: String(row["Employee ID"] || row.employeeId || row["employee_id"] || "").trim(),
+        name: String(row.Name || row.name || "").trim(),
         email: String(row.Email || row.email || "").trim().toLowerCase(),
-        phone: String(row.Phone || row.phone || "").trim(),
-        role: String(row.Role || row.role || "").trim(),
-        department: String(row.Department || row.department || "").trim(),
+        position: String(row.Position || row.position || "").trim(),
+        country: String(row.Country || row.country || "").trim(),
         status: String(row.Status || row.status || "active").trim(),
+        joinDate: row["Joining Date"] || row.joinDate || row["join_date"] || undefined,
       }));
 
       const validStaff = staffList.filter(s => 
-        s.firstName && s.firstName.length > 0 &&
-        s.lastName && s.lastName.length > 0 &&
+        s.employeeId && s.employeeId.length > 0 &&
+        s.name && s.name.length > 0 &&
         s.email && s.email.length > 0 &&
-        s.phone && s.phone.length > 0 &&
-        s.role && s.role.length > 0 &&
-        s.department && s.department.length > 0
+        s.position && s.position.length > 0 &&
+        s.country && s.country.length > 0
       );
 
       if (validStaff.length === 0) {
         return res.status(400).json({ 
-          message: "No valid staff members found in Excel file. Required fields: First Name, Last Name, Email, Phone, Role, Department" 
+          message: "No valid staff members found in Excel file. Required fields: Employee ID, Name, Email, Position, Country" 
         });
       }
 
@@ -403,31 +400,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const sampleData = [
         {
-          "First Name": "John",
-          "Last Name": "Doe",
+          "Employee ID": "EMP001",
+          "Name": "John Doe",
           "Email": "john.doe@example.com",
-          "Phone": "+1-555-0101",
-          "Role": "Software Engineer",
-          "Department": "Engineering",
+          "Position": "Software Engineer",
+          "Country": "Malaysia",
           "Status": "active",
+          "Joining Date": "2024-01-15",
         },
         {
-          "First Name": "Jane",
-          "Last Name": "Smith",
+          "Employee ID": "EMP002",
+          "Name": "Jane Smith",
           "Email": "jane.smith@example.com",
-          "Phone": "+1-555-0102",
-          "Role": "Product Manager",
-          "Department": "Product",
+          "Position": "Product Manager",
+          "Country": "Singapore",
           "Status": "active",
+          "Joining Date": "2024-02-20",
         },
         {
-          "First Name": "Bob",
-          "Last Name": "Johnson",
+          "Employee ID": "EMP003",
+          "Name": "Bob Johnson",
           "Email": "bob.johnson@example.com",
-          "Phone": "+1-555-0103",
-          "Role": "Designer",
-          "Department": "Design",
+          "Position": "Designer",
+          "Country": "Malaysia",
           "Status": "active",
+          "Joining Date": "2024-03-10",
         },
       ];
 

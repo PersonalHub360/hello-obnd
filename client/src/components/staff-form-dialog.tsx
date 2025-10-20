@@ -46,24 +46,22 @@ export function StaffFormDialog({
     resolver: zodResolver(insertStaffSchema),
     defaultValues: staff
       ? {
-          firstName: staff.firstName,
-          lastName: staff.lastName,
+          employeeId: staff.employeeId,
+          name: staff.name,
           email: staff.email,
-          role: staff.role,
-          department: staff.department,
-          phone: staff.phone,
+          position: staff.position,
+          country: staff.country,
           status: staff.status,
-          avatar: staff.avatar || undefined,
+          joinDate: staff.joinDate ? new Date(staff.joinDate).toISOString().split('T')[0] : undefined,
         }
       : {
-          firstName: "",
-          lastName: "",
+          employeeId: "",
+          name: "",
           email: "",
-          role: "",
-          department: "",
-          phone: "",
+          position: "",
+          country: "",
           status: "active",
-          avatar: undefined,
+          joinDate: undefined,
         },
   });
 
@@ -85,43 +83,41 @@ export function StaffFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="John"
-                        {...field}
-                        data-testid="input-firstName"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="employeeId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Employee ID</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="EMP001"
+                      {...field}
+                      data-testid="input-employeeId"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Doe"
-                        {...field}
-                        data-testid="input-lastName"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="John Doe"
+                      {...field}
+                      data-testid="input-name"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -142,36 +138,18 @@ export function StaffFormDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="+1 (555) 123-4567"
-                      {...field}
-                      data-testid="input-phone"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="role"
+                name="position"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>Position</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Software Engineer"
                         {...field}
-                        data-testid="input-role"
+                        data-testid="input-position"
                       />
                     </FormControl>
                     <FormMessage />
@@ -181,15 +159,15 @@ export function StaffFormDialog({
 
               <FormField
                 control={form.control}
-                name="department"
+                name="country"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department</FormLabel>
+                    <FormLabel>Country</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Engineering"
+                        placeholder="Malaysia"
                         {...field}
-                        data-testid="input-department"
+                        data-testid="input-country"
                       />
                     </FormControl>
                     <FormMessage />
@@ -198,30 +176,50 @@ export function StaffFormDialog({
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger data-testid="select-status">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="joinDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Joining Date</FormLabel>
                     <FormControl>
-                      <SelectTrigger data-testid="select-status">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
+                      <Input
+                        type="date"
+                        {...field}
+                        data-testid="input-joinDate"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <DialogFooter>
               <Button
