@@ -27,7 +27,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Authorization:** Two-tier middleware system:
   - `requireAuth`: Protects routes requiring any authenticated user
   - `requireAdmin`: Restricts routes to users with admin role
-- **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, Users, Roles, and Departments (admin only).
+- **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, and Users (admin only).
 - **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits.
 - **Data Export:** CSV export for staff data.
 - **Validation:** Zod schemas are used for robust data validation on all API endpoints.
@@ -36,7 +36,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Authentication System:** Secure login, session management with role-based access control, protected routes, and logout. Sessions are stored in PostgreSQL for persistence and security.
 - **Navigation:** Collapsible sidebar with main sections: Dashboard, Deposit Section, Call Reports, Staff Directory, Staff Performance Check, Analytics, and Settings.
 - **Dashboard:** Provides an overview with date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, By Month, All Time), dynamic month selection, and key business metrics (Total Calls, Total Deposit, Total FTD, Successful Calls, Conversion Rate). Includes quick access cards and action buttons.
-- **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (brand, role, status), Excel import/export, and responsive table/card views. The staff form includes Role and Department dropdown fields that are dynamically populated from the Settings management section, plus a Brand Name field with predefined options (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR), ensuring consistency across the system. The filter section includes a Brand Name filter that allows filtering staff by their assigned brand. Includes a detailed employee profile view.
+- **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (brand, role, status), Excel import/export, and responsive table/card views. The staff form includes a Role dropdown with 9 fixed options (Manager, Assistant Manager, Team Leader, Junior Sales Executive, Sales Executive, Senior Sales Executive, QA, Group TL, Training Team) and a Brand Name field with 7 predefined options (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR), ensuring consistency across the system. The filter section includes Brand Name and Role filters that allow filtering staff by their assigned brand and role. Includes a detailed employee profile view.
 - **Deposit Section:** Manages financial deposits with statistics, new deposit forms, Excel import/update, and auto-generated reference numbers.
 - **Call Reports:** Tracks customer call activities with logging forms (user name, agent, phone, status, duration, type, remarks), statistics, and Excel import.
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
@@ -45,8 +45,6 @@ The application is built as a full-stack web application using a React, Express,
   - **Notifications:** Email, push, and sound notification preferences
   - **Account:** Display user information and change password option
   - **User Management (Admin Only):** Role-based user administration with inline editing of user roles and status (Active/Deactivated). Admin users can view all system users and manage their access levels.
-  - **Role Management (Admin Only):** Configure and manage available roles in the system. Supports full CRUD operations (Create, Read, Update, Delete) with role names and descriptions. Default roles include Manager, Senior Developer, Developer, Designer, HR Specialist, and Sales Executive.
-  - **Department Management (Admin Only):** Configure and manage organizational departments. Supports full CRUD operations with department names and descriptions. Default departments include Engineering, Human Resources, Sales, Marketing, Finance, and Operations.
 
 ## External Dependencies
 - **Database:** PostgreSQL (specifically Neon for cloud hosting) for persistent data storage.
