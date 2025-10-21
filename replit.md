@@ -36,7 +36,17 @@ The application is built as a full-stack web application using a React, Express,
 - **Authentication System:** Secure login, session management with role-based access control, protected routes, and logout. Sessions are stored in PostgreSQL for persistence and security.
 - **Navigation:** Collapsible sidebar with main sections: Dashboard, Deposit Section, Call Reports, Staff Directory, Staff Performance Check, Analytics, and Settings.
 - **Dashboard:** Provides an overview with date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, By Month, All Time), dynamic month selection, and key business metrics (Total Calls, Total Deposit, Total FTD, Successful Calls, Conversion Rate). Includes quick access cards and action buttons.
-- **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (brand, role, status), Excel import/export, and responsive table/card views. The staff form includes a Role dropdown with 9 fixed options (Manager, Assistant Manager, Team Leader, Junior Sales Executive, Sales Executive, Senior Sales Executive, QA, Group TL, Training Team) and a Brand Name field with 7 predefined options (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR), ensuring consistency across the system. The filter section includes Brand Name and Role filters that allow filtering staff by their assigned brand and role. Includes a detailed employee profile view.
+- **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (brand, role, status), Excel import/export, and responsive table/card views. The staff form includes:
+  - **Employee ID** (disabled when editing - unique identifier)
+  - **Name** (editable text field)
+  - **Email** (disabled when editing - unique identifier)
+  - **Role dropdown** with 9 fixed options: Manager, Assistant Manager, Team Leader, Junior Sales Executive, Sales Executive, Senior Sales Executive, QA, Group TL, Training Team
+  - **Brand Name field** with 7 predefined options: JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR
+  - **Country dropdown** with 11 country options: Cambodia, UAE, SRL, India, Bangladesh, Malaysia, Singapore, Thailand, Indonesia, Philippines, Pakistan
+  - **Status dropdown**: Active/Inactive
+  - **Joining Date** picker
+  
+  The filter section includes Brand Name, Role, and Status filters. The staff table displays Role as a badge (not Position). Employee ID and Email are protected during updates to maintain data integrity. Includes Excel/CSV import/export with proper field mapping.
 - **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name, Type, Date, and Brand Name fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR).
 - **Call Reports:** Tracks customer call activities with logging forms (user name, agent, phone, status, duration, type, remarks), statistics, and Excel import.
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
