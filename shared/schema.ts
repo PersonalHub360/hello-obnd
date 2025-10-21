@@ -12,6 +12,7 @@ export const staff = pgTable("staff", {
   position: text("position").notNull(),
   role: text("role"),
   department: text("department"),
+  brand: text("brand"),
   country: text("country").notNull(),
   status: text("status").notNull().default("active"),
   joinDate: timestamp("join_date").notNull().defaultNow(),
