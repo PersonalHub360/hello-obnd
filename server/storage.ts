@@ -121,6 +121,11 @@ export class DatabaseStorage implements IStorage {
 
   async updateStaff(id: string, updates: Partial<InsertStaff>): Promise<Staff | undefined> {
     const updateData: any = { ...updates };
+    
+    // Remove fields that shouldn't be updated (unique constraints)
+    delete updateData.employeeId;
+    delete updateData.email;
+    
     if (updateData.joinDate && typeof updateData.joinDate === 'string') {
       updateData.joinDate = new Date(updateData.joinDate);
     }

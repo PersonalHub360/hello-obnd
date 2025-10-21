@@ -98,6 +98,7 @@ export function StaffFormDialog({
                     <Input
                       placeholder="EMP001"
                       {...field}
+                      disabled={!!staff}
                       data-testid="input-employeeId"
                     />
                   </FormControl>
@@ -135,6 +136,7 @@ export function StaffFormDialog({
                       type="email"
                       placeholder="john.doe@auroramy.com"
                       {...field}
+                      disabled={!!staff}
                       data-testid="input-email-form"
                     />
                   </FormControl>
