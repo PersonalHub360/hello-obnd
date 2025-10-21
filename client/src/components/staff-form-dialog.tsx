@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { insertStaffSchema, type InsertStaff, type Staff, type Role, type Department } from "@shared/schema";
+import { insertStaffSchema, type InsertStaff, type Staff, type Role } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -47,10 +47,6 @@ export function StaffFormDialog({
     queryKey: ["/api/roles"],
   });
 
-  const { data: departments = [] } = useQuery<Department[]>({
-    queryKey: ["/api/departments"],
-  });
-
   const form = useForm<InsertStaff>({
     resolver: zodResolver(insertStaffSchema),
     defaultValues: staff
@@ -60,7 +56,6 @@ export function StaffFormDialog({
           email: staff.email,
           position: staff.position,
           role: staff.role || undefined,
-          department: staff.department || undefined,
           brand: staff.brand || undefined,
           country: staff.country,
           status: staff.status,
@@ -72,7 +67,6 @@ export function StaffFormDialog({
           email: "",
           position: "",
           role: undefined,
-          department: undefined,
           brand: undefined,
           country: "",
           status: "active",
@@ -220,33 +214,6 @@ export function StaffFormDialog({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value || undefined}
-                    >
-                      <FormControl>
-                        <SelectTrigger data-testid="select-department">
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {departments.map((dept) => (
-                          <SelectItem key={dept.id} value={dept.name}>
-                            {dept.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             <FormField
