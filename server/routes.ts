@@ -327,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staff.brand || "",
         staff.country,
         staff.status,
-        new Date(staff.joinDate).toISOString().split('T')[0]
+        staff.joinDate ? new Date(staff.joinDate).toISOString().split('T')[0] : ""
       ]);
       
       const csvContent = [
@@ -356,16 +356,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
-      const staffList = data.map((row: any) => ({
-        employeeId: String(row["Employee ID"] || row.employeeId || row["employee_id"] || "").trim(),
-        name: String(row.Name || row.name || "").trim(),
-        email: String(row.Email || row.email || "").trim().toLowerCase(),
-        role: String(row.Role || row.role || "").trim() || undefined,
-        brand: String(row.Brand || row.brand || row["Brand Name"] || "").trim() || undefined,
-        country: String(row.Country || row.country || "").trim(),
-        status: String(row.Status || row.status || "active").trim(),
-        joinDate: row["Joining Date"] || row.joinDate || row["join_date"] || undefined,
-      }));
+      const staffList = data.map((row: any) => {
+        let joinDate = row["Joining Date"] || row.joinDate || row["join_date"];
+        
+        // Convert Excel date serial number to date-only string (YYYY-MM-DD)
+        if (typeof joinDate === 'number') {
+          const millisecondsPerDay = 24 * 60 * 60 * 1000;
+          const excelEpochOffset = 25569;
+          const unixTimestamp = (joinDate - excelEpochOffset) * millisecondsPerDay;
+          // Use UTC to avoid timezone shifts, then extract date-only string
+          joinDate = new Date(unixTimestamp).toISOString().slice(0, 10);
+        } else if (joinDate && typeof joinDate === 'string') {
+          // Try to parse string date and normalize to YYYY-MM-DD
+          const parsedDate = new Date(joinDate);
+          if (!isNaN(parsedDate.getTime())) {
+            // Extract date-only to avoid timezone issues
+            joinDate = parsedDate.toISOString().slice(0, 10);
+          } else {
+            joinDate = undefined;
+          }
+        }
+        
+        return {
+          employeeId: String(row["Employee ID"] || row.employeeId || row["employee_id"] || "").trim(),
+          name: String(row.Name || row.name || "").trim(),
+          email: String(row.Email || row.email || "").trim().toLowerCase(),
+          role: String(row.Role || row.role || "").trim() || undefined,
+          brand: String(row.Brand || row.brand || row["Brand Name"] || "").trim() || undefined,
+          country: String(row.Country || row.country || "").trim(),
+          status: String(row.Status || row.status || "active").trim(),
+          joinDate: joinDate,
+        };
+      });
 
       const validStaff = staffList.filter(s => 
         s.employeeId && s.employeeId.length > 0 &&
@@ -535,12 +557,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
-      const deposits = data.map((row: any) => ({
-        staffName: String(row["Staff Name"] || row.staffName || row["Staff name"] || ""),
-        type: String(row.Type || row.type || ""),
-        date: row.Date || row.date ? new Date(row.Date || row.date).toISOString() : undefined,
-        brandName: String(row["Brand Name"] || row.brandName || row["Brand name"] || ""),
-      }));
+      const deposits = data.map((row: any) => {
+        let date = row.Date || row.date;
+        
+        // Convert Excel date serial number to date-only string
+        if (typeof date === 'number') {
+          const millisecondsPerDay = 24 * 60 * 60 * 1000;
+          const excelEpochOffset = 25569;
+          const unixTimestamp = (date - excelEpochOffset) * millisecondsPerDay;
+          // Extract date-only to avoid timezone shifts
+          date = new Date(unixTimestamp).toISOString().slice(0, 10);
+        } else if (date && typeof date === 'string') {
+          // Try to parse string date and normalize
+          const parsedDate = new Date(date);
+          if (!isNaN(parsedDate.getTime())) {
+            date = parsedDate.toISOString().slice(0, 10);
+          } else {
+            date = undefined;
+          }
+        } else {
+          date = undefined;
+        }
+        
+        return {
+          staffName: String(row["Staff Name"] || row.staffName || row["Staff name"] || ""),
+          type: String(row.Type || row.type || ""),
+          date: date,
+          brandName: String(row["Brand Name"] || row.brandName || row["Brand name"] || ""),
+        };
+      });
 
       const validDeposits = deposits.filter(d => 
         d.staffName && 
@@ -691,16 +736,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
-      const callReports = data.map((row: any) => ({
-        userName: String(row["User Name"] || row.userName || row["user_name"] || ""),
-        callAgentName: String(row["Call Agent Name"] || row.callAgentName || row["call_agent_name"] || ""),
-        phoneNumber: String(row["Phone Number"] || row.phoneNumber || row["phone_number"] || ""),
-        callStatus: String(row["Call Status"] || row.callStatus || row["call_status"] || "Completed"),
-        duration: String(row.Duration || row.duration || ""),
-        callType: String(row["Call Type"] || row.callType || row["call_type"] || ""),
-        remarks: String(row.Remarks || row.remarks || ""),
-        dateTime: row["Date Time"] || row.dateTime || row["date_time"] ? new Date(row["Date Time"] || row.dateTime || row["date_time"]).toISOString() : undefined,
-      }));
+      const callReports = data.map((row: any) => {
+        let dateTime = row["Date Time"] || row.dateTime || row["date_time"];
+        
+        // Convert Excel date serial number to ISO string
+        if (typeof dateTime === 'number') {
+          const millisecondsPerDay = 24 * 60 * 60 * 1000;
+          const excelEpochOffset = 25569;
+          const unixTimestamp = (dateTime - excelEpochOffset) * millisecondsPerDay;
+          dateTime = new Date(unixTimestamp).toISOString();
+        } else if (dateTime && typeof dateTime === 'string') {
+          // Try to parse string date
+          const parsedDate = new Date(dateTime);
+          if (!isNaN(parsedDate.getTime())) {
+            dateTime = parsedDate.toISOString();
+          } else {
+            dateTime = undefined;
+          }
+        } else {
+          dateTime = undefined;
+        }
+        
+        return {
+          userName: String(row["User Name"] || row.userName || row["user_name"] || ""),
+          callAgentName: String(row["Call Agent Name"] || row.callAgentName || row["call_agent_name"] || ""),
+          phoneNumber: String(row["Phone Number"] || row.phoneNumber || row["phone_number"] || ""),
+          callStatus: String(row["Call Status"] || row.callStatus || row["call_status"] || "Completed"),
+          duration: String(row.Duration || row.duration || ""),
+          callType: String(row["Call Type"] || row.callType || row["call_type"] || ""),
+          remarks: String(row.Remarks || row.remarks || ""),
+          dateTime: dateTime,
+        };
+      });
 
       const validCallReports = callReports.filter(c => c.userName && c.callAgentName && c.phoneNumber && c.callStatus);
 

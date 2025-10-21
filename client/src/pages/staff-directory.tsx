@@ -606,7 +606,7 @@ export default function Dashboard() {
                           <div className="flex items-center gap-2 text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             <span className="text-sm">
-                              {format(new Date(staff.joinDate), "MMM d, yyyy")}
+                              {staff.joinDate ? format(new Date(staff.joinDate), "MMM d, yyyy") : "N/A"}
                             </span>
                           </div>
                         </TableCell>
@@ -740,7 +740,7 @@ export default function Dashboard() {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Calendar className="h-4 w-4" />
                           <span>
-                            Joined {format(new Date(staff.joinDate), "MMM d, yyyy")}
+                            {staff.joinDate ? `Joined ${format(new Date(staff.joinDate), "MMM d, yyyy")}` : "Join date not set"}
                           </span>
                         </div>
                       </div>

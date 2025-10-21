@@ -14,7 +14,7 @@ export const staff = pgTable("staff", {
   brand: text("brand"),
   country: text("country").notNull(),
   status: text("status").notNull().default("active"),
-  joinDate: timestamp("join_date").notNull().defaultNow(),
+  joinDate: timestamp("join_date"),
 });
 
 export const insertStaffSchema = createInsertSchema(staff).omit({
