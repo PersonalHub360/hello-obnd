@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type SessionData, type AuthUser, insertAuthUserSchema, type InsertAuthUser, type Role, type InsertRole, insertRoleSchema, type Department, type InsertDepartment, insertDepartmentSchema } from "@shared/schema";
+import { type SessionData, type AuthUser, insertAuthUserSchema, type InsertAuthUser } from "@shared/schema";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -66,8 +66,6 @@ import {
   Plus,
   Eye,
   Trash2,
-  Briefcase,
-  Building2,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
@@ -88,20 +86,6 @@ export default function Settings() {
   const [deleteUserDialogOpen, setDeleteUserDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithoutPassword | null>(null);
 
-  // Role management state
-  const [addRoleDialogOpen, setAddRoleDialogOpen] = useState(false);
-  const [editRoleDialogOpen, setEditRoleDialogOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [deleteRoleDialogOpen, setDeleteRoleDialogOpen] = useState(false);
-  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
-
-  // Department management state
-  const [addDepartmentDialogOpen, setAddDepartmentDialogOpen] = useState(false);
-  const [editDepartmentDialogOpen, setEditDepartmentDialogOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
-  const [deleteDepartmentDialogOpen, setDeleteDepartmentDialogOpen] = useState(false);
-  const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
-
   const addUserForm = useForm<InsertAuthUser>({
     resolver: zodResolver(insertAuthUserSchema),
     defaultValues: {
@@ -110,38 +94,6 @@ export default function Settings() {
       password: "",
       role: "user",
       status: "active",
-    },
-  });
-
-  const addRoleForm = useForm<InsertRole>({
-    resolver: zodResolver(insertRoleSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
-  });
-
-  const editRoleForm = useForm<InsertRole>({
-    resolver: zodResolver(insertRoleSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
-  });
-
-  const addDepartmentForm = useForm<InsertDepartment>({
-    resolver: zodResolver(insertDepartmentSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
-  });
-
-  const editDepartmentForm = useForm<InsertDepartment>({
-    resolver: zodResolver(insertDepartmentSchema),
-    defaultValues: {
-      name: "",
-      description: "",
     },
   });
 
@@ -218,158 +170,6 @@ export default function Settings() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete user",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Role queries and mutations
-  const { data: roles = [], isLoading: rolesLoading } = useQuery<Role[]>({
-    queryKey: ["/api/roles"],
-    enabled: !!session,
-  });
-
-  const addRoleMutation = useMutation({
-    mutationFn: async (data: InsertRole) => {
-      const response = await apiRequest("POST", "/api/roles", data);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
-      setAddRoleDialogOpen(false);
-      addRoleForm.reset();
-      toast({
-        title: "Success",
-        description: "Role created successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create role",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateRoleMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertRole> }) => {
-      const response = await apiRequest("PUT", `/api/roles/${id}`, data);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
-      setEditRoleDialogOpen(false);
-      setSelectedRole(null);
-      editRoleForm.reset();
-      toast({
-        title: "Success",
-        description: "Role updated successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update role",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteRoleMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/roles/${id}`);
-      if (!response.ok) throw new Error("Failed to delete role");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roles"] });
-      setDeleteRoleDialogOpen(false);
-      setRoleToDelete(null);
-      toast({
-        title: "Success",
-        description: "Role deleted successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete role",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Department queries and mutations
-  const { data: departments = [], isLoading: departmentsLoading } = useQuery<Department[]>({
-    queryKey: ["/api/departments"],
-    enabled: !!session,
-  });
-
-  const addDepartmentMutation = useMutation({
-    mutationFn: async (data: InsertDepartment) => {
-      const response = await apiRequest("POST", "/api/departments", data);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
-      setAddDepartmentDialogOpen(false);
-      addDepartmentForm.reset();
-      toast({
-        title: "Success",
-        description: "Department created successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create department",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateDepartmentMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertDepartment> }) => {
-      const response = await apiRequest("PUT", `/api/departments/${id}`, data);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
-      setEditDepartmentDialogOpen(false);
-      setSelectedDepartment(null);
-      editDepartmentForm.reset();
-      toast({
-        title: "Success",
-        description: "Department updated successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update department",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteDepartmentMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await apiRequest("DELETE", `/api/departments/${id}`);
-      if (!response.ok) throw new Error("Failed to delete department");
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
-      setDeleteDepartmentDialogOpen(false);
-      setDepartmentToDelete(null);
-      toast({
-        title: "Success",
-        description: "Department deleted successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete department",
         variant: "destructive",
       });
     },

@@ -225,7 +225,7 @@ export default function Dashboard() {
 
     const matchesBrand =
       brandFilter === "all" || staff.brand === brandFilter;
-    const matchesRole = roleFilter === "all" || staff.position === roleFilter;
+    const matchesRole = roleFilter === "all" || staff.role === roleFilter;
     const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
 
     return matchesSearch && matchesBrand && matchesRole && matchesStatus;
