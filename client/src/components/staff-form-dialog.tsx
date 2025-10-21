@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
-import { insertStaffSchema, type InsertStaff, type Staff, type Role } from "@shared/schema";
+import { insertStaffSchema, type InsertStaff, type Staff } from "@shared/schema";
 import {
   Dialog,
   DialogContent,
@@ -43,9 +42,7 @@ export function StaffFormDialog({
   onSubmit,
   isPending,
 }: StaffFormDialogProps) {
-  const { data: roles = [] } = useQuery<Role[]>({
-    queryKey: ["/api/roles"],
-  });
+  const roleOptions = ["Manager", "Assistant Manager", "Team Leader", "Junior Sales Executive", "Sales Executive", "Senior Sales Executive", "QA", "Group TL", "Training Team"];
 
   const form = useForm<InsertStaff>({
     resolver: zodResolver(insertStaffSchema),
@@ -202,9 +199,9 @@ export function StaffFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem key={role.id} value={role.name}>
-                            {role.name}
+                        {roleOptions.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {role}
                           </SelectItem>
                         ))}
                       </SelectContent>
