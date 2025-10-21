@@ -46,8 +46,17 @@ The application is built as a full-stack web application using a React, Express,
   - **Country dropdown** with 11 country options: Cambodia, UAE, SRL, India, Bangladesh, Malaysia, Singapore, Thailand, Indonesia, Philippines, Pakistan
   - **Status dropdown**: Active/Inactive
   - **Joining Date** picker
+  - **Date of Birth** picker (optional) - used for age calculation in staff profile
+  - **Available Leave** field (optional) - tracks annual leave days available
   
   The filter section includes Brand Name, Role, and Status filters. The staff table displays Role as a badge (not Position). Employee ID and Email are protected during updates to maintain data integrity. Includes Excel/CSV import/export with proper field mapping.
+  
+  **Staff Profile View:** Each staff member has a detailed profile accessible via "View Profile" button in actions menu, displaying:
+  - Professional photo with upload capability (supports JPEG, PNG, GIF up to 5MB)
+  - Calculated age from date of birth
+  - Available annual leave days
+  - All staff information in organized card layout
+  - Photo uploads stored in /public/uploads/staff-photos directory
 - **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name, Type, Date, and Brand Name fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR).
 - **Call Reports:** Tracks customer call activities with logging forms (user name, agent, phone, status, duration, type, remarks), statistics, and Excel import.
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
