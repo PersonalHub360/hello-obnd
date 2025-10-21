@@ -61,6 +61,7 @@ export function StaffFormDialog({
           position: staff.position,
           role: staff.role || undefined,
           department: staff.department || undefined,
+          brand: staff.brand || undefined,
           country: staff.country,
           status: staff.status,
           joinDate: staff.joinDate ? new Date(staff.joinDate).toISOString().split('T')[0] : undefined,
@@ -72,6 +73,7 @@ export function StaffFormDialog({
           position: "",
           role: undefined,
           department: undefined,
+          brand: undefined,
           country: "",
           status: "active",
           joinDate: undefined,
@@ -246,6 +248,36 @@ export function StaffFormDialog({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="brand"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Brand Name</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger data-testid="select-brand">
+                        <SelectValue placeholder="Select brand" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="JB BDT">JB BDT</SelectItem>
+                      <SelectItem value="BJ BDT">BJ BDT</SelectItem>
+                      <SelectItem value="BJ PKR">BJ PKR</SelectItem>
+                      <SelectItem value="JB PKR">JB PKR</SelectItem>
+                      <SelectItem value="NPR">NPR</SelectItem>
+                      <SelectItem value="SIX6'S BDT">SIX6'S BDT</SelectItem>
+                      <SelectItem value="SIX6'S PKR">SIX6'S PKR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
