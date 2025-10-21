@@ -534,16 +534,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staffName: String(row["Staff Name"] || row.staffName || row["Staff name"] || ""),
         type: String(row.Type || row.type || ""),
         date: row.Date || row.date ? new Date(row.Date || row.date).toISOString() : undefined,
+        brandName: String(row["Brand Name"] || row.brandName || row["Brand name"] || ""),
       }));
 
       const validDeposits = deposits.filter(d => 
         d.staffName && 
         d.type && 
-        (d.type === "FTD" || d.type === "Deposit")
-      ) as { staffName: string; type: "FTD" | "Deposit"; date?: string }[];
+        (d.type === "FTD" || d.type === "Deposit") &&
+        d.brandName
+      ) as { staffName: string; type: "FTD" | "Deposit"; date?: string; brandName: string }[];
 
       if (validDeposits.length === 0) {
-        return res.status(400).json({ message: "No valid deposits found in Excel file. Ensure Staff Name and Type (FTD or Deposit) are provided." });
+        return res.status(400).json({ message: "No valid deposits found in Excel file. Ensure Staff Name, Type (FTD or Deposit), and Brand Name are provided." });
       }
 
       const createdDeposits = await storage.createManyDeposits(validDeposits);
@@ -566,16 +568,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Staff Name": "John Smith",
           "Type": "FTD",
           "Date": new Date().toISOString(),
+          "Brand Name": "JB BDT",
         },
         {
           "Staff Name": "Jane Doe",
           "Type": "Deposit",
           "Date": new Date().toISOString(),
+          "Brand Name": "BJ BDT",
         },
         {
           "Staff Name": "Bob Johnson",
           "Type": "FTD",
           "Date": new Date().toISOString(),
+          "Brand Name": "JB PKR",
         },
       ];
 

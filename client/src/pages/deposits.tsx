@@ -53,6 +53,7 @@ export default function Deposits() {
   const [staffName, setStaffName] = useState("");
   const [type, setType] = useState("");
   const [date, setDate] = useState("");
+  const [brandName, setBrandName] = useState("");
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -62,6 +63,7 @@ export default function Deposits() {
   const [editStaffName, setEditStaffName] = useState("");
   const [editType, setEditType] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [editBrandName, setEditBrandName] = useState("");
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -80,7 +82,7 @@ export default function Deposits() {
   }, [session, sessionLoading, setLocation]);
 
   const createDepositMutation = useMutation({
-    mutationFn: async (data: { staffName: string; type: string; date?: string }) => {
+    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string }) => {
       return await apiRequest("POST", "/api/deposits", data);
     },
     onSuccess: () => {
@@ -92,6 +94,7 @@ export default function Deposits() {
       setStaffName("");
       setType("");
       setDate("");
+      setBrandName("");
     },
     onError: () => {
       toast({
@@ -143,10 +146,10 @@ export default function Deposits() {
   });
 
   const handleCreateDeposit = () => {
-    if (!staffName || !type) {
+    if (!staffName || !type || !brandName) {
       toast({
         title: "Error",
-        description: "Please fill in Staff Name and Type",
+        description: "Please fill in Staff Name, Type, and Brand Name",
         variant: "destructive",
       });
       return;
@@ -165,6 +168,7 @@ export default function Deposits() {
       staffName,
       type,
       date: date || undefined,
+      brandName,
     });
   };
 
@@ -187,7 +191,7 @@ export default function Deposits() {
   };
 
   const updateDepositMutation = useMutation({
-    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string }) => {
+    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string; brandName: string }) => {
       const { id, ...updateData } = data;
       return await apiRequest("PATCH", `/api/deposits/${id}`, updateData);
     },
@@ -241,16 +245,17 @@ export default function Deposits() {
     setEditStaffName(deposit.staffName);
     setEditType(deposit.type);
     setEditDate(deposit.date ? format(new Date(deposit.date), "yyyy-MM-dd") : "");
+    setEditBrandName(deposit.brandName);
     setEditDialogOpen(true);
   };
 
   const handleUpdateDeposit = () => {
     if (!selectedDeposit) return;
 
-    if (!editStaffName || !editType) {
+    if (!editStaffName || !editType || !editBrandName) {
       toast({
         title: "Error",
-        description: "Please fill in Staff Name and Type",
+        description: "Please fill in Staff Name, Type, and Brand Name",
         variant: "destructive",
       });
       return;
@@ -270,6 +275,7 @@ export default function Deposits() {
       staffName: editStaffName,
       type: editType,
       date: editDate || undefined,
+      brandName: editBrandName,
     });
   };
 
@@ -423,6 +429,24 @@ export default function Deposits() {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="brandName">Brand Name</Label>
+              <Select value={brandName} onValueChange={setBrandName}>
+                <SelectTrigger id="brandName" data-testid="select-brand-name">
+                  <SelectValue placeholder="Select brand" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="JB BDT" data-testid="select-option-jb-bdt">JB BDT</SelectItem>
+                  <SelectItem value="BJ BDT" data-testid="select-option-bj-bdt">BJ BDT</SelectItem>
+                  <SelectItem value="BJ PKR" data-testid="select-option-bj-pkr">BJ PKR</SelectItem>
+                  <SelectItem value="JB PKR" data-testid="select-option-jb-pkr">JB PKR</SelectItem>
+                  <SelectItem value="NPR" data-testid="select-option-npr">NPR</SelectItem>
+                  <SelectItem value="SIX6'S BDT" data-testid="select-option-six6s-bdt">SIX6'S BDT</SelectItem>
+                  <SelectItem value="SIX6'S PKR" data-testid="select-option-six6s-pkr">SIX6'S PKR</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <Button 
               onClick={handleCreateDeposit} 
               className="w-full"
@@ -462,7 +486,7 @@ export default function Deposits() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), and Date columns
+                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), Date, and Brand Name columns
               </p>
             </div>
 
@@ -507,6 +531,7 @@ export default function Deposits() {
                     <TableHead>Staff Name</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Brand Name</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -526,6 +551,9 @@ export default function Deposits() {
                       </TableCell>
                       <TableCell data-testid={`text-date-${deposit.id}`}>
                         {format(new Date(deposit.date), "MMM dd, yyyy")}
+                      </TableCell>
+                      <TableCell data-testid={`text-brand-name-${deposit.id}`}>
+                        {deposit.brandName}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -586,6 +614,10 @@ export default function Deposits() {
                   {format(new Date(selectedDeposit.date), "MMMM dd, yyyy")}
                 </p>
               </div>
+              <div>
+                <Label className="text-muted-foreground">Brand Name</Label>
+                <p className="font-medium" data-testid="text-view-brand-name">{selectedDeposit.brandName}</p>
+              </div>
             </div>
           )}
           <DialogFooter>
@@ -635,6 +667,24 @@ export default function Deposits() {
                 value={editDate}
                 onChange={(e) => setEditDate(e.target.value)}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-brandName">Brand Name</Label>
+              <Select value={editBrandName} onValueChange={setEditBrandName}>
+                <SelectTrigger id="edit-brandName" data-testid="select-edit-brand-name">
+                  <SelectValue placeholder="Select brand" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="JB BDT" data-testid="select-option-jb-bdt">JB BDT</SelectItem>
+                  <SelectItem value="BJ BDT" data-testid="select-option-bj-bdt">BJ BDT</SelectItem>
+                  <SelectItem value="BJ PKR" data-testid="select-option-bj-pkr">BJ PKR</SelectItem>
+                  <SelectItem value="JB PKR" data-testid="select-option-jb-pkr">JB PKR</SelectItem>
+                  <SelectItem value="NPR" data-testid="select-option-npr">NPR</SelectItem>
+                  <SelectItem value="SIX6'S BDT" data-testid="select-option-six6s-bdt">SIX6'S BDT</SelectItem>
+                  <SelectItem value="SIX6'S PKR" data-testid="select-option-six6s-pkr">SIX6'S PKR</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

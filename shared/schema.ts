@@ -74,6 +74,7 @@ export const deposits = pgTable("deposits", {
   staffName: text("staff_name").notNull(),
   type: text("type").notNull(),
   date: timestamp("date").notNull().defaultNow(),
+  brandName: text("brand_name").notNull(),
 });
 
 export const insertDepositSchema = createInsertSchema(deposits).omit({
@@ -84,6 +85,7 @@ export const insertDepositSchema = createInsertSchema(deposits).omit({
     errorMap: () => ({ message: "Type must be either FTD or Deposit" }),
   }),
   date: z.string().optional(),
+  brandName: z.string().min(1, "Brand name is required"),
 });
 
 export type InsertDeposit = z.infer<typeof insertDepositSchema>;
