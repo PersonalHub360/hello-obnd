@@ -28,9 +28,10 @@ The application is built as a full-stack web application using a React, Express,
   - `requireAuth`: Protects routes requiring any authenticated user
   - `requireAdmin`: Restricts routes to users with admin role
 - **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, and Users (admin only).
-- **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits.
+- **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits. **Date Handling:** Excel serial dates are converted using the formula `(serial - 25569) * 86400000` to Unix timestamps, then normalized to date-only strings (YYYY-MM-DD) to prevent timezone-related off-by-one errors.
 - **Data Export:** CSV export for staff data.
 - **Validation:** Zod schemas are used for robust data validation on all API endpoints.
+- **Date Storage:** Staff joining dates are stored as date-only strings (YYYY-MM-DD) without timestamps, preventing timezone display issues across different regions.
 
 **Feature Specifications:**
 - **Authentication System:** Secure login, session management with role-based access control, protected routes, and logout. Sessions are stored in PostgreSQL for persistence and security.
