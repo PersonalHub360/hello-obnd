@@ -52,6 +52,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { StaffFormDialog } from "@/components/staff-form-dialog";
 import { DeleteStaffDialog } from "@/components/delete-staff-dialog";
+import { StaffProfileDialog } from "@/components/staff-profile-dialog";
+import { Eye } from "lucide-react";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,6 +65,7 @@ export default function Dashboard() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | undefined>();
   const [deletingStaff, setDeletingStaff] = useState<Staff | null>(null);
+  const [profileStaff, setProfileStaff] = useState<Staff | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: session, isLoading: sessionLoading, isError: sessionError } = useQuery<SessionData>({
@@ -624,6 +627,14 @@ export default function Dashboard() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
+                                onClick={() => setProfileStaff(staff)}
+                                data-testid={`button-profile-${staff.id}`}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Profile
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
                                 onClick={() => handleEditStaff(staff)}
                                 data-testid={`button-edit-${staff.id}`}
                               >
@@ -705,6 +716,13 @@ export default function Dashboard() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
+                                onClick={() => setProfileStaff(staff)}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Profile
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
                                 onClick={() => handleEditStaff(staff)}
                               >
                                 <Pencil className="mr-2 h-4 w-4" />
@@ -773,6 +791,14 @@ export default function Dashboard() {
         onConfirm={handleConfirmDelete}
         isPending={deleteStaffMutation.isPending}
       />
+
+      {profileStaff && (
+        <StaffProfileDialog
+          open={!!profileStaff}
+          onOpenChange={(open) => !open && setProfileStaff(null)}
+          staff={profileStaff}
+        />
+      )}
     </div>
   );
 }

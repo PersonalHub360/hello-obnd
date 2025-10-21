@@ -57,6 +57,8 @@ export function StaffFormDialog({
           country: staff.country,
           status: staff.status,
           joinDate: staff.joinDate ? new Date(staff.joinDate).toISOString().split('T')[0] : undefined,
+          dateOfBirth: staff.dateOfBirth || undefined,
+          availableLeave: staff.availableLeave || undefined,
         }
       : {
           employeeId: "",
@@ -67,6 +69,8 @@ export function StaffFormDialog({
           country: "",
           status: "active",
           joinDate: undefined,
+          dateOfBirth: undefined,
+          availableLeave: undefined,
         },
   });
 
@@ -271,6 +275,48 @@ export function StaffFormDialog({
                         type="date"
                         {...field}
                         data-testid="input-joinDate"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="dateOfBirth"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date of Birth (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        value={field.value || ""}
+                        data-testid="input-dateOfBirth"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="availableLeave"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Available Leave (Days)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 20"
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        data-testid="input-availableLeave"
                       />
                     </FormControl>
                     <FormMessage />
