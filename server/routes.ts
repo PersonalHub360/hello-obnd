@@ -312,7 +312,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "Employee ID",
         "Name",
         "Email",
-        "Position",
+        "Role",
+        "Brand",
         "Country",
         "Status",
         "Joining Date"
@@ -322,7 +323,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staff.employeeId,
         staff.name,
         staff.email,
-        staff.position,
+        staff.role || "",
+        staff.brand || "",
         staff.country,
         staff.status,
         new Date(staff.joinDate).toISOString().split('T')[0]
@@ -358,7 +360,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         employeeId: String(row["Employee ID"] || row.employeeId || row["employee_id"] || "").trim(),
         name: String(row.Name || row.name || "").trim(),
         email: String(row.Email || row.email || "").trim().toLowerCase(),
-        position: String(row.Position || row.position || "").trim(),
+        role: String(row.Role || row.role || "").trim() || undefined,
+        brand: String(row.Brand || row.brand || row["Brand Name"] || "").trim() || undefined,
         country: String(row.Country || row.country || "").trim(),
         status: String(row.Status || row.status || "active").trim(),
         joinDate: row["Joining Date"] || row.joinDate || row["join_date"] || undefined,
@@ -368,13 +371,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         s.employeeId && s.employeeId.length > 0 &&
         s.name && s.name.length > 0 &&
         s.email && s.email.length > 0 &&
-        s.position && s.position.length > 0 &&
         s.country && s.country.length > 0
       );
 
       if (validStaff.length === 0) {
         return res.status(400).json({ 
-          message: "No valid staff members found in Excel file. Required fields: Employee ID, Name, Email, Position, Country" 
+          message: "No valid staff members found in Excel file. Required fields: Employee ID, Name, Email, Country" 
         });
       }
 
@@ -403,8 +405,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Employee ID": "EMP001",
           "Name": "John Doe",
           "Email": "john.doe@example.com",
-          "Position": "Software Engineer",
-          "Country": "Malaysia",
+          "Role": "Manager",
+          "Brand": "JB BDT",
+          "Country": "Cambodia",
           "Status": "active",
           "Joining Date": "2024-01-15",
         },
@@ -412,8 +415,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Employee ID": "EMP002",
           "Name": "Jane Smith",
           "Email": "jane.smith@example.com",
-          "Position": "Product Manager",
-          "Country": "Singapore",
+          "Role": "Sales Executive",
+          "Brand": "BJ PKR",
+          "Country": "UAE",
           "Status": "active",
           "Joining Date": "2024-02-20",
         },
@@ -421,8 +425,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Employee ID": "EMP003",
           "Name": "Bob Johnson",
           "Email": "bob.johnson@example.com",
-          "Position": "Designer",
-          "Country": "Malaysia",
+          "Role": "Team Leader",
+          "Brand": "NPR",
+          "Country": "India",
           "Status": "active",
           "Joining Date": "2024-03-10",
         },
