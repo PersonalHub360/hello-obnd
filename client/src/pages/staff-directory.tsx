@@ -55,7 +55,7 @@ import { DeleteStaffDialog } from "@/components/delete-staff-dialog";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState<string>("all");
+  const [brandFilter, setBrandFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [, setLocation] = useLocation();
@@ -223,25 +223,25 @@ export default function Dashboard() {
       staff.position.toLowerCase().includes(searchLower) ||
       staff.country.toLowerCase().includes(searchLower);
 
-    const matchesDepartment =
-      departmentFilter === "all" || staff.country === departmentFilter;
+    const matchesBrand =
+      brandFilter === "all" || staff.brand === brandFilter;
     const matchesRole = roleFilter === "all" || staff.position === roleFilter;
     const matchesStatus = statusFilter === "all" || staff.status === statusFilter;
 
-    return matchesSearch && matchesDepartment && matchesRole && matchesStatus;
+    return matchesSearch && matchesBrand && matchesRole && matchesStatus;
   });
 
-  const departments = Array.from(new Set(staffList.map((s) => s.country))).sort();
+  const brandOptions = ["JB BDT", "BJ BDT", "BJ PKR", "JB PKR", "NPR", "SIX6'S BDT", "SIX6'S PKR"];
   const roles = Array.from(new Set(staffList.map((s) => s.position))).sort();
 
   const activeFiltersCount = [
-    departmentFilter !== "all",
+    brandFilter !== "all",
     roleFilter !== "all",
     statusFilter !== "all",
   ].filter(Boolean).length;
 
   const handleClearFilters = () => {
-    setDepartmentFilter("all");
+    setBrandFilter("all");
     setRoleFilter("all");
     setStatusFilter("all");
   };
@@ -442,17 +442,17 @@ export default function Dashboard() {
           </div>
 
           <Select
-            value={departmentFilter}
-            onValueChange={setDepartmentFilter}
+            value={brandFilter}
+            onValueChange={setBrandFilter}
           >
-            <SelectTrigger className="w-[180px]" data-testid="select-department-filter">
-              <SelectValue placeholder="Department" />
+            <SelectTrigger className="w-[180px]" data-testid="select-brand-filter">
+              <SelectValue placeholder="Brand name" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              {departments.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
+              <SelectItem value="all">All Brands</SelectItem>
+              {brandOptions.map((brand) => (
+                <SelectItem key={brand} value={brand}>
+                  {brand}
                 </SelectItem>
               ))}
             </SelectContent>
