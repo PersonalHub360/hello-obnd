@@ -528,6 +528,7 @@ export default function Dashboard() {
                       <TableHead>Email</TableHead>
                       <TableHead>Position</TableHead>
                       <TableHead>Country</TableHead>
+                      <TableHead>Brand</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Joining Date</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
@@ -577,6 +578,13 @@ export default function Dashboard() {
                           </div>
                         </TableCell>
                         <TableCell>{staff.country}</TableCell>
+                        <TableCell>
+                          {staff.brand && (
+                            <Badge variant="outline" data-testid={`badge-brand-${staff.id}`}>
+                              {staff.brand}
+                            </Badge>
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Badge
                             variant={
@@ -716,6 +724,13 @@ export default function Dashboard() {
                           <Briefcase className="h-4 w-4" />
                           <span>{staff.country}</span>
                         </div>
+                        {staff.brand && (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {staff.brand}
+                            </Badge>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Mail className="h-4 w-4" />
                           <span className="font-mono">{staff.email}</span>
