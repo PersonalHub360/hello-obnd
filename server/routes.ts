@@ -4,6 +4,7 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import multer from "multer";
 import * as XLSX from "xlsx";
+import express from "express";
 import { storage } from "./storage";
 import { pool } from "./db";
 import { loginSchema, insertDepositSchema, insertCallReportSchema, updateAuthUserSchema, insertAuthUserSchema, insertRoleSchema, insertDepartmentSchema, type SessionData as UserSessionData } from "@shared/schema";
@@ -41,8 +42,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
-  // Multer setup for file uploads
+  // Serve static files from public directory
+  app.use('/uploads', express.static('public/uploads'));
+
+  // Multer setup for file uploads (Excel/CSV)
   const upload = multer({ storage: multer.memoryStorage() });
+  
+  // Multer setup for staff photo uploads
+  const photoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, 'public/uploads/staff-photos');
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = file.originalname.split('.').pop();
+      cb(null, `staff-${uniqueSuffix}.${ext}`);
+    }
+  });
+  
+  const photoUpload = multer({ 
+    storage: photoStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|gif/;
+      const ext = file.originalname.split('.').pop()?.toLowerCase();
+      const mimetype = allowedTypes.test(file.mimetype);
+      const extname = ext ? allowedTypes.test(ext) : false;
+      
+      if (mimetype && extname) {
+        return cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed (jpeg, jpg, png, gif)'));
+      }
+    }
+  });
 
   // Health check endpoint for deployment
   app.get("/health", (_req: Request, res: Response) => {
@@ -301,6 +334,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Delete staff error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Upload staff photo
+  app.post("/api/staff/:id/upload-photo", requireAuth, photoUpload.single("photo"), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Get the file path relative to public directory
+      const photoUrl = `/uploads/staff-photos/${req.file.filename}`;
+      
+      // Update staff member with new photo URL
+      const staffMember = await storage.updateStaff(req.params.id, {
+        photoUrl: photoUrl
+      });
+
+      if (!staffMember) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+
+      res.json({ 
+        message: "Photo uploaded successfully", 
+        photoUrl: photoUrl,
+        staff: staffMember
+      });
+    } catch (error) {
+      console.error("Upload photo error:", error);
+      res.status(500).json({ message: "Failed to upload photo" });
     }
   });
 
