@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -15,12 +15,18 @@ export const staff = pgTable("staff", {
   country: text("country").notNull(),
   status: text("status").notNull().default("active"),
   joinDate: timestamp("join_date"),
+  photoUrl: text("photo_url"),
+  dateOfBirth: text("date_of_birth"),
+  availableLeave: integer("available_leave"),
 });
 
 export const insertStaffSchema = createInsertSchema(staff).omit({
   id: true,
 }).extend({
   joinDate: z.string().optional(),
+  photoUrl: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  availableLeave: z.number().optional(),
 });
 
 export type InsertStaff = z.infer<typeof insertStaffSchema>;
