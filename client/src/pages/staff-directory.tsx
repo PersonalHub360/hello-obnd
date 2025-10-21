@@ -220,7 +220,6 @@ export default function Dashboard() {
       staff.name.toLowerCase().includes(searchLower) ||
       staff.email.toLowerCase().includes(searchLower) ||
       staff.employeeId.toLowerCase().includes(searchLower) ||
-      staff.position.toLowerCase().includes(searchLower) ||
       staff.country.toLowerCase().includes(searchLower);
 
     const matchesBrand =
@@ -526,7 +525,7 @@ export default function Dashboard() {
                       <TableHead className="w-[120px]">Employee ID</TableHead>
                       <TableHead className="w-[200px]">Name</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Position</TableHead>
+                      <TableHead>Role</TableHead>
                       <TableHead>Country</TableHead>
                       <TableHead>Brand</TableHead>
                       <TableHead>Status</TableHead>
@@ -572,10 +571,11 @@ export default function Dashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Briefcase className="h-4 w-4 text-muted-foreground" />
-                            <span>{staff.position}</span>
-                          </div>
+                          {staff.role && (
+                            <Badge variant="outline" data-testid={`badge-role-${staff.id}`}>
+                              {staff.role}
+                            </Badge>
+                          )}
                         </TableCell>
                         <TableCell>{staff.country}</TableCell>
                         <TableCell>
@@ -674,9 +674,11 @@ export default function Dashboard() {
                                 {staff.employeeId}
                               </span>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              {staff.position}
-                            </p>
+                            {staff.role && (
+                              <p className="text-sm text-muted-foreground">
+                                {staff.role}
+                              </p>
+                            )}
                           </div>
                         <div className="flex items-center gap-2">
                           <Badge
