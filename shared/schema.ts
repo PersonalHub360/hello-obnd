@@ -9,7 +9,6 @@ export const staff = pgTable("staff", {
   employeeId: text("employee_id").notNull().unique(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  position: text("position").notNull(),
   role: text("role"),
   department: text("department"),
   brand: text("brand"),

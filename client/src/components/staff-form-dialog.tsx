@@ -43,6 +43,7 @@ export function StaffFormDialog({
   isPending,
 }: StaffFormDialogProps) {
   const roleOptions = ["Manager", "Assistant Manager", "Team Leader", "Junior Sales Executive", "Sales Executive", "Senior Sales Executive", "QA", "Group TL", "Training Team"];
+  const countryOptions = ["Cambodia", "UAE", "SRL", "India", "Bangladesh", "Malaysia", "Singapore", "Thailand", "Indonesia", "Philippines", "Pakistan"];
 
   const form = useForm<InsertStaff>({
     resolver: zodResolver(insertStaffSchema),
@@ -51,7 +52,6 @@ export function StaffFormDialog({
           employeeId: staff.employeeId,
           name: staff.name,
           email: staff.email,
-          position: staff.position,
           role: staff.role || undefined,
           brand: staff.brand || undefined,
           country: staff.country,
@@ -62,7 +62,6 @@ export function StaffFormDialog({
           employeeId: "",
           name: "",
           email: "",
-          position: "",
           role: undefined,
           brand: undefined,
           country: "",
@@ -144,43 +143,33 @@ export function StaffFormDialog({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="position"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Position</FormLabel>
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Country</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value || undefined}
+                  >
                     <FormControl>
-                      <Input
-                        placeholder="Software Engineer"
-                        {...field}
-                        data-testid="input-position"
-                      />
+                      <SelectTrigger data-testid="select-country">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Country</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Malaysia"
-                        {...field}
-                        data-testid="input-country"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      {countryOptions.map((country) => (
+                        <SelectItem key={country} value={country} data-testid={`select-item-country-${country.toLowerCase()}`}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
