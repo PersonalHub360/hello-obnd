@@ -379,7 +379,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "Brand",
         "Country",
         "Status",
-        "Joining Date"
+        "Joining Date",
+        "Date of Birth",
+        "Available Leave"
       ];
       
       const rows = staffList.map(staff => [
@@ -390,7 +392,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         staff.brand || "",
         staff.country,
         staff.status,
-        staff.joinDate ? new Date(staff.joinDate).toISOString().split('T')[0] : ""
+        staff.joinDate ? new Date(staff.joinDate).toISOString().split('T')[0] : "",
+        staff.dateOfBirth || "",
+        staff.availableLeave !== null && staff.availableLeave !== undefined ? staff.availableLeave.toString() : ""
       ]);
       
       const csvContent = [
