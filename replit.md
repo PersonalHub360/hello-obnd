@@ -77,7 +77,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Validation Library:** Zod.
 - **Google API:** `googleapis` package for Google Sheets integration and data synchronization.
 
-## Google Sheets Integration (Backend Complete)
+## Google Sheets Integration
 The system includes comprehensive Google Sheets integration for automatic data synchronization:
 
 **Backend Implementation:**
@@ -85,15 +85,28 @@ The system includes comprehensive Google Sheets integration for automatic data s
 - Secure token storage in PostgreSQL database (`google_sheets_config` table)
 - Automated sync service that pushes Staff, Deposits, and Call Reports to Google Sheets
 - Separate sheets created for each data type within a single spreadsheet
-- Admin-only API endpoints for authorization, spreadsheet creation, data sync, and connection management
+- Admin-only API endpoints for authorization, spreadsheet linking, data sync, and connection management
 
 **API Endpoints:**
 - `GET /api/google-sheets/auth-url` - Generate OAuth authorization URL
 - `GET /api/google-sheets/callback` - Handle OAuth callback and token storage
 - `GET /api/google-sheets/status` - Check connection status and last sync time
-- `POST /api/google-sheets/create-spreadsheet` - Create new Google Sheets spreadsheet
+- `POST /api/google-sheets/link-spreadsheet` - Link existing Google Sheets spreadsheet
 - `POST /api/google-sheets/sync` - Manually trigger data synchronization
 - `POST /api/google-sheets/disconnect` - Disconnect Google Sheets integration
+
+**User Flow (URL-First Approach):**
+1. User enters Google Sheets URL in the Deposit Section
+2. User clicks "Connect" button to authorize with Google OAuth
+3. After OAuth authorization, system automatically links the provided URL
+4. User can then sync data to the linked spreadsheet
+
+**Frontend Integration:**
+- Google Sheets integration panel in Deposit Section with URL-first connection flow
+- Auto-linking feature that connects spreadsheet after OAuth authorization
+- Pending URL stored in localStorage during OAuth flow
+- Manual sync button for on-demand data updates
+- Connection status display with last sync timestamp
 
 **Environment Variables Required:**
 - `GOOGLE_CLIENT_ID` - Google OAuth2 client ID
@@ -104,5 +117,3 @@ The system includes comprehensive Google Sheets integration for automatic data s
 - **Staff Sheet:** All staff information including Employee ID, Name, Email, Role, Brand, Country, Status, Joining Date, Date of Birth, Available Leave
 - **Deposits Sheet:** All deposit records including Staff Name, Type, Date, Brand Name, FTD Count, Deposit Count
 - **Call Reports Sheet:** All call reports including User Name, Agent, Date/Time, Status, Phone, Duration, Remarks, Type
-
-**Note:** Frontend UI for Google Sheets integration is pending implementation in the Settings page. Admins will be able to connect, create spreadsheets, and trigger syncs from the Settings interface.
