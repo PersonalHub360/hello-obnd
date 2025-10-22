@@ -161,3 +161,19 @@ export const insertDepartmentSchema = createInsertSchema(departments).omit({
 
 export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
 export type Department = typeof departments.$inferSelect;
+
+// Google Sheets Configuration table
+export const googleSheetsConfig = pgTable("google_sheets_config", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  spreadsheetId: text("spreadsheet_id"),
+  spreadsheetUrl: text("spreadsheet_url"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  tokenExpiry: timestamp("token_expiry"),
+  isConnected: integer("is_connected").default(0),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type GoogleSheetsConfig = typeof googleSheetsConfig.$inferSelect;

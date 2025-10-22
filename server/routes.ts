@@ -1090,6 +1090,213 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Google Sheets Integration endpoints
+  app.get("/api/google-sheets/auth-url", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { GoogleSheetsService } = await import("./google-sheets");
+      
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/google-sheets/callback`;
+      
+      const service = new GoogleSheetsService({
+        clientId: process.env.GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+        redirectUri,
+      });
+
+      const authUrl = service.getAuthUrl();
+      res.json({ authUrl });
+    } catch (error) {
+      console.error("Get auth URL error:", error);
+      res.status(500).json({ message: "Failed to generate auth URL" });
+    }
+  });
+
+  app.get("/api/google-sheets/callback", async (req: Request, res: Response) => {
+    try {
+      const { code } = req.query;
+      
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ message: "Authorization code is required" });
+      }
+
+      const { GoogleSheetsService } = await import("./google-sheets");
+      
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/google-sheets/callback`;
+      
+      const service = new GoogleSheetsService({
+        clientId: process.env.GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+        redirectUri,
+      });
+
+      const tokens = await service.getTokenFromCode(code);
+      
+      // Store tokens in database
+      const result = await pool.query(
+        `INSERT INTO google_sheets_config (access_token, refresh_token, token_expiry, is_connected, updated_at)
+         VALUES ($1, $2, $3, 1, NOW())
+         ON CONFLICT (id) DO UPDATE
+         SET access_token = $1, refresh_token = $2, token_expiry = $3, is_connected = 1, updated_at = NOW()
+         RETURNING *`,
+        [tokens.access_token, tokens.refresh_token, tokens.expiry_date ? new Date(tokens.expiry_date) : null]
+      );
+
+      // Redirect to settings page
+      res.redirect('/settings?tab=integrations&success=google-sheets-connected');
+    } catch (error) {
+      console.error("OAuth callback error:", error);
+      res.redirect('/settings?tab=integrations&error=google-sheets-failed');
+    }
+  });
+
+  app.get("/api/google-sheets/status", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const result = await pool.query(
+        'SELECT id, spreadsheet_id, spreadsheet_url, is_connected, last_sync_at FROM google_sheets_config LIMIT 1'
+      );
+
+      if (result.rows.length === 0) {
+        return res.json({ connected: false });
+      }
+
+      const config = result.rows[0];
+      res.json({
+        connected: !!config.is_connected,
+        spreadsheetId: config.spreadsheet_id,
+        spreadsheetUrl: config.spreadsheet_url,
+        lastSyncAt: config.last_sync_at,
+      });
+    } catch (error) {
+      console.error("Get status error:", error);
+      res.status(500).json({ message: "Failed to get status" });
+    }
+  });
+
+  app.post("/api/google-sheets/create-spreadsheet", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Get tokens from database
+      const tokenResult = await pool.query(
+        'SELECT access_token, refresh_token FROM google_sheets_config WHERE is_connected = 1 LIMIT 1'
+      );
+
+      if (tokenResult.rows.length === 0) {
+        return res.status(400).json({ message: "Google Sheets not connected. Please authorize first." });
+      }
+
+      const tokens = tokenResult.rows[0];
+      
+      const { GoogleSheetsService } = await import("./google-sheets");
+      
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/google-sheets/callback`;
+      
+      const service = new GoogleSheetsService({
+        clientId: process.env.GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+        redirectUri,
+      });
+
+      service.setCredentials({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      });
+
+      const spreadsheet = await service.createSpreadsheet('AuroraMY Data');
+      
+      // Update database with spreadsheet info
+      await pool.query(
+        `UPDATE google_sheets_config
+         SET spreadsheet_id = $1, spreadsheet_url = $2, updated_at = NOW()
+         WHERE is_connected = 1`,
+        [spreadsheet.spreadsheetId, spreadsheet.spreadsheetUrl]
+      );
+
+      res.json({
+        spreadsheetId: spreadsheet.spreadsheetId,
+        spreadsheetUrl: spreadsheet.spreadsheetUrl,
+      });
+    } catch (error) {
+      console.error("Create spreadsheet error:", error);
+      res.status(500).json({ message: "Failed to create spreadsheet" });
+    }
+  });
+
+  app.post("/api/google-sheets/sync", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Get tokens and spreadsheet ID from database
+      const configResult = await pool.query(
+        'SELECT access_token, refresh_token, spreadsheet_id FROM google_sheets_config WHERE is_connected = 1 LIMIT 1'
+      );
+
+      if (configResult.rows.length === 0) {
+        return res.status(400).json({ message: "Google Sheets not connected. Please authorize first." });
+      }
+
+      const config = configResult.rows[0];
+      
+      if (!config.spreadsheet_id) {
+        return res.status(400).json({ message: "No spreadsheet configured. Please create one first." });
+      }
+
+      const { GoogleSheetsService } = await import("./google-sheets");
+      
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/google-sheets/callback`;
+      
+      const service = new GoogleSheetsService({
+        clientId: process.env.GOOGLE_CLIENT_ID || '',
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+        redirectUri,
+      });
+
+      service.setCredentials({
+        access_token: config.access_token,
+        refresh_token: config.refresh_token,
+      });
+
+      // Get all data
+      const staff = await storage.getAllStaff();
+      const deposits = await storage.getAllDeposits();
+      const callReports = await storage.getAllCallReports();
+
+      // Sync all data
+      await service.syncAllData(config.spreadsheet_id, {
+        staff,
+        deposits,
+        callReports,
+      });
+
+      // Update last sync time
+      await pool.query(
+        'UPDATE google_sheets_config SET last_sync_at = NOW(), updated_at = NOW() WHERE is_connected = 1'
+      );
+
+      res.json({ 
+        success: true, 
+        message: 'All data synced successfully',
+        counts: {
+          staff: staff.length,
+          deposits: deposits.length,
+          callReports: callReports.length,
+        }
+      });
+    } catch (error) {
+      console.error("Sync error:", error);
+      res.status(500).json({ message: "Failed to sync data" });
+    }
+  });
+
+  app.post("/api/google-sheets/disconnect", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      await pool.query(
+        'UPDATE google_sheets_config SET is_connected = 0, access_token = NULL, refresh_token = NULL, updated_at = NOW()'
+      );
+
+      res.json({ success: true, message: 'Google Sheets disconnected' });
+    } catch (error) {
+      console.error("Disconnect error:", error);
+      res.status(500).json({ message: "Failed to disconnect" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
