@@ -40,7 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Edit, Trash2 } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Edit, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -72,6 +72,17 @@ export default function Deposits() {
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
     retry: false,
+  });
+
+  // Google Sheets integration state
+  const { data: googleSheetsStatus, isLoading: sheetsStatusLoading } = useQuery<{
+    connected: boolean;
+    spreadsheetId?: string;
+    spreadsheetUrl?: string;
+    lastSyncAt?: string;
+  }>({
+    queryKey: ["/api/google-sheets/status"],
+    enabled: !!session && session.role === "admin",
   });
 
   const { data: deposits = [], isLoading: depositsLoading } = useQuery<Deposit[]>({
@@ -243,6 +254,87 @@ export default function Deposits() {
     },
   });
 
+  // Google Sheets mutations
+  const connectGoogleSheetsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/google-sheets/auth-url", {
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to get auth URL");
+      return await response.json() as { authUrl: string };
+    },
+    onSuccess: (data) => {
+      window.location.href = data.authUrl;
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to connect to Google Sheets",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createSpreadsheetMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/google-sheets/create-spreadsheet", {});
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/status"] });
+      toast({
+        title: "Success",
+        description: "Spreadsheet created successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create spreadsheet",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const syncGoogleSheetsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/google-sheets/sync", {});
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/status"] });
+      toast({
+        title: "Success",
+        description: `Synced ${data.counts?.deposits || 0} deposits to Google Sheets`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to sync data",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const disconnectGoogleSheetsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/google-sheets/disconnect", {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/status"] });
+      toast({
+        title: "Success",
+        description: "Disconnected from Google Sheets",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to disconnect",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleViewDeposit = (deposit: Deposit) => {
     setSelectedDeposit(deposit);
     setViewDialogOpen(true);
@@ -400,6 +492,122 @@ export default function Deposits() {
           </CardContent>
         </Card>
       </div>
+
+      {session.role === "admin" && (
+        <Card data-testid="card-google-sheets" className="border-primary/20">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-5 w-5 text-primary" />
+                <CardTitle>Google Sheets Integration</CardTitle>
+              </div>
+              {googleSheetsStatus?.connected ? (
+                <Badge variant="default" className="gap-1" data-testid="badge-connected">
+                  <CheckCircle className="h-3 w-3" />
+                  Connected
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="gap-1" data-testid="badge-not-connected">
+                  <XCircle className="h-3 w-3" />
+                  Not Connected
+                </Badge>
+              )}
+            </div>
+            <CardDescription>
+              Automatically sync deposit data to Google Sheets for reporting
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!googleSheetsStatus?.connected ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Connect your Google account to enable automatic data synchronization
+                </p>
+                <Button
+                  onClick={() => connectGoogleSheetsMutation.mutate()}
+                  disabled={connectGoogleSheetsMutation.isPending}
+                  data-testid="button-connect-google-sheets"
+                  className="w-full"
+                >
+                  <Link2 className="mr-2 h-4 w-4" />
+                  {connectGoogleSheetsMutation.isPending ? "Connecting..." : "Connect Google Sheets"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {googleSheetsStatus.spreadsheetUrl ? (
+                  <div className="space-y-2">
+                    <Label>Spreadsheet URL</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={googleSheetsStatus.spreadsheetUrl}
+                        readOnly
+                        className="font-mono text-sm"
+                        data-testid="input-spreadsheet-url"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        asChild
+                        data-testid="button-open-spreadsheet"
+                      >
+                        <a
+                          href={googleSheetsStatus.spreadsheetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                    {googleSheetsStatus.lastSyncAt && (
+                      <p className="text-xs text-muted-foreground">
+                        Last synced: {format(new Date(googleSheetsStatus.lastSyncAt), "PPp")}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Create a new spreadsheet to start syncing your deposit data
+                    </p>
+                    <Button
+                      onClick={() => createSpreadsheetMutation.mutate()}
+                      disabled={createSpreadsheetMutation.isPending}
+                      data-testid="button-create-spreadsheet"
+                      className="w-full"
+                    >
+                      {createSpreadsheetMutation.isPending ? "Creating..." : "Create Spreadsheet"}
+                    </Button>
+                  </div>
+                )}
+
+                {googleSheetsStatus.spreadsheetUrl && (
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => syncGoogleSheetsMutation.mutate()}
+                      disabled={syncGoogleSheetsMutation.isPending}
+                      data-testid="button-sync-now"
+                      className="flex-1"
+                    >
+                      <RefreshCw className={`mr-2 h-4 w-4 ${syncGoogleSheetsMutation.isPending ? "animate-spin" : ""}`} />
+                      {syncGoogleSheetsMutation.isPending ? "Syncing..." : "Sync Now"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => disconnectGoogleSheetsMutation.mutate()}
+                      disabled={disconnectGoogleSheetsMutation.isPending}
+                      data-testid="button-disconnect"
+                    >
+                      {disconnectGoogleSheetsMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card data-testid="card-new-deposit">
