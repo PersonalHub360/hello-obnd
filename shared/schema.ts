@@ -80,6 +80,8 @@ export const deposits = pgTable("deposits", {
   type: text("type").notNull(),
   date: timestamp("date").notNull().defaultNow(),
   brandName: text("brand_name").notNull(),
+  ftdCount: integer("ftd_count").default(0),
+  depositCount: integer("deposit_count").default(0),
 });
 
 export const insertDepositSchema = createInsertSchema(deposits).omit({
@@ -91,6 +93,8 @@ export const insertDepositSchema = createInsertSchema(deposits).omit({
   }),
   date: z.string().optional(),
   brandName: z.string().min(1, "Brand name is required"),
+  ftdCount: z.number().min(0, "FTD count must be 0 or greater").optional(),
+  depositCount: z.number().min(0, "Deposit count must be 0 or greater").optional(),
 });
 
 export type InsertDeposit = z.infer<typeof insertDepositSchema>;

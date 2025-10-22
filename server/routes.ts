@@ -651,6 +651,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: String(row.Type || row.type || ""),
           date: date,
           brandName: String(row["Brand Name"] || row.brandName || row["Brand name"] || ""),
+          ftdCount: typeof row["FTD Count"] === 'number' ? row["FTD Count"] : (typeof row.ftdCount === 'number' ? row.ftdCount : 0),
+          depositCount: typeof row["Deposit Count"] === 'number' ? row["Deposit Count"] : (typeof row.depositCount === 'number' ? row.depositCount : 0),
         };
       });
 
@@ -686,18 +688,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Type": "FTD",
           "Date": new Date().toISOString(),
           "Brand Name": "JB BDT",
+          "FTD Count": 5,
+          "Deposit Count": 10,
         },
         {
           "Staff Name": "Jane Doe",
           "Type": "Deposit",
           "Date": new Date().toISOString(),
           "Brand Name": "BJ BDT",
+          "FTD Count": 3,
+          "Deposit Count": 7,
         },
         {
           "Staff Name": "Bob Johnson",
           "Type": "FTD",
           "Date": new Date().toISOString(),
           "Brand Name": "JB PKR",
+          "FTD Count": 8,
+          "Deposit Count": 12,
         },
       ];
 

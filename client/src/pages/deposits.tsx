@@ -54,6 +54,8 @@ export default function Deposits() {
   const [type, setType] = useState("");
   const [date, setDate] = useState("");
   const [brandName, setBrandName] = useState("");
+  const [ftdCount, setFtdCount] = useState<number>(0);
+  const [depositCount, setDepositCount] = useState<number>(0);
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -64,6 +66,8 @@ export default function Deposits() {
   const [editType, setEditType] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editBrandName, setEditBrandName] = useState("");
+  const [editFtdCount, setEditFtdCount] = useState<number>(0);
+  const [editDepositCount, setEditDepositCount] = useState<number>(0);
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -82,7 +86,7 @@ export default function Deposits() {
   }, [session, sessionLoading, setLocation]);
 
   const createDepositMutation = useMutation({
-    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string }) => {
+    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number }) => {
       return await apiRequest("POST", "/api/deposits", data);
     },
     onSuccess: () => {
@@ -95,6 +99,8 @@ export default function Deposits() {
       setType("");
       setDate("");
       setBrandName("");
+      setFtdCount(0);
+      setDepositCount(0);
     },
     onError: () => {
       toast({
@@ -169,6 +175,8 @@ export default function Deposits() {
       type,
       date: date || undefined,
       brandName,
+      ftdCount,
+      depositCount,
     });
   };
 
@@ -191,7 +199,7 @@ export default function Deposits() {
   };
 
   const updateDepositMutation = useMutation({
-    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string; brandName: string }) => {
+    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number }) => {
       const { id, ...updateData } = data;
       return await apiRequest("PATCH", `/api/deposits/${id}`, updateData);
     },
@@ -246,6 +254,8 @@ export default function Deposits() {
     setEditType(deposit.type);
     setEditDate(deposit.date ? format(new Date(deposit.date), "yyyy-MM-dd") : "");
     setEditBrandName(deposit.brandName);
+    setEditFtdCount(deposit.ftdCount || 0);
+    setEditDepositCount(deposit.depositCount || 0);
     setEditDialogOpen(true);
   };
 
@@ -276,6 +286,8 @@ export default function Deposits() {
       type: editType,
       date: editDate || undefined,
       brandName: editBrandName,
+      ftdCount: editFtdCount,
+      depositCount: editDepositCount,
     });
   };
 
@@ -325,8 +337,10 @@ export default function Deposits() {
   };
 
   const totalDeposits = deposits.length;
-  const ftdCount = deposits.filter(d => d.type === "FTD").length;
-  const depositCount = deposits.filter(d => d.type === "Deposit").length;
+  const totalFtdRecords = deposits.filter(d => d.type === "FTD").length;
+  const totalDepositRecords = deposits.filter(d => d.type === "Deposit").length;
+  const totalFtdCount = deposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
+  const totalDepositCount = deposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
 
   if (sessionLoading) {
     return (
@@ -366,23 +380,23 @@ export default function Deposits() {
 
         <Card data-testid="card-ftd-count">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">FTD</CardTitle>
+            <CardTitle className="text-sm font-medium">FTD Count</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-ftd-count">{ftdCount}</div>
-            <p className="text-xs text-muted-foreground">First Time Deposits</p>
+            <div className="text-2xl font-bold" data-testid="text-ftd-count">{totalFtdCount}</div>
+            <p className="text-xs text-muted-foreground">{totalFtdRecords} records • Total count</p>
           </CardContent>
         </Card>
 
         <Card data-testid="card-deposit-count">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Deposits</CardTitle>
+            <CardTitle className="text-sm font-medium">Deposit Count</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-deposit-count">{depositCount}</div>
-            <p className="text-xs text-muted-foreground">Regular deposits</p>
+            <div className="text-2xl font-bold" data-testid="text-deposit-count">{totalDepositCount}</div>
+            <p className="text-xs text-muted-foreground">{totalDepositRecords} records • Total count</p>
           </CardContent>
         </Card>
       </div>
@@ -447,6 +461,33 @@ export default function Deposits() {
               </Select>
             </div>
 
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="ftdCount">FTD Count</Label>
+                <Input
+                  id="ftdCount"
+                  data-testid="input-ftd-count"
+                  type="number"
+                  min="0"
+                  placeholder="Enter FTD count"
+                  value={ftdCount}
+                  onChange={(e) => setFtdCount(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="depositCount">Deposit Count</Label>
+                <Input
+                  id="depositCount"
+                  data-testid="input-deposit-count"
+                  type="number"
+                  min="0"
+                  placeholder="Enter deposit count"
+                  value={depositCount}
+                  onChange={(e) => setDepositCount(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+
             <Button 
               onClick={handleCreateDeposit} 
               className="w-full"
@@ -486,7 +527,7 @@ export default function Deposits() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), Date, and Brand Name columns
+                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), Date, Brand Name, FTD Count, and Deposit Count columns
               </p>
             </div>
 
@@ -618,6 +659,16 @@ export default function Deposits() {
                 <Label className="text-muted-foreground">Brand Name</Label>
                 <p className="font-medium" data-testid="text-view-brand-name">{selectedDeposit.brandName}</p>
               </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-muted-foreground">FTD Count</Label>
+                  <p className="font-medium" data-testid="text-view-ftd-count">{selectedDeposit.ftdCount || 0}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Deposit Count</Label>
+                  <p className="font-medium" data-testid="text-view-deposit-count">{selectedDeposit.depositCount || 0}</p>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
@@ -685,6 +736,31 @@ export default function Deposits() {
                   <SelectItem value="SIX6'S PKR" data-testid="select-option-six6s-pkr">SIX6'S PKR</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-ftdCount">FTD Count</Label>
+                <Input
+                  id="edit-ftdCount"
+                  data-testid="input-edit-ftd-count"
+                  type="number"
+                  min="0"
+                  value={editFtdCount}
+                  onChange={(e) => setEditFtdCount(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-depositCount">Deposit Count</Label>
+                <Input
+                  id="edit-depositCount"
+                  data-testid="input-edit-deposit-count"
+                  type="number"
+                  min="0"
+                  value={editDepositCount}
+                  onChange={(e) => setEditDepositCount(parseInt(e.target.value) || 0)}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
