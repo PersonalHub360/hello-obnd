@@ -69,6 +69,10 @@ export default function Deposits() {
   const [editFtdCount, setEditFtdCount] = useState<number>(0);
   const [editDepositCount, setEditDepositCount] = useState<number>(0);
 
+  // Google Sheets link state
+  const [spreadsheetUrl, setSpreadsheetUrl] = useState("");
+  const [showLinkOption, setShowLinkOption] = useState(false);
+
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
     retry: false,
@@ -295,6 +299,28 @@ export default function Deposits() {
     },
   });
 
+  const linkSpreadsheetMutation = useMutation({
+    mutationFn: async (url: string) => {
+      return await apiRequest("POST", "/api/google-sheets/link-spreadsheet", { spreadsheetUrl: url });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/status"] });
+      toast({
+        title: "Success",
+        description: "Spreadsheet linked successfully",
+      });
+      setSpreadsheetUrl("");
+      setShowLinkOption(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to link spreadsheet",
+        variant: "destructive",
+      });
+    },
+  });
+
   const syncGoogleSheetsMutation = useMutation({
     mutationFn: async () => {
       return await apiRequest("POST", "/api/google-sheets/sync", {});
@@ -426,6 +452,28 @@ export default function Deposits() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleLinkSpreadsheet = () => {
+    if (!spreadsheetUrl.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a spreadsheet URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!spreadsheetUrl.includes("docs.google.com/spreadsheets")) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid Google Sheets URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    linkSpreadsheetMutation.mutate(spreadsheetUrl);
   };
 
   const totalDeposits = deposits.length;
@@ -567,18 +615,79 @@ export default function Deposits() {
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Create a new spreadsheet to start syncing your deposit data
+                      Choose how you want to set up your spreadsheet
                     </p>
-                    <Button
-                      onClick={() => createSpreadsheetMutation.mutate()}
-                      disabled={createSpreadsheetMutation.isPending}
-                      data-testid="button-create-spreadsheet"
-                      className="w-full"
-                    >
-                      {createSpreadsheetMutation.isPending ? "Creating..." : "Create Spreadsheet"}
-                    </Button>
+                    
+                    {!showLinkOption ? (
+                      <div className="space-y-3">
+                        <Button
+                          onClick={() => createSpreadsheetMutation.mutate()}
+                          disabled={createSpreadsheetMutation.isPending}
+                          data-testid="button-create-spreadsheet"
+                          className="w-full"
+                        >
+                          {createSpreadsheetMutation.isPending ? "Creating..." : "Create New Spreadsheet"}
+                        </Button>
+                        
+                        <div className="relative">
+                          <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                          </div>
+                          <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-card px-2 text-muted-foreground">Or</span>
+                          </div>
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowLinkOption(true)}
+                          data-testid="button-show-link-option"
+                          className="w-full"
+                        >
+                          <Link2 className="mr-2 h-4 w-4" />
+                          Link Existing Spreadsheet
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="spreadsheet-url">Google Sheets URL</Label>
+                          <Input
+                            id="spreadsheet-url"
+                            data-testid="input-spreadsheet-url-link"
+                            placeholder="https://docs.google.com/spreadsheets/d/..."
+                            value={spreadsheetUrl}
+                            onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Paste the full URL of your Google Sheet
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={handleLinkSpreadsheet}
+                            disabled={linkSpreadsheetMutation.isPending}
+                            data-testid="button-link-spreadsheet"
+                            className="flex-1"
+                          >
+                            {linkSpreadsheetMutation.isPending ? "Linking..." : "Link Spreadsheet"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setShowLinkOption(false);
+                              setSpreadsheetUrl("");
+                            }}
+                            data-testid="button-cancel-link"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

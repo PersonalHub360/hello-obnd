@@ -1230,6 +1230,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/google-sheets/link-spreadsheet", requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { spreadsheetUrl } = req.body;
+
+      if (!spreadsheetUrl) {
+        return res.status(400).json({ message: "Spreadsheet URL is required" });
+      }
+
+      // Extract spreadsheet ID from URL
+      // Format: https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit...
+      const spreadsheetIdMatch = spreadsheetUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      
+      if (!spreadsheetIdMatch) {
+        return res.status(400).json({ message: "Invalid Google Sheets URL format" });
+      }
+
+      const spreadsheetId = spreadsheetIdMatch[1];
+
+      // Get tokens from database
+      const tokenResult = await pool.query(
+        'SELECT access_token, refresh_token FROM google_sheets_config WHERE is_connected = 1 LIMIT 1'
+      );
+
+      if (tokenResult.rows.length === 0) {
+        return res.status(400).json({ message: "Google Sheets not connected. Please authorize first." });
+      }
+
+      // Update database with spreadsheet info
+      await pool.query(
+        `UPDATE google_sheets_config
+         SET spreadsheet_id = $1, spreadsheet_url = $2, updated_at = NOW()
+         WHERE is_connected = 1`,
+        [spreadsheetId, spreadsheetUrl]
+      );
+
+      res.json({
+        spreadsheetId,
+        spreadsheetUrl,
+        message: "Spreadsheet linked successfully",
+      });
+    } catch (error) {
+      console.error("Link spreadsheet error:", error);
+      res.status(500).json({ message: "Failed to link spreadsheet" });
+    }
+  });
+
   app.post("/api/google-sheets/sync", requireAdmin, async (req: Request, res: Response) => {
     try {
       // Get tokens and spreadsheet ID from database
