@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Phone, TrendingUp, Clock, CheckCircle2, AlertCircle, Upload, Download } from "lucide-react";
+import { Phone, TrendingUp, Clock, CheckCircle2, AlertCircle, Upload, Download, Link2, RefreshCw, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -41,6 +41,9 @@ export default function CallReports() {
   const [callType, setCallType] = useState("");
   const [remarks, setRemarks] = useState("");
 
+  // Google Sheets link state
+  const [spreadsheetUrl, setSpreadsheetUrl] = useState("");
+
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
     retry: false,
@@ -56,6 +59,27 @@ export default function CallReports() {
       setLocation("/");
     }
   }, [session, sessionLoading, setLocation]);
+
+  // Google Sheets integration
+  const { data: googleSheetsStatus } = useQuery<{ 
+    connected: boolean; 
+    spreadsheetUrl?: string;
+    lastSyncAt?: string;
+  }>({
+    queryKey: ["/api/google-sheets/status"],
+    enabled: !!session && session.role === "admin",
+  });
+
+  // Auto-link pending spreadsheet after OAuth
+  useEffect(() => {
+    if (googleSheetsStatus?.connected && !googleSheetsStatus.spreadsheetUrl) {
+      const pendingUrl = localStorage.getItem("pending_spreadsheet_url");
+      if (pendingUrl) {
+        localStorage.removeItem("pending_spreadsheet_url");
+        linkSpreadsheetMutation.mutate(pendingUrl);
+      }
+    }
+  }, [googleSheetsStatus?.connected, googleSheetsStatus?.spreadsheetUrl]);
 
   const createCallReportMutation = useMutation({
     mutationFn: async (data: {
@@ -129,6 +153,85 @@ export default function CallReports() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+    },
+  });
+
+  const connectGoogleSheetsMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("GET", "/api/google-sheets/auth-url", undefined);
+      return response;
+    },
+    onSuccess: (data: { url: string }) => {
+      window.location.href = data.url;
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to connect to Google Sheets",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const linkSpreadsheetMutation = useMutation({
+    mutationFn: async (url: string) => {
+      return await apiRequest("POST", "/api/google-sheets/link-spreadsheet", { spreadsheetUrl: url });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/status"] });
+      toast({
+        title: "Success",
+        description: "Spreadsheet linked successfully",
+      });
+      setSpreadsheetUrl("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to link spreadsheet",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const syncGoogleSheetsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/google-sheets/sync", {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/status"] });
+      toast({
+        title: "Success",
+        description: "Data synced to Google Sheets successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to sync data",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const disconnectGoogleSheetsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/google-sheets/disconnect", {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/status"] });
+      toast({
+        title: "Success",
+        description: "Disconnected from Google Sheets",
+      });
+      setSpreadsheetUrl("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to disconnect",
+        variant: "destructive",
+      });
     },
   });
 
@@ -353,6 +456,138 @@ export default function CallReports() {
             </CardContent>
           </Card>
         </div>
+
+        {session.role === "admin" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5" />
+              Google Sheets Integration
+            </CardTitle>
+            <CardDescription>
+              Automatically sync call report data to Google Sheets for reporting
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!googleSheetsStatus?.connected ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="google-sheet-url-calls">Google Sheets URL</Label>
+                  <Input
+                    id="google-sheet-url-calls"
+                    data-testid="input-google-sheet-url-calls"
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    value={spreadsheetUrl}
+                    onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Paste your Google Sheet link, then click Connect to authorize
+                  </p>
+                </div>
+                <Button
+                  onClick={() => {
+                    if (!spreadsheetUrl.trim()) {
+                      toast({
+                        title: "Error",
+                        description: "Please enter a Google Sheets URL first",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    if (!spreadsheetUrl.includes("docs.google.com/spreadsheets")) {
+                      toast({
+                        title: "Error",
+                        description: "Please enter a valid Google Sheets URL",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    // Store URL in localStorage before OAuth
+                    localStorage.setItem("pending_spreadsheet_url", spreadsheetUrl);
+                    connectGoogleSheetsMutation.mutate();
+                  }}
+                  disabled={connectGoogleSheetsMutation.isPending}
+                  data-testid="button-connect-google-sheets-calls"
+                  className="w-full"
+                >
+                  <Link2 className="mr-2 h-4 w-4" />
+                  {connectGoogleSheetsMutation.isPending ? "Connecting..." : "Connect"}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {googleSheetsStatus.spreadsheetUrl ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Connected Spreadsheet</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={googleSheetsStatus.spreadsheetUrl}
+                          readOnly
+                          className="font-mono text-sm"
+                          data-testid="input-spreadsheet-url-connected-calls"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          asChild
+                          data-testid="button-open-spreadsheet-calls"
+                        >
+                          <a
+                            href={googleSheetsStatus.spreadsheetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      </div>
+                      {googleSheetsStatus.lastSyncAt && (
+                        <p className="text-xs text-muted-foreground">
+                          Last synced: {format(new Date(googleSheetsStatus.lastSyncAt), "PPp")}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => syncGoogleSheetsMutation.mutate()}
+                        disabled={syncGoogleSheetsMutation.isPending}
+                        data-testid="button-sync-now-calls"
+                        className="flex-1"
+                      >
+                        <RefreshCw className={`mr-2 h-4 w-4 ${syncGoogleSheetsMutation.isPending ? "animate-spin" : ""}`} />
+                        {syncGoogleSheetsMutation.isPending ? "Syncing..." : "Sync Now"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => disconnectGoogleSheetsMutation.mutate()}
+                        disabled={disconnectGoogleSheetsMutation.isPending}
+                        data-testid="button-disconnect-calls"
+                      >
+                        {disconnectGoogleSheetsMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      {linkSpreadsheetMutation.isPending 
+                        ? "Linking your spreadsheet..." 
+                        : "Please wait while we link your spreadsheet..."}
+                    </p>
+                    {linkSpreadsheetMutation.isPending && (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
         <Card>
           <CardHeader>
