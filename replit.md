@@ -28,7 +28,7 @@ The application is built as a full-stack web application using a React, Express,
   - `requireAuth`: Protects routes requiring any authenticated user
   - `requireAdmin`: Restricts routes to users with admin role
 - **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, and Users (admin only).
-- **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits. **Date Handling:** Excel serial dates are converted using the formula `(serial - 25569) * 86400000` to Unix timestamps, then normalized to date-only strings (YYYY-MM-DD) to prevent timezone-related off-by-one errors.
+- **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits. Excel templates and imports now include FTD Count and Deposit Count columns for deposits. **Date Handling:** Excel serial dates are converted using the formula `(serial - 25569) * 86400000` to Unix timestamps, then normalized to date-only strings (YYYY-MM-DD) to prevent timezone-related off-by-one errors.
 - **Data Export:** CSV export for staff data.
 - **Validation:** Zod schemas are used for robust data validation on all API endpoints.
 - **Date Storage:** Staff joining dates are stored as date-only strings (YYYY-MM-DD) without timestamps, preventing timezone display issues across different regions.
@@ -57,7 +57,7 @@ The application is built as a full-stack web application using a React, Express,
   - Available annual leave days
   - All staff information in organized card layout
   - Photo uploads stored in /public/uploads/staff-photos directory
-- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name, Type, Date, and Brand Name fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR).
+- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name, Type, Date, Brand Name, FTD Count, and Deposit Count fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). Includes separate numerical tracking for FTD Count and Deposit Count to provide granular deposit metrics beyond the Type field.
 - **Call Reports:** Tracks customer call activities with logging forms (user name, agent, phone, status, duration, type, remarks), statistics, and Excel import.
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
 - **Settings Section:** Multi-section settings page including:
@@ -75,3 +75,34 @@ The application is built as a full-stack web application using a React, Express,
 - **Date Utilities:** date-fns for date manipulation and formatting.
 - **Session Management:** `express-session` with a PostgreSQL store.
 - **Validation Library:** Zod.
+- **Google API:** `googleapis` package for Google Sheets integration and data synchronization.
+
+## Google Sheets Integration (Backend Complete)
+The system includes comprehensive Google Sheets integration for automatic data synchronization:
+
+**Backend Implementation:**
+- OAuth2 authentication flow with Google Sheets API
+- Secure token storage in PostgreSQL database (`google_sheets_config` table)
+- Automated sync service that pushes Staff, Deposits, and Call Reports to Google Sheets
+- Separate sheets created for each data type within a single spreadsheet
+- Admin-only API endpoints for authorization, spreadsheet creation, data sync, and connection management
+
+**API Endpoints:**
+- `GET /api/google-sheets/auth-url` - Generate OAuth authorization URL
+- `GET /api/google-sheets/callback` - Handle OAuth callback and token storage
+- `GET /api/google-sheets/status` - Check connection status and last sync time
+- `POST /api/google-sheets/create-spreadsheet` - Create new Google Sheets spreadsheet
+- `POST /api/google-sheets/sync` - Manually trigger data synchronization
+- `POST /api/google-sheets/disconnect` - Disconnect Google Sheets integration
+
+**Environment Variables Required:**
+- `GOOGLE_CLIENT_ID` - Google OAuth2 client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth2 client secret
+- `GOOGLE_REDIRECT_URI` - OAuth callback URL (auto-generated based on domain)
+
+**Data Synced to Google Sheets:**
+- **Staff Sheet:** All staff information including Employee ID, Name, Email, Role, Brand, Country, Status, Joining Date, Date of Birth, Available Leave
+- **Deposits Sheet:** All deposit records including Staff Name, Type, Date, Brand Name, FTD Count, Deposit Count
+- **Call Reports Sheet:** All call reports including User Name, Agent, Date/Time, Status, Phone, Duration, Remarks, Type
+
+**Note:** Frontend UI for Google Sheets integration is pending implementation in the Settings page. Admins will be able to connect, create spreadsheets, and trigger syncs from the Settings interface.

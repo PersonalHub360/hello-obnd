@@ -1131,15 +1131,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const tokens = await service.getTokenFromCode(code);
       
-      // Store tokens in database
-      const result = await pool.query(
-        `INSERT INTO google_sheets_config (access_token, refresh_token, token_expiry, is_connected, updated_at)
-         VALUES ($1, $2, $3, 1, NOW())
-         ON CONFLICT (id) DO UPDATE
-         SET access_token = $1, refresh_token = $2, token_expiry = $3, is_connected = 1, updated_at = NOW()
-         RETURNING *`,
-        [tokens.access_token, tokens.refresh_token, tokens.expiry_date ? new Date(tokens.expiry_date) : null]
-      );
+      // Store tokens in database - first check if config exists
+      const existingConfig = await pool.query('SELECT id FROM google_sheets_config LIMIT 1');
+      
+      if (existingConfig.rows.length > 0) {
+        // Update existing config
+        await pool.query(
+          `UPDATE google_sheets_config
+           SET access_token = $1, refresh_token = $2, token_expiry = $3, is_connected = 1, updated_at = NOW()
+           WHERE id = $4`,
+          [tokens.access_token, tokens.refresh_token, tokens.expiry_date ? new Date(tokens.expiry_date) : null, existingConfig.rows[0].id]
+        );
+      } else {
+        // Insert new config
+        await pool.query(
+          `INSERT INTO google_sheets_config (access_token, refresh_token, token_expiry, is_connected)
+           VALUES ($1, $2, $3, 1)`,
+          [tokens.access_token, tokens.refresh_token, tokens.expiry_date ? new Date(tokens.expiry_date) : null]
+        );
+      }
 
       // Redirect to settings page
       res.redirect('/settings?tab=integrations&success=google-sheets-connected');
