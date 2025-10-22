@@ -102,11 +102,12 @@ The system includes comprehensive Google Sheets integration for automatic data s
 4. User can then sync data to the linked spreadsheet
 
 **Frontend Integration:**
-- Google Sheets integration panel in Deposit Section with URL-first connection flow
+- Google Sheets integration panels in both Deposit Section and Call Reports section with URL-first connection flow
 - Auto-linking feature that connects spreadsheet after OAuth authorization
 - Pending URL stored in localStorage during OAuth flow
 - Manual sync button for on-demand data updates
 - Connection status display with last sync timestamp
+- Admin-only access to Google Sheets integration UI
 
 **Environment Variables Required:**
 - `GOOGLE_CLIENT_ID` - Google OAuth2 client ID
