@@ -35,10 +35,11 @@ export type Staff = typeof staff.$inferSelect;
 // Auth user table (for login)
 export const authUsers = pgTable("auth_users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  role: text("role").notNull().default("user"),
+  role: text("role").notNull().default("User"),
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -59,7 +60,7 @@ export type UpdateAuthUser = z.infer<typeof updateAuthUserSchema>;
 
 // Login schema
 export const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -68,6 +69,7 @@ export type LoginCredentials = z.infer<typeof loginSchema>;
 // Session data
 export interface SessionData {
   userId: string;
+  username: string;
   email: string;
   name: string;
   role: string;
