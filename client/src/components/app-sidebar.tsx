@@ -1,4 +1,4 @@
-import { LayoutDashboard, DollarSign, FileText, Users, BarChart3, Building2, TrendingUp, Settings } from "lucide-react";
+import { LayoutDashboard, DollarSign, Users, BarChart3, Building2, TrendingUp, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -26,11 +26,6 @@ const menuItems = [
     title: "Deposit Section",
     url: "/deposits",
     icon: DollarSign,
-  },
-  {
-    title: "Call Reports",
-    url: "/call-reports",
-    icon: FileText,
   },
   {
     title: "Staff Directory",
