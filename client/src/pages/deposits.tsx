@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +67,7 @@ export default function Deposits() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
+  const [selectedDepositIds, setSelectedDepositIds] = useState<Set<string>>(new Set());
 
   // Google Sheets link state
   const [spreadsheetUrl, setSpreadsheetUrl] = useState("");
@@ -222,6 +224,30 @@ export default function Deposits() {
     }
   };
 
+  const handleToggleDeposit = (depositId: string) => {
+    const newSelected = new Set(selectedDepositIds);
+    if (newSelected.has(depositId)) {
+      newSelected.delete(depositId);
+    } else {
+      newSelected.add(depositId);
+    }
+    setSelectedDepositIds(newSelected);
+  };
+
+  const handleToggleAll = () => {
+    if (selectedDepositIds.size === deposits.length) {
+      setSelectedDepositIds(new Set());
+    } else {
+      setSelectedDepositIds(new Set(deposits.map(d => d.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedDepositIds.size > 0) {
+      bulkDeleteDepositsMutation.mutate(Array.from(selectedDepositIds));
+    }
+  };
+
   const deleteDepositMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/deposits/${id}`);
@@ -239,6 +265,27 @@ export default function Deposits() {
       toast({
         title: "Error",
         description: "Failed to delete deposit",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkDeleteDepositsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await Promise.all(ids.map(id => apiRequest("DELETE", `/api/deposits/${id}`)));
+    },
+    onSuccess: (_, ids) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      toast({
+        title: "Success",
+        description: `Successfully deleted ${ids.length} deposit${ids.length > 1 ? 's' : ''}.`,
+      });
+      setSelectedDepositIds(new Set());
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete selected deposits. Please try again.",
         variant: "destructive",
       });
     },
