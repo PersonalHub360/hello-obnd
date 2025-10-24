@@ -37,7 +37,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Navigation:** Collapsible sidebar with sections: Dashboard, Deposit Section, Staff Directory, Staff Performance Check, Analytics, and Settings.
 - **Dashboard:** Overview with date filtering, dynamic month selection, and key business metrics (Total Calls, Total Deposit, Total FTD, Successful Calls, Conversion Rate).
 - **Staff Directory:** Comprehensive staff management with CRUD, bulk delete, search, filtering, Excel import/export. Staff form includes Employee ID, Name, Email, Role dropdown (10 fixed options), Brand Name (7 predefined options), Country (11 options), Status, Joining Date, Date of Birth (optional), Available Leave (optional). Staff profiles display photo upload, calculated age, and available leave.
-- **Deposit Section:** Manages financial deposits with statistics. New deposit forms include Staff Name (searchable dropdown), FTD (Yes/No), Deposit (Yes/No), Date, Brand Name (7 fixed options), FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, Failed Calls. Deposits support Create, View, and Delete operations; Update/Edit is removed. Features bulk selection and deletion.
+- **Deposit Section:** Manages financial deposits with statistics. New deposit forms include Staff Name (searchable dropdown), FTD (Yes/No), Deposit (Yes/No), Date, Brand Name (7 fixed options), FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, Failed Calls. Deposits support Create, View, and Delete operations; Update/Edit is removed. Features bulk selection and deletion. **Staff Filter:** Search and filter deposits by staff name with URL parameter support for direct navigation from Performance Check.
 - **Analytics Dashboard:** Visualizes HR and operational data with charts for department distribution, employee status, hiring trends, etc.
 - **Settings Section:** Multi-section settings including Interface (theme selection, UI preferences), Notifications, Account, and User Management (Admin Only).
     - **User Management (Admin Only):** Role-based user administration with inline editing of user roles and status. Add new users with username, name, email, password, and role selection (8 predefined roles). Protected by backend `requireAdmin` middleware.
@@ -55,6 +55,7 @@ The application is built as a full-stack web application using a React, Express,
   - Shows count of matching staff members
   - Clear filters button to reset search and filter
   - Active filter badges display current search/filter criteria
+  - **Connected to Deposit Section:** "View Deposits" button navigates to Deposit Section with pre-filled staff filter via URL parameter
 
 ## External Dependencies
 - **Database:** PostgreSQL (Neon for cloud hosting).
