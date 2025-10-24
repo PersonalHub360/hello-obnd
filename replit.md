@@ -24,11 +24,11 @@ The application is built as a full-stack web application using a React, Express,
 - **Frontend:** Developed with React 18 and TypeScript, utilizing Wouter for routing, TanStack Query for data fetching, and Shadcn UI (built on Radix UI primitives) for components. Recharts is used for data visualization.
 - **Backend:** Implemented using Express.js and TypeScript, providing RESTful APIs for all functionalities.
 - **Authentication:** 
-  - **Username-based login** system with secure server-side session management using express-session with PostgreSQL storage (connect-pg-simple)
+  - **Email-based login** system with secure server-side session management using express-session with PostgreSQL storage (connect-pg-simple)
   - **Password Security:** All passwords are hashed using bcrypt (salt rounds: 10) before storage in the database
   - **Login Verification:** Uses bcrypt.compare() for secure password verification during authentication
   - Sessions include user role for authorization and support role-based access control
-  - Existing users have been migrated to bcrypt-hashed passwords for enhanced security
+  - Users authenticate using their email address instead of username for improved user experience
 - **Authorization:** Multi-layer security system:
   - **Backend Middleware:**
     - `requireAuth`: Protects routes requiring any authenticated user

@@ -108,12 +108,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { username, password } = result.data;
-      const user = await storage.getAuthUserByUsername(username);
+      const { email, password } = result.data;
+      const user = await storage.getAuthUserByEmail(email);
 
       if (!user) {
         return res.status(401).json({ 
-          message: "Invalid username or password" 
+          message: "Invalid email or password" 
         });
       }
 
@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!isPasswordValid) {
         return res.status(401).json({ 
-          message: "Invalid username or password" 
+          message: "Invalid email or password" 
         });
       }
 
