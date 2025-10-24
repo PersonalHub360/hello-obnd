@@ -41,7 +41,7 @@ The application is built as a full-stack web application using a React, Express,
   - **Employee ID** (disabled when editing - unique identifier)
   - **Name** (editable text field)
   - **Email** (disabled when editing - unique identifier)
-  - **Role dropdown** with 10 fixed options: Manager, Assistant Manager, Team Leader, Outbound Assistant Team Leader, Junior Sales Executive, Sales Executive, Senior Sales Executive, QA, Group TL, Training Team
+  - **Role dropdown** with 10 fixed options: Manager, Assistant Manager, Team Leader, Assistant Team Leader, Junior Sales Executive, Sales Executive, Senior Sales Executive, QA, Group TL, Training Team
   - **Brand Name field** with 7 predefined options: JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR
   - **Country dropdown** with 11 country options: Cambodia, UAE, SRL, India, Bangladesh, Malaysia, Singapore, Thailand, Indonesia, Philippines, Pakistan
   - **Status dropdown**: Active/Inactive

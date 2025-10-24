@@ -42,7 +42,7 @@ export function StaffFormDialog({
   onSubmit,
   isPending,
 }: StaffFormDialogProps) {
-  const roleOptions = ["Manager", "Assistant Manager", "Team Leader", "Outbound Assistant Team Leader", "Junior Sales Executive", "Sales Executive", "Senior Sales Executive", "QA", "Group TL", "Training Team"];
+  const roleOptions = ["Manager", "Assistant Manager", "Team Leader", "Assistant Team Leader", "Junior Sales Executive", "Sales Executive", "Senior Sales Executive", "QA", "Group TL", "Training Team"];
   const countryOptions = ["Cambodia", "UAE", "SRL", "India", "Bangladesh", "Malaysia", "Singapore", "Thailand", "Indonesia", "Philippines", "Pakistan"];
 
   const form = useForm<InsertStaff>({

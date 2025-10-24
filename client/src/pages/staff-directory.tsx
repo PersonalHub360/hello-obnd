@@ -234,7 +234,7 @@ export default function Dashboard() {
   });
 
   const brandOptions = ["JB BDT", "BJ BDT", "BJ PKR", "JB PKR", "NPR", "SIX6'S BDT", "SIX6'S PKR"];
-  const roleOptions = ["Manager", "Assistant Manager", "Team Leader", "Outbound Assistant Team Leader", "Junior Sales Executive", "Sales Executive", "Senior Sales Executive", "QA", "Group TL", "Training Team"];
+  const roleOptions = ["Manager", "Assistant Manager", "Team Leader", "Assistant Team Leader", "Junior Sales Executive", "Sales Executive", "Senior Sales Executive", "QA", "Group TL", "Training Team"];
 
   const activeFiltersCount = [
     brandFilter !== "all",
