@@ -88,7 +88,7 @@ export function StaffCombobox({
                   <div className="flex flex-col">
                     <span className="font-medium">{staffMember.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {staffMember.role} • {staffMember.brandName}
+                      {staffMember.role} • {staffMember.brand}
                     </span>
                   </div>
                 </CommandItem>

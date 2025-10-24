@@ -44,6 +44,7 @@ import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Edit, Trash2, 
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { StaffCombobox } from "@/components/staff-combobox";
 
 export default function Deposits() {
   const [, setLocation] = useLocation();
@@ -704,12 +705,11 @@ export default function Deposits() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="staffName">Staff Name</Label>
-              <Input
-                id="staffName"
-                data-testid="input-staff-name"
-                placeholder="Enter staff name"
+              <StaffCombobox
                 value={staffName}
-                onChange={(e) => setStaffName(e.target.value)}
+                onChange={setStaffName}
+                placeholder="Type or select staff..."
+                testId="input-staff-name"
               />
             </div>
 
@@ -982,11 +982,11 @@ export default function Deposits() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="edit-staffName">Staff Name</Label>
-              <Input
-                id="edit-staffName"
-                data-testid="input-edit-staff-name"
+              <StaffCombobox
                 value={editStaffName}
-                onChange={(e) => setEditStaffName(e.target.value)}
+                onChange={setEditStaffName}
+                placeholder="Type or select staff..."
+                testId="input-edit-staff-name"
               />
             </div>
 
