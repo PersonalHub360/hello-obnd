@@ -420,7 +420,7 @@ export default function Deposits() {
       return;
     }
 
-    const updateData = {
+    updateDepositMutation.mutate({
       id: selectedDeposit.id,
       staffName: editStaffName,
       date: editDate || undefined,
@@ -431,10 +431,7 @@ export default function Deposits() {
       successfulCalls: editSuccessfulCalls,
       unsuccessfulCalls: editUnsuccessfulCalls,
       failedCalls: editFailedCalls,
-    };
-    
-    console.log("Frontend handleUpdateDeposit called with data:", updateData);
-    updateDepositMutation.mutate(updateData);
+    });
   };
 
   const handleDeleteDeposit = (deposit: Deposit) => {
