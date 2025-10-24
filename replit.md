@@ -55,6 +55,8 @@ The application is built as a full-stack web application using a React, Express,
   - Shows count of matching staff members
   - Clear filters button to reset search and filter
   - Active filter badges display current search/filter criteria
+  - **Daily View Options:** Toggle between Today and Yesterday performance metrics
+  - **Monthly Custom Date:** Calendar date picker for selecting any custom month/year alongside standard month/year dropdowns
   - **Connected to Deposit Section:** "View Deposits" button navigates to Deposit Section with pre-filled staff filter via URL parameter
 
 ## External Dependencies
