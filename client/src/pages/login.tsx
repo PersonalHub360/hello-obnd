@@ -20,7 +20,7 @@ export default function Login() {
   const form = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -40,7 +40,7 @@ export default function Login() {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: error.message || "Invalid email or password. Please try again.",
+        description: error.message || "Invalid username or password. Please try again.",
       });
     },
   });
@@ -89,20 +89,20 @@ export default function Login() {
           {/* Login form */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                Email Address
+              <Label htmlFor="username" className="text-sm font-medium text-foreground">
+                Username
               </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="james.bond@auroramy.com"
-                data-testid="input-email"
-                {...form.register("email")}
+                id="username"
+                type="text"
+                placeholder="james.bond_auroramy.com"
+                data-testid="input-username"
+                {...form.register("username")}
                 className="h-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-white/30 dark:border-gray-700/50 focus:border-primary/50 focus:ring-primary/20"
               />
-              {form.formState.errors.email && (
+              {form.formState.errors.username && (
                 <p className="text-sm text-destructive font-medium">
-                  {form.formState.errors.email.message}
+                  {form.formState.errors.username.message}
                 </p>
               )}
             </div>

@@ -107,17 +107,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const { email, password } = result.data;
-      const user = await storage.getAuthUserByEmail(email);
+      const { username, password } = result.data;
+      const user = await storage.getAuthUserByUsername(username);
 
       if (!user || user.password !== password) {
         return res.status(401).json({ 
-          message: "Invalid email or password" 
+          message: "Invalid username or password" 
         });
       }
 
       req.session.user = {
         userId: user.id,
+        username: user.username,
         email: user.email,
         name: user.name,
         role: user.role,
