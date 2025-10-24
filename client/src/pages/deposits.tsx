@@ -887,8 +887,23 @@ export default function Deposits() {
 
       <Card data-testid="card-deposits-list">
         <CardHeader>
-          <CardTitle>Deposits List</CardTitle>
-          <CardDescription>View and manage all deposit records</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Deposits List</CardTitle>
+              <CardDescription>View and manage all deposit records</CardDescription>
+            </div>
+            {selectedDepositIds.size > 0 && (
+              <Button
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteDepositsMutation.isPending}
+                data-testid="button-bulk-delete"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Selected ({selectedDepositIds.size})
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {depositsLoading ? (
