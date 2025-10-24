@@ -106,6 +106,21 @@ export default function Deposits() {
     }
   }, [session, sessionLoading, setLocation]);
 
+  // Sync edit form state when selectedDeposit changes or edit dialog opens
+  useEffect(() => {
+    if (editDialogOpen && selectedDeposit) {
+      setEditStaffName(selectedDeposit.staffName);
+      setEditDate(selectedDeposit.date ? format(new Date(selectedDeposit.date), "yyyy-MM-dd") : "");
+      setEditBrandName(selectedDeposit.brandName);
+      setEditFtdCount(selectedDeposit.ftdCount || 0);
+      setEditDepositCount(selectedDeposit.depositCount || 0);
+      setEditTotalCalls(selectedDeposit.totalCalls || 0);
+      setEditSuccessfulCalls(selectedDeposit.successfulCalls || 0);
+      setEditUnsuccessfulCalls(selectedDeposit.unsuccessfulCalls || 0);
+      setEditFailedCalls(selectedDeposit.failedCalls || 0);
+    }
+  }, [editDialogOpen, selectedDeposit]);
+
   // Auto-link pending spreadsheet after OAuth
   useEffect(() => {
     if (googleSheetsStatus?.connected && !googleSheetsStatus.spreadsheetUrl) {
