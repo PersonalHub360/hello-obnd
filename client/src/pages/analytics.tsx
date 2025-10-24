@@ -64,11 +64,11 @@ export default function Analytics() {
   const statusData = [
     {
       name: "Active",
-      value: staffList.filter((s) => s.status === "active").length,
+      value: staffList.filter((s) => s.status?.toLowerCase() === "active").length,
     },
     {
       name: "Inactive",
-      value: staffList.filter((s) => s.status === "inactive").length,
+      value: staffList.filter((s) => s.status?.toLowerCase() === "inactive").length,
     },
   ];
 
