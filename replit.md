@@ -37,7 +37,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Authentication System:** Secure login, session management with role-based access control, protected routes, and logout. Sessions are stored in PostgreSQL for persistence and security.
 - **Navigation:** Collapsible sidebar with main sections: Dashboard, Deposit Section, Call Reports, Staff Directory, Staff Performance Check, Analytics, and Settings.
 - **Dashboard:** Provides an overview with date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, By Month, All Time), dynamic month selection, and key business metrics (Total Calls, Total Deposit, Total FTD, Successful Calls, Conversion Rate). Includes quick access cards and action buttons.
-- **Staff Directory:** Comprehensive staff management with CRUD operations, search, filtering (brand, role, status), Excel import/export, and responsive table/card views. The staff form includes:
+- **Staff Directory:** Comprehensive staff management with CRUD operations, bulk delete with checkbox selection, search, filtering (brand, role, status), Excel import/export, and responsive table/card views. The staff form includes:
   - **Employee ID** (disabled when editing - unique identifier)
   - **Name** (editable text field)
   - **Email** (disabled when editing - unique identifier)
