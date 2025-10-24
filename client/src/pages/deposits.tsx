@@ -867,59 +867,77 @@ export default function Deposits() {
                     <TableHead>Type</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Brand Name</TableHead>
+                    <TableHead className="text-center">FTD Count</TableHead>
+                    <TableHead className="text-center">Deposit Count</TableHead>
+                    <TableHead className="text-right">Bonus Amount</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {deposits.map((deposit) => (
-                    <TableRow key={deposit.id} data-testid={`row-deposit-${deposit.id}`}>
-                      <TableCell className="font-medium" data-testid={`text-staff-name-${deposit.id}`}>
-                        {deposit.staffName}
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={deposit.type === "FTD" ? "default" : "secondary"}
-                          data-testid={`badge-type-${deposit.id}`}
-                        >
-                          {deposit.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell data-testid={`text-date-${deposit.id}`}>
-                        {format(new Date(deposit.date), "MMM dd, yyyy")}
-                      </TableCell>
-                      <TableCell data-testid={`text-brand-name-${deposit.id}`}>
-                        {deposit.brandName}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleViewDeposit(deposit)}
-                            data-testid={`button-view-${deposit.id}`}
+                  {deposits.map((deposit) => {
+                    const ftdCount = deposit.ftdCount || 0;
+                    const depositCount = deposit.depositCount || 0;
+                    const bonusAmount = (ftdCount * 1) + (depositCount * 1.5);
+                    
+                    return (
+                      <TableRow key={deposit.id} data-testid={`row-deposit-${deposit.id}`}>
+                        <TableCell className="font-medium" data-testid={`text-staff-name-${deposit.id}`}>
+                          {deposit.staffName}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={deposit.type === "FTD" ? "default" : "secondary"}
+                            data-testid={`badge-type-${deposit.id}`}
                           >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditDeposit(deposit)}
-                            data-testid={`button-edit-${deposit.id}`}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteDeposit(deposit)}
-                            data-testid={`button-delete-${deposit.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            {deposit.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell data-testid={`text-date-${deposit.id}`}>
+                          {format(new Date(deposit.date), "MMM dd, yyyy")}
+                        </TableCell>
+                        <TableCell data-testid={`text-brand-name-${deposit.id}`}>
+                          {deposit.brandName}
+                        </TableCell>
+                        <TableCell className="text-center" data-testid={`text-ftd-count-${deposit.id}`}>
+                          <Badge variant="outline">{ftdCount}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center" data-testid={`text-deposit-count-${deposit.id}`}>
+                          <Badge variant="outline">{depositCount}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-green-600 dark:text-green-400" data-testid={`text-bonus-${deposit.id}`}>
+                          ${bonusAmount.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleViewDeposit(deposit)}
+                              data-testid={`button-view-${deposit.id}`}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditDeposit(deposit)}
+                              data-testid={`button-edit-${deposit.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteDeposit(deposit)}
+                              data-testid={`button-delete-${deposit.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
