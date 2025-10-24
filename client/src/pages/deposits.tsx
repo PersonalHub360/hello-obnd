@@ -52,7 +52,8 @@ export default function Deposits() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [staffName, setStaffName] = useState("");
-  const [type, setType] = useState("");
+  const [ftd, setFtd] = useState("No");
+  const [deposit, setDeposit] = useState("No");
   const [date, setDate] = useState("");
   const [brandName, setBrandName] = useState("");
   const [ftdCount, setFtdCount] = useState<number>(0);
@@ -108,7 +109,7 @@ export default function Deposits() {
   }, [googleSheetsStatus?.connected, googleSheetsStatus?.spreadsheetUrl]);
 
   const createDepositMutation = useMutation({
-    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
+    mutationFn: async (data: { staffName: string; ftd: string; deposit: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
       return await apiRequest("POST", "/api/deposits", data);
     },
     onSuccess: () => {
@@ -118,7 +119,8 @@ export default function Deposits() {
         description: "Deposit created successfully",
       });
       setStaffName("");
-      setType("");
+      setFtd("No");
+      setDeposit("No");
       setDate("");
       setBrandName("");
       setFtdCount(0);
@@ -178,10 +180,10 @@ export default function Deposits() {
   });
 
   const handleCreateDeposit = () => {
-    if (!staffName || !type || !brandName) {
+    if (!staffName || !brandName) {
       toast({
         title: "Error",
-        description: "Please fill in Staff Name, Type, and Brand Name",
+        description: "Please fill in Staff Name and Brand Name",
         variant: "destructive",
       });
       return;
@@ -189,7 +191,8 @@ export default function Deposits() {
 
     createDepositMutation.mutate({
       staffName,
-      type,
+      ftd,
+      deposit,
       date: date || undefined,
       brandName,
       ftdCount,
@@ -641,14 +644,27 @@ export default function Deposits() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger id="type" data-testid="select-type">
-                  <SelectValue placeholder="Select type" />
+              <Label htmlFor="ftd">FTD</Label>
+              <Select value={ftd} onValueChange={setFtd}>
+                <SelectTrigger id="ftd" data-testid="select-ftd">
+                  <SelectValue placeholder="Select FTD" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="FTD" data-testid="select-option-ftd">FTD</SelectItem>
-                  <SelectItem value="Deposit" data-testid="select-option-deposit">Deposit</SelectItem>
+                  <SelectItem value="Yes" data-testid="select-option-ftd-yes">Yes</SelectItem>
+                  <SelectItem value="No" data-testid="select-option-ftd-no">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="deposit">Deposit</Label>
+              <Select value={deposit} onValueChange={setDeposit}>
+                <SelectTrigger id="deposit" data-testid="select-deposit">
+                  <SelectValue placeholder="Select Deposit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Yes" data-testid="select-option-deposit-yes">Yes</SelectItem>
+                  <SelectItem value="No" data-testid="select-option-deposit-no">No</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -802,7 +818,7 @@ export default function Deposits() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Upload .xlsx or .xls file with Staff Name, Type, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls columns
+                Upload .xlsx or .xls file with Staff Name, FTD, Deposit, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls columns
               </p>
             </div>
 
@@ -845,7 +861,8 @@ export default function Deposits() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Staff Name</TableHead>
-                    <TableHead>Type</TableHead>
+                    <TableHead>FTD</TableHead>
+                    <TableHead>Deposit</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Brand Name</TableHead>
                     <TableHead className="text-center">FTD Count</TableHead>
@@ -869,8 +886,11 @@ export default function Deposits() {
                         <TableCell className="font-medium" data-testid={`text-staff-name-${deposit.id}`}>
                           {deposit.staffName}
                         </TableCell>
-                        <TableCell data-testid={`text-type-${deposit.id}`}>
-                          <Badge variant="outline">{deposit.type}</Badge>
+                        <TableCell data-testid={`text-ftd-${deposit.id}`}>
+                          <Badge variant={deposit.ftd === "Yes" ? "default" : "outline"}>{deposit.ftd}</Badge>
+                        </TableCell>
+                        <TableCell data-testid={`text-deposit-${deposit.id}`}>
+                          <Badge variant={deposit.deposit === "Yes" ? "default" : "outline"}>{deposit.deposit}</Badge>
                         </TableCell>
                         <TableCell data-testid={`text-date-${deposit.id}`}>
                           {format(new Date(deposit.date), "MMM dd, yyyy")}
@@ -942,8 +962,12 @@ export default function Deposits() {
                 <p className="font-medium" data-testid="text-view-staff-name">{selectedDeposit.staffName}</p>
               </div>
               <div>
-                <Label className="text-muted-foreground">Type</Label>
-                <p className="font-medium" data-testid="text-view-type">{selectedDeposit.type}</p>
+                <Label className="text-muted-foreground">FTD</Label>
+                <p className="font-medium" data-testid="text-view-ftd">{selectedDeposit.ftd}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Deposit</Label>
+                <p className="font-medium" data-testid="text-view-deposit">{selectedDeposit.deposit}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">Date</Label>
