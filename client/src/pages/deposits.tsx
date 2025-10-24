@@ -40,7 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Edit, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -63,19 +63,8 @@ export default function Deposits() {
   const [failedCalls, setFailedCalls] = useState<number>(0);
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
-
-  const [editStaffName, setEditStaffName] = useState("");
-  const [editDate, setEditDate] = useState("");
-  const [editBrandName, setEditBrandName] = useState("");
-  const [editFtdCount, setEditFtdCount] = useState<number>(0);
-  const [editDepositCount, setEditDepositCount] = useState<number>(0);
-  const [editTotalCalls, setEditTotalCalls] = useState<number>(0);
-  const [editSuccessfulCalls, setEditSuccessfulCalls] = useState<number>(0);
-  const [editUnsuccessfulCalls, setEditUnsuccessfulCalls] = useState<number>(0);
-  const [editFailedCalls, setEditFailedCalls] = useState<number>(0);
 
   // Google Sheets link state
   const [spreadsheetUrl, setSpreadsheetUrl] = useState("");
@@ -106,21 +95,6 @@ export default function Deposits() {
       setLocation("/");
     }
   }, [session, sessionLoading, setLocation]);
-
-  // Sync edit form state when selectedDeposit changes or edit dialog opens
-  useEffect(() => {
-    if (editDialogOpen && selectedDeposit) {
-      setEditStaffName(selectedDeposit.staffName);
-      setEditDate(selectedDeposit.date ? format(new Date(selectedDeposit.date), "yyyy-MM-dd") : "");
-      setEditBrandName(selectedDeposit.brandName);
-      setEditFtdCount(selectedDeposit.ftdCount || 0);
-      setEditDepositCount(selectedDeposit.depositCount || 0);
-      setEditTotalCalls(selectedDeposit.totalCalls || 0);
-      setEditSuccessfulCalls(selectedDeposit.successfulCalls || 0);
-      setEditUnsuccessfulCalls(selectedDeposit.unsuccessfulCalls || 0);
-      setEditFailedCalls(selectedDeposit.failedCalls || 0);
-    }
-  }, [editDialogOpen, selectedDeposit]);
 
   // Auto-link pending spreadsheet after OAuth
   useEffect(() => {
@@ -244,29 +218,6 @@ export default function Deposits() {
       importExcelMutation.mutate(file);
     }
   };
-
-  const updateDepositMutation = useMutation({
-    mutationFn: async (data: { id: string; staffName: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
-      const { id, ...updateData } = data;
-      return await apiRequest("PATCH", `/api/deposits/${id}`, updateData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
-      toast({
-        title: "Success",
-        description: "Deposit updated successfully",
-      });
-      setEditDialogOpen(false);
-      setSelectedDeposit(null);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update deposit",
-        variant: "destructive",
-      });
-    },
-  });
 
   const deleteDepositMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -395,46 +346,6 @@ export default function Deposits() {
   const handleViewDeposit = (deposit: Deposit) => {
     setSelectedDeposit(deposit);
     setViewDialogOpen(true);
-  };
-
-  const handleEditDeposit = (deposit: Deposit) => {
-    setSelectedDeposit(deposit);
-    setEditStaffName(deposit.staffName);
-    setEditDate(deposit.date ? format(new Date(deposit.date), "yyyy-MM-dd") : "");
-    setEditBrandName(deposit.brandName);
-    setEditFtdCount(deposit.ftdCount || 0);
-    setEditDepositCount(deposit.depositCount || 0);
-    setEditTotalCalls(deposit.totalCalls || 0);
-    setEditSuccessfulCalls(deposit.successfulCalls || 0);
-    setEditUnsuccessfulCalls(deposit.unsuccessfulCalls || 0);
-    setEditFailedCalls(deposit.failedCalls || 0);
-    setEditDialogOpen(true);
-  };
-
-  const handleUpdateDeposit = () => {
-    if (!selectedDeposit) return;
-
-    if (!editStaffName || !editBrandName) {
-      toast({
-        title: "Error",
-        description: "Please fill in Staff Name and Brand Name",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    updateDepositMutation.mutate({
-      id: selectedDeposit.id,
-      staffName: editStaffName,
-      date: editDate || undefined,
-      brandName: editBrandName,
-      ftdCount: editFtdCount,
-      depositCount: editDepositCount,
-      totalCalls: editTotalCalls,
-      successfulCalls: editSuccessfulCalls,
-      unsuccessfulCalls: editUnsuccessfulCalls,
-      failedCalls: editFailedCalls,
-    });
   };
 
   const handleDeleteDeposit = (deposit: Deposit) => {
@@ -1002,14 +913,6 @@ export default function Deposits() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleEditDeposit(deposit)}
-                              data-testid={`button-edit-${deposit.id}`}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
                               onClick={() => handleDeleteDeposit(deposit)}
                               data-testid={`button-delete-${deposit.id}`}
                             >
@@ -1088,146 +991,6 @@ export default function Deposits() {
           <DialogFooter>
             <Button onClick={() => setViewDialogOpen(false)} data-testid="button-close-view">
               Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent data-testid="dialog-edit-deposit">
-          <DialogHeader>
-            <DialogTitle>Edit Deposit</DialogTitle>
-            <DialogDescription>Update deposit information</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-staffName">Staff Name</Label>
-              <StaffCombobox
-                value={editStaffName}
-                onChange={setEditStaffName}
-                placeholder="Type or select staff..."
-                testId="input-edit-staff-name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-date">Date</Label>
-              <Input
-                id="edit-date"
-                data-testid="input-edit-date"
-                type="date"
-                value={editDate}
-                onChange={(e) => setEditDate(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-brandName">Brand Name</Label>
-              <Select value={editBrandName} onValueChange={setEditBrandName}>
-                <SelectTrigger id="edit-brandName" data-testid="select-edit-brand-name">
-                  <SelectValue placeholder="Select brand" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="JB BDT" data-testid="select-option-jb-bdt">JB BDT</SelectItem>
-                  <SelectItem value="BJ BDT" data-testid="select-option-bj-bdt">BJ BDT</SelectItem>
-                  <SelectItem value="BJ PKR" data-testid="select-option-bj-pkr">BJ PKR</SelectItem>
-                  <SelectItem value="JB PKR" data-testid="select-option-jb-pkr">JB PKR</SelectItem>
-                  <SelectItem value="NPR" data-testid="select-option-npr">NPR</SelectItem>
-                  <SelectItem value="SIX6'S BDT" data-testid="select-option-six6s-bdt">SIX6'S BDT</SelectItem>
-                  <SelectItem value="SIX6'S PKR" data-testid="select-option-six6s-pkr">SIX6'S PKR</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="edit-ftdCount">FTD Count</Label>
-                <Input
-                  id="edit-ftdCount"
-                  data-testid="input-edit-ftd-count"
-                  type="number"
-                  min="0"
-                  value={editFtdCount}
-                  onChange={(e) => setEditFtdCount(parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-depositCount">Deposit Count</Label>
-                <Input
-                  id="edit-depositCount"
-                  data-testid="input-edit-deposit-count"
-                  type="number"
-                  min="0"
-                  value={editDepositCount}
-                  onChange={(e) => setEditDepositCount(parseInt(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="edit-totalCalls">Total Calls</Label>
-                <Input
-                  id="edit-totalCalls"
-                  data-testid="input-edit-total-calls"
-                  type="number"
-                  min="0"
-                  value={editTotalCalls}
-                  onChange={(e) => setEditTotalCalls(parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-successfulCalls">Successful Calls</Label>
-                <Input
-                  id="edit-successfulCalls"
-                  data-testid="input-edit-successful-calls"
-                  type="number"
-                  min="0"
-                  value={editSuccessfulCalls}
-                  onChange={(e) => setEditSuccessfulCalls(parseInt(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="edit-unsuccessfulCalls">Unsuccessful Calls</Label>
-                <Input
-                  id="edit-unsuccessfulCalls"
-                  data-testid="input-edit-unsuccessful-calls"
-                  type="number"
-                  min="0"
-                  value={editUnsuccessfulCalls}
-                  onChange={(e) => setEditUnsuccessfulCalls(parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-failedCalls">Failed Calls</Label>
-                <Input
-                  id="edit-failedCalls"
-                  data-testid="input-edit-failed-calls"
-                  type="number"
-                  min="0"
-                  value={editFailedCalls}
-                  onChange={(e) => setEditFailedCalls(parseInt(e.target.value) || 0)}
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEditDialogOpen(false)}
-              data-testid="button-cancel-edit"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleUpdateDeposit}
-              disabled={updateDepositMutation.isPending}
-              data-testid="button-update-deposit"
-            >
-              {updateDepositMutation.isPending ? "Updating..." : "Update"}
             </Button>
           </DialogFooter>
         </DialogContent>
