@@ -57,6 +57,10 @@ export default function Deposits() {
   const [brandName, setBrandName] = useState("");
   const [ftdCount, setFtdCount] = useState<number>(0);
   const [depositCount, setDepositCount] = useState<number>(0);
+  const [totalCalls, setTotalCalls] = useState<number>(0);
+  const [successfulCalls, setSuccessfulCalls] = useState<number>(0);
+  const [unsuccessfulCalls, setUnsuccessfulCalls] = useState<number>(0);
+  const [failedCalls, setFailedCalls] = useState<number>(0);
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -69,6 +73,10 @@ export default function Deposits() {
   const [editBrandName, setEditBrandName] = useState("");
   const [editFtdCount, setEditFtdCount] = useState<number>(0);
   const [editDepositCount, setEditDepositCount] = useState<number>(0);
+  const [editTotalCalls, setEditTotalCalls] = useState<number>(0);
+  const [editSuccessfulCalls, setEditSuccessfulCalls] = useState<number>(0);
+  const [editUnsuccessfulCalls, setEditUnsuccessfulCalls] = useState<number>(0);
+  const [editFailedCalls, setEditFailedCalls] = useState<number>(0);
 
   // Google Sheets link state
   const [spreadsheetUrl, setSpreadsheetUrl] = useState("");
@@ -112,7 +120,7 @@ export default function Deposits() {
   }, [googleSheetsStatus?.connected, googleSheetsStatus?.spreadsheetUrl]);
 
   const createDepositMutation = useMutation({
-    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number }) => {
+    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
       return await apiRequest("POST", "/api/deposits", data);
     },
     onSuccess: () => {
@@ -127,6 +135,10 @@ export default function Deposits() {
       setBrandName("");
       setFtdCount(0);
       setDepositCount(0);
+      setTotalCalls(0);
+      setSuccessfulCalls(0);
+      setUnsuccessfulCalls(0);
+      setFailedCalls(0);
     },
     onError: () => {
       toast({
@@ -203,6 +215,10 @@ export default function Deposits() {
       brandName,
       ftdCount,
       depositCount,
+      totalCalls,
+      successfulCalls,
+      unsuccessfulCalls,
+      failedCalls,
     });
   };
 
@@ -225,7 +241,7 @@ export default function Deposits() {
   };
 
   const updateDepositMutation = useMutation({
-    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number }) => {
+    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
       const { id, ...updateData } = data;
       return await apiRequest("PATCH", `/api/deposits/${id}`, updateData);
     },
@@ -384,6 +400,10 @@ export default function Deposits() {
     setEditBrandName(deposit.brandName);
     setEditFtdCount(deposit.ftdCount || 0);
     setEditDepositCount(deposit.depositCount || 0);
+    setEditTotalCalls(deposit.totalCalls || 0);
+    setEditSuccessfulCalls(deposit.successfulCalls || 0);
+    setEditUnsuccessfulCalls(deposit.unsuccessfulCalls || 0);
+    setEditFailedCalls(deposit.failedCalls || 0);
     setEditDialogOpen(true);
   };
 
@@ -416,6 +436,10 @@ export default function Deposits() {
       brandName: editBrandName,
       ftdCount: editFtdCount,
       depositCount: editDepositCount,
+      totalCalls: editTotalCalls,
+      successfulCalls: editSuccessfulCalls,
+      unsuccessfulCalls: editUnsuccessfulCalls,
+      failedCalls: editFailedCalls,
     });
   };
 
@@ -782,6 +806,60 @@ export default function Deposits() {
               </div>
             </div>
 
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="totalCalls">Total Calls</Label>
+                <Input
+                  id="totalCalls"
+                  data-testid="input-total-calls"
+                  type="number"
+                  min="0"
+                  placeholder="Enter total calls"
+                  value={totalCalls}
+                  onChange={(e) => setTotalCalls(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="successfulCalls">Successful Calls</Label>
+                <Input
+                  id="successfulCalls"
+                  data-testid="input-successful-calls"
+                  type="number"
+                  min="0"
+                  placeholder="Enter successful calls"
+                  value={successfulCalls}
+                  onChange={(e) => setSuccessfulCalls(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="unsuccessfulCalls">Unsuccessful Calls</Label>
+                <Input
+                  id="unsuccessfulCalls"
+                  data-testid="input-unsuccessful-calls"
+                  type="number"
+                  min="0"
+                  placeholder="Enter unsuccessful calls"
+                  value={unsuccessfulCalls}
+                  onChange={(e) => setUnsuccessfulCalls(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="failedCalls">Failed Calls</Label>
+                <Input
+                  id="failedCalls"
+                  data-testid="input-failed-calls"
+                  type="number"
+                  min="0"
+                  placeholder="Enter failed calls"
+                  value={failedCalls}
+                  onChange={(e) => setFailedCalls(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+
             <Button 
               onClick={handleCreateDeposit} 
               className="w-full"
@@ -821,7 +899,7 @@ export default function Deposits() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), Date, Brand Name, FTD Count, and Deposit Count columns
+                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls columns
               </p>
             </div>
 
@@ -869,6 +947,10 @@ export default function Deposits() {
                     <TableHead>Brand Name</TableHead>
                     <TableHead className="text-center">FTD Count</TableHead>
                     <TableHead className="text-center">Deposit Count</TableHead>
+                    <TableHead className="text-center">Total Calls</TableHead>
+                    <TableHead className="text-center">Successful</TableHead>
+                    <TableHead className="text-center">Unsuccessful</TableHead>
+                    <TableHead className="text-center">Failed</TableHead>
                     <TableHead className="text-right">Bonus Amount</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -903,6 +985,18 @@ export default function Deposits() {
                         </TableCell>
                         <TableCell className="text-center" data-testid={`text-deposit-count-${deposit.id}`}>
                           <Badge variant="outline">{depositCount}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center" data-testid={`text-total-calls-${deposit.id}`}>
+                          <Badge variant="outline">{deposit.totalCalls || 0}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center" data-testid={`text-successful-calls-${deposit.id}`}>
+                          <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">{deposit.successfulCalls || 0}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center" data-testid={`text-unsuccessful-calls-${deposit.id}`}>
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300">{deposit.unsuccessfulCalls || 0}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center" data-testid={`text-failed-calls-${deposit.id}`}>
+                          <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">{deposit.failedCalls || 0}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-semibold text-green-600 dark:text-green-400" data-testid={`text-bonus-${deposit.id}`}>
                           ${bonusAmount.toFixed(2)}
@@ -979,6 +1073,26 @@ export default function Deposits() {
                 <div>
                   <Label className="text-muted-foreground">Deposit Count</Label>
                   <p className="font-medium" data-testid="text-view-deposit-count">{selectedDeposit.depositCount || 0}</p>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-muted-foreground">Total Calls</Label>
+                  <p className="font-medium" data-testid="text-view-total-calls">{selectedDeposit.totalCalls || 0}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Successful Calls</Label>
+                  <p className="font-medium" data-testid="text-view-successful-calls">{selectedDeposit.successfulCalls || 0}</p>
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label className="text-muted-foreground">Unsuccessful Calls</Label>
+                  <p className="font-medium" data-testid="text-view-unsuccessful-calls">{selectedDeposit.unsuccessfulCalls || 0}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Failed Calls</Label>
+                  <p className="font-medium" data-testid="text-view-failed-calls">{selectedDeposit.failedCalls || 0}</p>
                 </div>
               </div>
             </div>
@@ -1071,6 +1185,56 @@ export default function Deposits() {
                   min="0"
                   value={editDepositCount}
                   onChange={(e) => setEditDepositCount(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-totalCalls">Total Calls</Label>
+                <Input
+                  id="edit-totalCalls"
+                  data-testid="input-edit-total-calls"
+                  type="number"
+                  min="0"
+                  value={editTotalCalls}
+                  onChange={(e) => setEditTotalCalls(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-successfulCalls">Successful Calls</Label>
+                <Input
+                  id="edit-successfulCalls"
+                  data-testid="input-edit-successful-calls"
+                  type="number"
+                  min="0"
+                  value={editSuccessfulCalls}
+                  onChange={(e) => setEditSuccessfulCalls(parseInt(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="edit-unsuccessfulCalls">Unsuccessful Calls</Label>
+                <Input
+                  id="edit-unsuccessfulCalls"
+                  data-testid="input-edit-unsuccessful-calls"
+                  type="number"
+                  min="0"
+                  value={editUnsuccessfulCalls}
+                  onChange={(e) => setEditUnsuccessfulCalls(parseInt(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-failedCalls">Failed Calls</Label>
+                <Input
+                  id="edit-failedCalls"
+                  data-testid="input-edit-failed-calls"
+                  type="number"
+                  min="0"
+                  value={editFailedCalls}
+                  onChange={(e) => setEditFailedCalls(parseInt(e.target.value) || 0)}
                 />
               </div>
             </div>
