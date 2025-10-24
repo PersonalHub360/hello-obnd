@@ -14,6 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   TrendingUp,
   Phone,
@@ -26,8 +29,10 @@ import {
   Search,
   Filter,
   ExternalLink,
+  CalendarDays,
 } from "lucide-react";
-import { format, startOfDay, startOfMonth, startOfYear, endOfMonth, isAfter, isBefore, isWithinInterval } from "date-fns";
+import { cn } from "@/lib/utils";
+import { format, startOfDay, startOfMonth, startOfYear, endOfMonth, endOfDay, isAfter, isBefore, isWithinInterval, subDays } from "date-fns";
 
 interface PerformanceData {
   calls: CallReport[];
@@ -68,6 +73,8 @@ export default function PerformanceCheck() {
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filterRole, setFilterRole] = useState<string>("all");
+  const [dailyView, setDailyView] = useState<"today" | "yesterday">("today");
+  const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
   const [, setLocation] = useLocation();
 
   const { data: session, isLoading: sessionLoading, isError: sessionError } = useQuery<SessionData>({
@@ -289,17 +296,30 @@ export default function PerformanceCheck() {
     ? calculateMetrics(
         performanceData.calls,
         performanceData.deposits,
-        (date) => isAfter(date, startOfDay(new Date())) || date.getTime() === startOfDay(new Date()).getTime()
+        (date) => {
+          const targetDate = dailyView === "today" ? new Date() : subDays(new Date(), 1);
+          const dayStart = startOfDay(targetDate);
+          const dayEnd = endOfDay(targetDate);
+          return isWithinInterval(date, { start: dayStart, end: dayEnd });
+        }
       )
     : null;
 
   const getMonthMetrics = () => {
     if (!performanceData) return null;
     
-    const year = parseInt(selectedYear);
-    const month = parseInt(selectedMonth);
-    const monthStart = new Date(year, month, 1);
-    const monthEnd = endOfMonth(monthStart);
+    let monthStart: Date;
+    let monthEnd: Date;
+
+    if (customDate) {
+      monthStart = startOfMonth(customDate);
+      monthEnd = endOfMonth(customDate);
+    } else {
+      const year = parseInt(selectedYear);
+      const month = parseInt(selectedMonth);
+      monthStart = new Date(year, month, 1);
+      monthEnd = endOfMonth(monthStart);
+    }
 
     return calculateMetrics(
       performanceData.calls,
@@ -468,12 +488,31 @@ export default function PerformanceCheck() {
                 </TabsList>
 
                 <TabsContent value="daily" className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Today's Performance</h3>
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(), 'MMMM dd, yyyy')}
-                    </span>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                        <h3 className="text-lg font-semibold">
+                          {dailyView === "today" ? "Today's Performance" : "Yesterday's Performance"}
+                        </h3>
+                        <span className="text-sm text-muted-foreground">
+                          {format(dailyView === "today" ? new Date() : subDays(new Date(), 1), 'MMMM dd, yyyy')}
+                        </span>
+                      </div>
+                      <ToggleGroup
+                        type="single"
+                        value={dailyView}
+                        onValueChange={(value) => value && setDailyView(value as "today" | "yesterday")}
+                        data-testid="toggle-daily-view"
+                      >
+                        <ToggleGroupItem value="today" aria-label="Today" data-testid="toggle-today">
+                          Today
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="yesterday" aria-label="Yesterday" data-testid="toggle-yesterday">
+                          Yesterday
+                        </ToggleGroupItem>
+                      </ToggleGroup>
+                    </div>
                   </div>
                   {renderMetricsCards(dailyMetrics)}
                 </TabsContent>
@@ -483,7 +522,14 @@ export default function PerformanceCheck() {
                     <div className="flex flex-col sm:flex-row gap-3">
                       <div className="flex-1">
                         <label className="text-sm font-medium mb-2 block">Select Month</label>
-                        <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                        <Select 
+                          value={selectedMonth} 
+                          onValueChange={(value) => {
+                            setSelectedMonth(value);
+                            setCustomDate(undefined);
+                          }}
+                          disabled={!!customDate}
+                        >
                           <SelectTrigger data-testid="select-month">
                             <SelectValue />
                           </SelectTrigger>
@@ -498,7 +544,14 @@ export default function PerformanceCheck() {
                       </div>
                       <div className="flex-1">
                         <label className="text-sm font-medium mb-2 block">Select Year</label>
-                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                        <Select 
+                          value={selectedYear} 
+                          onValueChange={(value) => {
+                            setSelectedYear(value);
+                            setCustomDate(undefined);
+                          }}
+                          disabled={!!customDate}
+                        >
                           <SelectTrigger data-testid="select-year">
                             <SelectValue />
                           </SelectTrigger>
@@ -514,9 +567,49 @@ export default function PerformanceCheck() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">or</span>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !customDate && "text-muted-foreground"
+                            )}
+                            data-testid="button-custom-date"
+                          >
+                            <CalendarDays className="mr-2 h-4 w-4" />
+                            {customDate ? format(customDate, "MMMM yyyy") : "Pick a custom date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={customDate}
+                            onSelect={setCustomDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {customDate && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setCustomDate(undefined)}
+                          data-testid="button-clear-custom-date"
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-primary" />
                       <h3 className="text-lg font-semibold">
-                        {selectedMonthName} {selectedYear} Performance
+                        {customDate 
+                          ? `${format(customDate, "MMMM yyyy")} Performance`
+                          : `${selectedMonthName} ${selectedYear} Performance`
+                        }
                       </h3>
                     </div>
                     {renderMetricsCards(monthMetrics)}
