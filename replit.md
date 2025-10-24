@@ -67,7 +67,7 @@ The application is built as a full-stack web application using a React, Express,
   - All staff information in organized card layout
   - Photo uploads stored in /public/uploads/staff-photos directory
 - **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, Type, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). **Important:** Deposits support Create, View, and Delete operations only - Update/Edit functionality has been completely removed. Includes:
-  - **Type Field (Required):** Transaction type with 3 options - Deposit, Withdrawal, Bonus. This field is required (NOT NULL constraint) and must be provided in both manual entry and Excel imports.
+  - **Type Field (Required):** Transaction type with 2 options - FTD, Deposit. This field is required (NOT NULL constraint) and must be provided in both manual entry and Excel imports.
   - **FTD Count and Deposit Count:** Granular deposit metrics for tracking first-time deposits and total deposit counts
   - **Call Tracking:** Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls to monitor performance
   - Staff Name field features a searchable combobox that allows both typing to search and selecting from a dropdown list of all staff members
