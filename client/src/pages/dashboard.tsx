@@ -139,25 +139,18 @@ export default function Dashboard() {
   ).length;
 
   const totalDepositAmount = filteredDeposits.reduce((sum, deposit) => {
-    const amount = parseFloat(deposit.amount) || 0;
-    return sum + amount;
+    const ftdBonus = (deposit.ftdCount || 0) * 1;
+    const depositBonus = (deposit.depositCount || 0) * 1.5;
+    return sum + ftdBonus + depositBonus;
   }, 0);
 
-  const totalDepositsCount = filteredDeposits.length;
+  const totalDepositsCount = filteredDeposits.filter(d => d.deposit === "Yes").length;
 
-  const getUniqueFTD = (): number => {
-    const depositorNames = new Set<string>();
-    
-    filteredDeposits.forEach(deposit => {
-      if (deposit.depositor) {
-        depositorNames.add(deposit.depositor.toLowerCase().trim());
-      }
-    });
-    
-    return depositorNames.size;
+  const getTotalFTD = (): number => {
+    return filteredDeposits.filter(d => d.ftd === "Yes").length;
   };
 
-  const totalFTD = getUniqueFTD();
+  const totalFTD = getTotalFTD();
 
   const conversionRate = successfulCalls > 0 && (totalFTD + totalDepositsCount) > 0
     ? (successfulCalls / (totalFTD + totalDepositsCount)) * 100
