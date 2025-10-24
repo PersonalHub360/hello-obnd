@@ -144,16 +144,20 @@ export default function Dashboard() {
     return sum + ftdBonus + depositBonus;
   }, 0);
 
-  const totalDepositsCount = filteredDeposits.filter(d => d.deposit === "Yes").length;
+  const totalDepositsCount = filteredDeposits.reduce((sum, deposit) => {
+    return sum + (deposit.depositCount || 0);
+  }, 0);
 
   const getTotalFTD = (): number => {
-    return filteredDeposits.filter(d => d.ftd === "Yes").length;
+    return filteredDeposits.reduce((sum, deposit) => {
+      return sum + (deposit.ftdCount || 0);
+    }, 0);
   };
 
   const totalFTD = getTotalFTD();
 
-  const conversionRate = successfulCalls > 0 && (totalFTD + totalDepositsCount) > 0
-    ? (successfulCalls / (totalFTD + totalDepositsCount)) * 100
+  const conversionRate = totalCalls > 0
+    ? (successfulCalls / totalCalls) * 100
     : 0;
 
   const activeStaff = staffList.filter((s) => s.status === "active").length;
@@ -258,7 +262,7 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Deposit</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Depositor's</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -266,7 +270,7 @@ export default function Dashboard() {
                   {totalDepositsCount}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Deposit transactions
+                  Total depositors
                 </p>
               </CardContent>
             </Card>
