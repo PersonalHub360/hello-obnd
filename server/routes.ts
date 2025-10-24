@@ -5,6 +5,7 @@ import connectPgSimple from "connect-pg-simple";
 import multer from "multer";
 import * as XLSX from "xlsx";
 import express from "express";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { pool } from "./db";
 import { loginSchema, insertDepositSchema, insertCallReportSchema, updateAuthUserSchema, insertAuthUserSchema, insertRoleSchema, insertDepartmentSchema, type SessionData as UserSessionData } from "@shared/schema";
@@ -110,7 +111,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { username, password } = result.data;
       const user = await storage.getAuthUserByUsername(username);
 
-      if (!user || user.password !== password) {
+      if (!user) {
+        return res.status(401).json({ 
+          message: "Invalid username or password" 
+        });
+      }
+
+      // Verify password using bcrypt
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      
+      if (!isPasswordValid) {
         return res.status(401).json({ 
           message: "Invalid username or password" 
         });
@@ -183,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.session.user) {
       return res.status(401).json({ message: "Authentication required" });
     }
-    if (req.session.user.role !== "admin") {
+    if (req.session.user.role.toLowerCase() !== "admin") {
       return res.status(403).json({ message: "Admin access required" });
     }
     next();

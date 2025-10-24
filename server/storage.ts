@@ -1,6 +1,7 @@
 import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type UpdateAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, type Role, type InsertRole, type Department, type InsertDepartment, staff, authUsers, deposits, callReports, roles, departments } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 export interface IStorage {
   // Auth methods
@@ -74,7 +75,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAuthUser(insertUser: InsertAuthUser): Promise<AuthUser> {
-    const [user] = await db.insert(authUsers).values(insertUser).returning();
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    const userWithHashedPassword = {
+      ...insertUser,
+      password: hashedPassword,
+    };
+    const [user] = await db.insert(authUsers).values(userWithHashedPassword).returning();
     return user;
   }
 

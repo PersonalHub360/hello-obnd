@@ -431,18 +431,20 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          <Card data-testid="card-user-management">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  <div>
-                    <CardTitle>User Management</CardTitle>
-                    <CardDescription>
-                      Manage user roles and access permissions
-                    </CardDescription>
+          {/* Only show User Management section to admin users */}
+          {session?.role?.toLowerCase() === "admin" && (
+            <Card data-testid="card-user-management">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    <div>
+                      <CardTitle>User Management</CardTitle>
+                      <CardDescription>
+                        Manage user roles and access permissions
+                      </CardDescription>
+                    </div>
                   </div>
-                </div>
                 <Dialog open={addUserDialogOpen} onOpenChange={setAddUserDialogOpen}>
                   <DialogTrigger asChild>
                     <Button data-testid="button-add-user">
@@ -517,7 +519,7 @@ export default function Settings() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Role</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-add-user-role">
                                     <SelectValue placeholder="Select role" />
@@ -541,7 +543,7 @@ export default function Settings() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Status</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-add-user-status">
                                     <SelectValue />
@@ -733,6 +735,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* View User Dialog */}
