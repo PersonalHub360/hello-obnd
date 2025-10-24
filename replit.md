@@ -23,10 +23,18 @@ The application is built as a full-stack web application using a React, Express,
 **Technical Implementations:**
 - **Frontend:** Developed with React 18 and TypeScript, utilizing Wouter for routing, TanStack Query for data fetching, and Shadcn UI (built on Radix UI primitives) for components. Recharts is used for data visualization.
 - **Backend:** Implemented using Express.js and TypeScript, providing RESTful APIs for all functionalities.
-- **Authentication:** Secure server-side session management using express-session with PostgreSQL storage (connect-pg-simple). Sessions include user role for authorization. Supports role-based access control with admin and user roles.
-- **Authorization:** Two-tier middleware system:
-  - `requireAuth`: Protects routes requiring any authenticated user
-  - `requireAdmin`: Restricts routes to users with admin role
+- **Authentication:** 
+  - **Username-based login** system with secure server-side session management using express-session with PostgreSQL storage (connect-pg-simple)
+  - **Password Security:** All passwords are hashed using bcrypt (salt rounds: 10) before storage in the database
+  - **Login Verification:** Uses bcrypt.compare() for secure password verification during authentication
+  - Sessions include user role for authorization and support role-based access control
+  - Existing users have been migrated to bcrypt-hashed passwords for enhanced security
+- **Authorization:** Multi-layer security system:
+  - **Backend Middleware:**
+    - `requireAuth`: Protects routes requiring any authenticated user
+    - `requireAdmin`: Restricts routes to users with admin role (case-insensitive check)
+  - **Frontend Authorization:** User Management section conditionally rendered only for admin users
+  - Both frontend and backend implement role-based access control to prevent unauthorized access
 - **Data Management:** Full CRUD operations for Staff, Deposits, Call Reports, and Users (admin only).
 - **Excel Integration:** Functionality for bulk importing staff, deposits, and call reports from `.xlsx` or `.xls` files, including sample template downloads and update capabilities for deposits. Excel templates and imports now include FTD Count and Deposit Count columns for deposits. **Date Handling:** Excel serial dates are converted using the formula `(serial - 25569) * 86400000` to Unix timestamps, then normalized to date-only strings (YYYY-MM-DD) to prevent timezone-related off-by-one errors.
 - **Data Export:** CSV export for staff data.
@@ -64,7 +72,14 @@ The application is built as a full-stack web application using a React, Express,
   - **Interface:** Theme selection (Light, Dark, Blue, Green, Purple), UI preferences (compact mode, animations, sidebar collapse)
   - **Notifications:** Email, push, and sound notification preferences
   - **Account:** Display user information and change password option
-  - **User Management (Admin Only):** Role-based user administration with inline editing of user roles and status (Active/Deactivated). Admin users can view all system users and manage their access levels.
+  - **User Management (Admin Only):** 
+    - Visible only to users with Admin role (frontend authorization check)
+    - Role-based user administration with inline editing of user roles and status (Active/Deactivated)
+    - Add new users with username, name, email, password (auto-hashed with bcrypt), and role selection
+    - **8 Predefined User Roles:** User, Manager, Team Leader, Assistant Leader, Admin, Senior Manager, Department Head, Supervisor
+    - Role dropdown in both add user form and inline editing ensures consistency
+    - Admin users can view all system users and manage their access levels
+    - All user management operations protected by backend requireAdmin middleware
 
 ## External Dependencies
 - **Database:** PostgreSQL (specifically Neon for cloud hosting) for persistent data storage.
