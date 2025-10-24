@@ -52,6 +52,7 @@ export default function Deposits() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [staffName, setStaffName] = useState("");
+  const [type, setType] = useState("");
   const [date, setDate] = useState("");
   const [brandName, setBrandName] = useState("");
   const [ftdCount, setFtdCount] = useState<number>(0);
@@ -133,7 +134,7 @@ export default function Deposits() {
   }, [googleSheetsStatus?.connected, googleSheetsStatus?.spreadsheetUrl]);
 
   const createDepositMutation = useMutation({
-    mutationFn: async (data: { staffName: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
+    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
       return await apiRequest("POST", "/api/deposits", data);
     },
     onSuccess: () => {
@@ -143,6 +144,7 @@ export default function Deposits() {
         description: "Deposit created successfully",
       });
       setStaffName("");
+      setType("");
       setDate("");
       setBrandName("");
       setFtdCount(0);
@@ -202,10 +204,10 @@ export default function Deposits() {
   });
 
   const handleCreateDeposit = () => {
-    if (!staffName || !brandName) {
+    if (!staffName || !type || !brandName) {
       toast({
         title: "Error",
-        description: "Please fill in Staff Name and Brand Name",
+        description: "Please fill in Staff Name, Type, and Brand Name",
         variant: "destructive",
       });
       return;
@@ -213,6 +215,7 @@ export default function Deposits() {
 
     createDepositMutation.mutate({
       staffName,
+      type,
       date: date || undefined,
       brandName,
       ftdCount,
@@ -724,6 +727,20 @@ export default function Deposits() {
                 placeholder="Type or select staff..."
                 testId="input-staff-name"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="type">Type</Label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger id="type" data-testid="select-type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Deposit" data-testid="select-option-deposit">Deposit</SelectItem>
+                  <SelectItem value="Withdrawal" data-testid="select-option-withdrawal">Withdrawal</SelectItem>
+                  <SelectItem value="Bonus" data-testid="select-option-bonus">Bonus</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
