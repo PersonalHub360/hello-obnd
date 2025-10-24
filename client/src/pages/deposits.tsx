@@ -535,6 +535,11 @@ export default function Deposits() {
   const totalDeposits = deposits.length;
   const totalFtdCount = deposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
   const totalDepositCount = deposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
+  const totalBonus = deposits.reduce((sum, d) => {
+    const ftdBonus = (d.ftdCount || 0) * 1;
+    const depositBonus = (d.depositCount || 0) * 1.5;
+    return sum + ftdBonus + depositBonus;
+  }, 0);
 
   if (sessionLoading) {
     return (
@@ -560,7 +565,7 @@ export default function Deposits() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card data-testid="card-total-deposits">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Depositor's</CardTitle>
@@ -591,6 +596,17 @@ export default function Deposits() {
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-deposit-count">{totalDepositCount}</div>
             <p className="text-xs text-muted-foreground">Total deposit count across all records</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-total-bonus">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bonus</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600" data-testid="text-total-bonus">${totalBonus.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">FTD=$1 × Deposit=$1.5</p>
           </CardContent>
         </Card>
       </div>
