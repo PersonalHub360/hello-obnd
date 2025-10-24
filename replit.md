@@ -40,10 +40,11 @@ The application is built as a full-stack web application using a React, Express,
 - **Data Export:** CSV export for staff data.
 - **Validation:** Zod schemas are used for robust data validation on all API endpoints.
 - **Date Storage:** Staff joining dates are stored as date-only strings (YYYY-MM-DD) without timestamps, preventing timezone display issues across different regions.
+- **Drizzle ORM Workaround:** The `updateDeposit` function in `server/storage.ts` uses raw SQL queries via the PostgreSQL connection pool (`pool.query()`) instead of Drizzle ORM's `.update().set()` method. This bypasses schema cache issues that prevented new columns (call tracking fields) from being persisted during updates. All other CRUD operations continue to use Drizzle ORM normally.
 
 **Feature Specifications:**
 - **Authentication System:** Secure login, session management with role-based access control, protected routes, and logout. Sessions are stored in PostgreSQL for persistence and security.
-- **Navigation:** Collapsible sidebar with main sections: Dashboard, Deposit Section, Call Reports, Staff Directory, Staff Performance Check, Analytics, and Settings.
+- **Navigation:** Collapsible sidebar with main sections: Dashboard, Deposit Section, Staff Directory, Staff Performance Check, Analytics, and Settings.
 - **Dashboard:** Provides an overview with date filtering (Today, Yesterday, This Week, Last Week, This Month, Last Month, By Month, All Time), dynamic month selection, and key business metrics (Total Calls, Total Deposit, Total FTD, Successful Calls, Conversion Rate). Includes quick access cards and action buttons.
 - **Staff Directory:** Comprehensive staff management with CRUD operations, bulk delete with checkbox selection, search, filtering (brand, role, status), Excel import/export, and responsive table/card views. The staff form includes:
   - **Employee ID** (disabled when editing - unique identifier)
@@ -65,8 +66,12 @@ The application is built as a full-stack web application using a React, Express,
   - Available annual leave days
   - All staff information in organized card layout
   - Photo uploads stored in /public/uploads/staff-photos directory
-- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, Type, Date, Brand Name, FTD Count, and Deposit Count fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). Includes separate numerical tracking for FTD Count and Deposit Count to provide granular deposit metrics beyond the Type field. Staff Name field features a searchable combobox that allows both typing to search and selecting from a dropdown list of all staff members. Deposits list displays FTD count, Deposit count, and automatically calculated bonus amounts (FTD: $1 per count, Deposit: $1.5 per count).
-- **Call Reports:** Tracks customer call activities with logging forms (user name, agent with searchable dropdown, phone, status, duration, type, remarks), statistics, and Excel import. Call Agent Name field features a searchable combobox that allows both typing to search and selecting from a dropdown list of all staff members.
+- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, Type, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). Includes separate numerical tracking for:
+  - **FTD Count and Deposit Count:** Granular deposit metrics beyond the Type field
+  - **Call Tracking:** Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls to monitor performance
+  - Staff Name field features a searchable combobox that allows both typing to search and selecting from a dropdown list of all staff members
+  - Deposits list displays FTD count, Deposit count, call tracking metrics with color-coded badges (green for successful, yellow for unsuccessful, red for failed), and automatically calculated bonus amounts (FTD: $1 per count, Deposit: $1.5 per count)
+  - Excel import/export fully supports all deposit fields including the new call tracking columns
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
 - **Settings Section:** Multi-section settings page including:
   - **Interface:** Theme selection (Light, Dark, Blue, Green, Purple), UI preferences (compact mode, animations, sidebar collapse)

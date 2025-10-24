@@ -1,6 +1,6 @@
 import { type Staff, type InsertStaff, type AuthUser, type InsertAuthUser, type UpdateAuthUser, type Deposit, type InsertDeposit, type CallReport, type InsertCallReport, type Role, type InsertRole, type Department, type InsertDepartment, staff, authUsers, deposits, callReports, roles, departments } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { db, pool } from "./db";
+import { eq, desc, sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export interface IStorage {
@@ -186,16 +186,87 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit | undefined> {
-    const updateData: any = { ...updates };
-    if (updateData.date && typeof updateData.date === 'string') {
-      updateData.date = new Date(updateData.date);
+    // Use raw SQL to bypass Drizzle ORM schema cache issues
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+    
+    if (updates.staffName !== undefined) {
+      setClauses.push(`staff_name = $${paramIndex++}`);
+      values.push(updates.staffName);
     }
-    const [deposit] = await db
-      .update(deposits)
-      .set(updateData)
-      .where(eq(deposits.id, id))
-      .returning();
-    return deposit || undefined;
+    if (updates.type !== undefined) {
+      setClauses.push(`type = $${paramIndex++}`);
+      values.push(updates.type);
+    }
+    if (updates.brandName !== undefined) {
+      setClauses.push(`brand_name = $${paramIndex++}`);
+      values.push(updates.brandName);
+    }
+    if (updates.ftdCount !== undefined) {
+      setClauses.push(`ftd_count = $${paramIndex++}`);
+      values.push(updates.ftdCount);
+    }
+    if (updates.depositCount !== undefined) {
+      setClauses.push(`deposit_count = $${paramIndex++}`);
+      values.push(updates.depositCount);
+    }
+    if (updates.totalCalls !== undefined) {
+      setClauses.push(`total_calls = $${paramIndex++}`);
+      values.push(updates.totalCalls);
+    }
+    if (updates.successfulCalls !== undefined) {
+      setClauses.push(`successful_calls = $${paramIndex++}`);
+      values.push(updates.successfulCalls);
+    }
+    if (updates.unsuccessfulCalls !== undefined) {
+      setClauses.push(`unsuccessful_calls = $${paramIndex++}`);
+      values.push(updates.unsuccessfulCalls);
+    }
+    if (updates.failedCalls !== undefined) {
+      setClauses.push(`failed_calls = $${paramIndex++}`);
+      values.push(updates.failedCalls);
+    }
+    if (updates.date !== undefined) {
+      const dateValue = typeof updates.date === 'string' ? new Date(updates.date) : updates.date;
+      setClauses.push(`date = $${paramIndex++}`);
+      values.push(dateValue);
+    }
+    
+    if (setClauses.length === 0) {
+      return undefined;
+    }
+    
+    values.push(id); // Add ID as last parameter
+    
+    const query = `
+      UPDATE deposits
+      SET ${setClauses.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, values);
+    const row = result.rows[0];
+    
+    if (!row) {
+      return undefined;
+    }
+    
+    // Map snake_case database columns to camelCase for API contract consistency
+    return {
+      id: row.id,
+      staffName: row.staff_name,
+      type: row.type,
+      date: row.date,
+      brandName: row.brand_name,
+      ftdCount: row.ftd_count,
+      depositCount: row.deposit_count,
+      totalCalls: row.total_calls,
+      successfulCalls: row.successful_calls,
+      unsuccessfulCalls: row.unsuccessful_calls,
+      failedCalls: row.failed_calls,
+    } as Deposit;
   }
 
   async deleteDeposit(id: string): Promise<boolean> {
