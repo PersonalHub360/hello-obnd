@@ -66,8 +66,8 @@ The application is built as a full-stack web application using a React, Express,
   - Available annual leave days
   - All staff information in organized card layout
   - Photo uploads stored in /public/uploads/staff-photos directory
-- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, Type, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). Includes separate numerical tracking for:
-  - **FTD Count and Deposit Count:** Granular deposit metrics beyond the Type field
+- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import/update, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). Includes separate numerical tracking for:
+  - **FTD Count and Deposit Count:** Granular deposit metrics for tracking first-time deposits and total deposit counts
   - **Call Tracking:** Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls to monitor performance
   - Staff Name field features a searchable combobox that allows both typing to search and selecting from a dropdown list of all staff members
   - Deposits list displays FTD count, Deposit count, call tracking metrics with color-coded badges (green for successful, yellow for unsuccessful, red for failed), and automatically calculated bonus amounts (FTD: $1 per count, Deposit: $1.5 per count)
@@ -136,5 +136,5 @@ The system includes comprehensive Google Sheets integration for automatic data s
 
 **Data Synced to Google Sheets:**
 - **Staff Sheet:** All staff information including Employee ID, Name, Email, Role, Brand, Country, Status, Joining Date, Date of Birth, Available Leave
-- **Deposits Sheet:** All deposit records including Staff Name, Type, Date, Brand Name, FTD Count, Deposit Count
+- **Deposits Sheet:** All deposit records including Staff Name, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, Failed Calls
 - **Call Reports Sheet:** All call reports including User Name, Agent, Date/Time, Status, Phone, Duration, Remarks, Type

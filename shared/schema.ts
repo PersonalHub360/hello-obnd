@@ -79,7 +79,7 @@ export interface SessionData {
 export const deposits = pgTable("deposits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   staffName: text("staff_name").notNull(),
-  type: text("type").notNull(),
+  type: text("type").default(""), // Nullable with empty default - kept for backward compatibility
   date: timestamp("date").notNull().defaultNow(),
   brandName: text("brand_name").notNull(),
   ftdCount: integer("ftd_count").default(0),
@@ -92,11 +92,9 @@ export const deposits = pgTable("deposits", {
 
 export const insertDepositSchema = createInsertSchema(deposits).omit({
   id: true,
+  type: true, // Remove type from insert schema
 }).extend({
   staffName: z.string().min(1, "Staff name is required"),
-  type: z.enum(["FTD", "Deposit"], {
-    errorMap: () => ({ message: "Type must be either FTD or Deposit" }),
-  }),
   date: z.string().optional(),
   brandName: z.string().min(1, "Brand name is required"),
   ftdCount: z.number().min(0, "FTD count must be 0 or greater").optional(),

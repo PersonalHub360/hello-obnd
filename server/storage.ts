@@ -186,6 +186,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDeposit(id: string, updates: Partial<InsertDeposit>): Promise<Deposit | undefined> {
+    console.log("UpdateDeposit called with id:", id, "updates:", updates);
     // Use raw SQL to bypass Drizzle ORM schema cache issues
     const setClauses: string[] = [];
     const values: any[] = [];
@@ -194,10 +195,6 @@ export class DatabaseStorage implements IStorage {
     if (updates.staffName !== undefined) {
       setClauses.push(`staff_name = $${paramIndex++}`);
       values.push(updates.staffName);
-    }
-    if (updates.type !== undefined) {
-      setClauses.push(`type = $${paramIndex++}`);
-      values.push(updates.type);
     }
     if (updates.brandName !== undefined) {
       setClauses.push(`brand_name = $${paramIndex++}`);
@@ -246,8 +243,10 @@ export class DatabaseStorage implements IStorage {
       RETURNING *
     `;
     
+    console.log("Executing SQL:", query, "with values:", values);
     const result = await pool.query(query, values);
     const row = result.rows[0];
+    console.log("Update result row:", row);
     
     if (!row) {
       return undefined;

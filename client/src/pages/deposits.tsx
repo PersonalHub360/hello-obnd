@@ -52,7 +52,6 @@ export default function Deposits() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [staffName, setStaffName] = useState("");
-  const [type, setType] = useState("");
   const [date, setDate] = useState("");
   const [brandName, setBrandName] = useState("");
   const [ftdCount, setFtdCount] = useState<number>(0);
@@ -68,7 +67,6 @@ export default function Deposits() {
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
 
   const [editStaffName, setEditStaffName] = useState("");
-  const [editType, setEditType] = useState("");
   const [editDate, setEditDate] = useState("");
   const [editBrandName, setEditBrandName] = useState("");
   const [editFtdCount, setEditFtdCount] = useState<number>(0);
@@ -120,7 +118,7 @@ export default function Deposits() {
   }, [googleSheetsStatus?.connected, googleSheetsStatus?.spreadsheetUrl]);
 
   const createDepositMutation = useMutation({
-    mutationFn: async (data: { staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
+    mutationFn: async (data: { staffName: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
       return await apiRequest("POST", "/api/deposits", data);
     },
     onSuccess: () => {
@@ -130,7 +128,6 @@ export default function Deposits() {
         description: "Deposit created successfully",
       });
       setStaffName("");
-      setType("");
       setDate("");
       setBrandName("");
       setFtdCount(0);
@@ -190,19 +187,10 @@ export default function Deposits() {
   });
 
   const handleCreateDeposit = () => {
-    if (!staffName || !type || !brandName) {
+    if (!staffName || !brandName) {
       toast({
         title: "Error",
-        description: "Please fill in Staff Name, Type, and Brand Name",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (type !== "FTD" && type !== "Deposit") {
-      toast({
-        title: "Error",
-        description: "Type must be either FTD or Deposit",
+        description: "Please fill in Staff Name and Brand Name",
         variant: "destructive",
       });
       return;
@@ -210,7 +198,6 @@ export default function Deposits() {
 
     createDepositMutation.mutate({
       staffName,
-      type,
       date: date || undefined,
       brandName,
       ftdCount,
@@ -241,7 +228,7 @@ export default function Deposits() {
   };
 
   const updateDepositMutation = useMutation({
-    mutationFn: async (data: { id: string; staffName: string; type: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
+    mutationFn: async (data: { id: string; staffName: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }) => {
       const { id, ...updateData } = data;
       return await apiRequest("PATCH", `/api/deposits/${id}`, updateData);
     },
@@ -395,7 +382,6 @@ export default function Deposits() {
   const handleEditDeposit = (deposit: Deposit) => {
     setSelectedDeposit(deposit);
     setEditStaffName(deposit.staffName);
-    setEditType(deposit.type);
     setEditDate(deposit.date ? format(new Date(deposit.date), "yyyy-MM-dd") : "");
     setEditBrandName(deposit.brandName);
     setEditFtdCount(deposit.ftdCount || 0);
@@ -410,28 +396,18 @@ export default function Deposits() {
   const handleUpdateDeposit = () => {
     if (!selectedDeposit) return;
 
-    if (!editStaffName || !editType || !editBrandName) {
+    if (!editStaffName || !editBrandName) {
       toast({
         title: "Error",
-        description: "Please fill in Staff Name, Type, and Brand Name",
+        description: "Please fill in Staff Name and Brand Name",
         variant: "destructive",
       });
       return;
     }
 
-    if (editType !== "FTD" && editType !== "Deposit") {
-      toast({
-        title: "Error",
-        description: "Type must be either FTD or Deposit",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    updateDepositMutation.mutate({
+    const updateData = {
       id: selectedDeposit.id,
       staffName: editStaffName,
-      type: editType,
       date: editDate || undefined,
       brandName: editBrandName,
       ftdCount: editFtdCount,
@@ -440,7 +416,10 @@ export default function Deposits() {
       successfulCalls: editSuccessfulCalls,
       unsuccessfulCalls: editUnsuccessfulCalls,
       failedCalls: editFailedCalls,
-    });
+    };
+    
+    console.log("Frontend handleUpdateDeposit called with data:", updateData);
+    updateDepositMutation.mutate(updateData);
   };
 
   const handleDeleteDeposit = (deposit: Deposit) => {
@@ -511,8 +490,6 @@ export default function Deposits() {
   };
 
   const totalDeposits = deposits.length;
-  const totalFtdRecords = deposits.filter(d => d.type === "FTD").length;
-  const totalDepositRecords = deposits.filter(d => d.type === "Deposit").length;
   const totalFtdCount = deposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
   const totalDepositCount = deposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
 
@@ -559,7 +536,7 @@ export default function Deposits() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-ftd-count">{totalFtdCount}</div>
-            <p className="text-xs text-muted-foreground">{totalFtdRecords} records • Total count</p>
+            <p className="text-xs text-muted-foreground">Total FTD count across all deposits</p>
           </CardContent>
         </Card>
 
@@ -570,7 +547,7 @@ export default function Deposits() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-deposit-count">{totalDepositCount}</div>
-            <p className="text-xs text-muted-foreground">{totalDepositRecords} records • Total count</p>
+            <p className="text-xs text-muted-foreground">Total deposit count across all records</p>
           </CardContent>
         </Card>
       </div>
@@ -738,19 +715,6 @@ export default function Deposits() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger id="type" data-testid="select-type">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FTD" data-testid="select-item-ftd">FTD</SelectItem>
-                  <SelectItem value="Deposit" data-testid="select-item-deposit">Deposit</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="date">Date (Optional)</Label>
               <Input
                 id="date"
@@ -899,7 +863,7 @@ export default function Deposits() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Upload .xlsx or .xls file with Staff Name, Type (FTD/Deposit), Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls columns
+                Upload .xlsx or .xls file with Staff Name, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls columns
               </p>
             </div>
 
@@ -942,7 +906,6 @@ export default function Deposits() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Staff Name</TableHead>
-                    <TableHead>Type</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Brand Name</TableHead>
                     <TableHead className="text-center">FTD Count</TableHead>
@@ -965,14 +928,6 @@ export default function Deposits() {
                       <TableRow key={deposit.id} data-testid={`row-deposit-${deposit.id}`}>
                         <TableCell className="font-medium" data-testid={`text-staff-name-${deposit.id}`}>
                           {deposit.staffName}
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={deposit.type === "FTD" ? "default" : "secondary"}
-                            data-testid={`badge-type-${deposit.id}`}
-                          >
-                            {deposit.type}
-                          </Badge>
                         </TableCell>
                         <TableCell data-testid={`text-date-${deposit.id}`}>
                           {format(new Date(deposit.date), "MMM dd, yyyy")}
@@ -1052,10 +1007,6 @@ export default function Deposits() {
                 <p className="font-medium" data-testid="text-view-staff-name">{selectedDeposit.staffName}</p>
               </div>
               <div>
-                <Label className="text-muted-foreground">Type</Label>
-                <p className="font-medium" data-testid="text-view-type">{selectedDeposit.type}</p>
-              </div>
-              <div>
                 <Label className="text-muted-foreground">Date</Label>
                 <p className="font-medium" data-testid="text-view-date">
                   {format(new Date(selectedDeposit.date), "MMMM dd, yyyy")}
@@ -1120,19 +1071,6 @@ export default function Deposits() {
                 placeholder="Type or select staff..."
                 testId="input-edit-staff-name"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-type">Type</Label>
-              <Select value={editType} onValueChange={setEditType}>
-                <SelectTrigger id="edit-type" data-testid="select-edit-type">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FTD" data-testid="select-edit-item-ftd">FTD</SelectItem>
-                  <SelectItem value="Deposit" data-testid="select-edit-item-deposit">Deposit</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">
