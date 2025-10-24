@@ -36,7 +36,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       cookie: {
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,
-        sameSite: "lax", // Provides CSRF protection while working on same-site requests
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use "none" in production for custom domains
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         // Don't set domain - allows cookie to work on any domain (including custom domains)
       },
