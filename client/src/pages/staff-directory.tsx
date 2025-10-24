@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -66,6 +67,7 @@ export default function Dashboard() {
   const [editingStaff, setEditingStaff] = useState<Staff | undefined>();
   const [deletingStaff, setDeletingStaff] = useState<Staff | null>(null);
   const [profileStaff, setProfileStaff] = useState<Staff | null>(null);
+  const [selectedStaffIds, setSelectedStaffIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: session, isLoading: sessionLoading, isError: sessionError } = useQuery<SessionData>({
@@ -149,6 +151,28 @@ export default function Dashboard() {
     },
   });
 
+  const bulkDeleteStaffMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Delete each staff member
+      await Promise.all(ids.map(id => apiRequest("DELETE", `/api/staff/${id}`, {})));
+    },
+    onSuccess: (_, ids) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/staff"] });
+      toast({
+        title: "Success",
+        description: `Successfully deleted ${ids.length} employee${ids.length > 1 ? 's' : ''}.`,
+      });
+      setSelectedStaffIds(new Set());
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete selected employees. Please try again.",
+      });
+    },
+  });
+
   const importStaffMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
@@ -214,6 +238,30 @@ export default function Dashboard() {
   const handleConfirmDelete = () => {
     if (deletingStaff) {
       deleteStaffMutation.mutate(deletingStaff.id);
+    }
+  };
+
+  const handleToggleStaff = (staffId: string) => {
+    const newSelected = new Set(selectedStaffIds);
+    if (newSelected.has(staffId)) {
+      newSelected.delete(staffId);
+    } else {
+      newSelected.add(staffId);
+    }
+    setSelectedStaffIds(newSelected);
+  };
+
+  const handleToggleAll = () => {
+    if (selectedStaffIds.size === filteredStaff.length) {
+      setSelectedStaffIds(new Set());
+    } else {
+      setSelectedStaffIds(new Set(filteredStaff.map(s => s.id)));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedStaffIds.size > 0) {
+      bulkDeleteStaffMutation.mutate(Array.from(selectedStaffIds));
     }
   };
 
@@ -417,6 +465,19 @@ export default function Dashboard() {
                 <Download className="mr-2 h-4 w-4" />
                 Export CSV
               </Button>
+              {selectedStaffIds.size > 0 && (
+                <Button
+                  variant="destructive"
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleteStaffMutation.isPending}
+                  data-testid="button-delete-selected"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {bulkDeleteStaffMutation.isPending
+                    ? "Deleting..."
+                    : `Delete Selected (${selectedStaffIds.size})`}
+                </Button>
+              )}
               <Button onClick={handleAddStaff} data-testid="button-add-staff">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Employee
@@ -525,6 +586,13 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={filteredStaff.length > 0 && selectedStaffIds.size === filteredStaff.length}
+                          onCheckedChange={handleToggleAll}
+                          data-testid="checkbox-select-all"
+                        />
+                      </TableHead>
                       <TableHead className="w-[120px]">Employee ID</TableHead>
                       <TableHead className="w-[200px]">Name</TableHead>
                       <TableHead>Email</TableHead>
@@ -542,6 +610,13 @@ export default function Dashboard() {
                         key={staff.id}
                         data-testid={`row-staff-${staff.id}`}
                       >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedStaffIds.has(staff.id)}
+                            onCheckedChange={() => handleToggleStaff(staff.id)}
+                            data-testid={`checkbox-staff-${staff.id}`}
+                          />
+                        </TableCell>
                         <TableCell>
                           <span className="font-mono text-sm font-medium">
                             {staff.employeeId}
