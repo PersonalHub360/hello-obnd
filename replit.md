@@ -66,15 +66,16 @@ The application is built as a full-stack web application using a React, Express,
   - Available annual leave days
   - All staff information in organized card layout
   - Photo uploads stored in /public/uploads/staff-photos directory
-- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, FTD (Yes/No), Deposit (Yes/No), Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). **Important:** Deposits support Create, View, and Delete operations only - Update/Edit functionality has been completely removed. Includes:
+- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, FTD (Yes/No), Deposit (Yes/No), Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import, bulk selection and deletion, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). **Important:** Deposits support Create, View, and Delete operations only - Update/Edit functionality has been completely removed. Includes:
   - **FTD and Deposit Fields (Both Required):** Two independent Yes/No dropdown fields that replace the previous single Type field. Both fields are required (NOT NULL constraint) and default to "No". These fields are independent and not mutually exclusive - a deposit can be marked as both FTD=Yes and Deposit=Yes, or any other combination.
   - **FTD Count and Deposit Count:** Granular deposit metrics for tracking first-time deposits and total deposit counts
   - **Call Tracking:** Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls to monitor performance
   - Staff Name field features a searchable combobox that allows both typing to search and selecting from a dropdown list of all staff members
   - Deposits list displays FTD and Deposit columns (Yes/No values), FTD count, Deposit count, call tracking metrics with color-coded badges (green for successful, yellow for unsuccessful, red for failed), and automatically calculated bonus amounts (FTD: $1 per count, Deposit: $1.5 per count)
+  - **Bulk Selection and Deletion:** Checkboxes in table allow selecting individual deposits or all deposits at once. "Delete Selected" button appears when deposits are selected, showing the count of selected items. Supports bulk deletion of multiple deposits simultaneously.
   - Excel import/export fully supports all deposit fields including FTD, Deposit, and call tracking columns
   - **Excel Column Order:** Staff Name, FTD, Deposit, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, Failed Calls
-  - **Actions:** View (eye icon) and Delete (trash icon) buttons only - no Edit button
+  - **Actions:** View (eye icon) and Delete (trash icon) buttons for individual deposits, plus bulk delete functionality for multiple selections
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
 - **Settings Section:** Multi-section settings page including:
   - **Interface:** Theme selection (Light, Dark, Blue, Green, Purple), UI preferences (compact mode, animations, sidebar collapse)
