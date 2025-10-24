@@ -16,8 +16,8 @@ The application is built as a full-stack web application using a React, Express,
 - **Design System:** Material Design-inspired with a professional corporate blue color scheme (HSL: 221 83% 53%).
 - **Typography:** Inter (sans-serif) for general text and JetBrains Mono for monospace.
 - **Responsiveness:** Layouts are fully responsive, adapting to desktop, tablet, and mobile screens.
-- **Interactive Elements:** Features a collapsible sidebar navigation with a blue-to-purple gradient background, floating blur orbs, glassmorphism effects, and glowing active states. The login page incorporates a glassmorphism design with animated backgrounds.
-- **Theming:** Supports 5 theme options (Light, Dark, Blue, Green, Purple) with persistent user preference stored in localStorage.
+- **Interactive Elements:** Features a collapsible sidebar navigation with theme-adaptive colors that automatically adjust based on the selected theme. The login page incorporates a glassmorphism design with animated backgrounds.
+- **Theming:** Supports 5 theme options (Light, Dark, Blue, Green, Purple) with persistent user preference stored in localStorage. Sidebar colors automatically adapt to the selected theme using CSS variables.
 - **User Feedback:** Includes loading states and toast notifications for error handling.
 
 **Technical Implementations:**
