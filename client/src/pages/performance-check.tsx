@@ -5,6 +5,7 @@ import { type Staff, type SessionData, type CallReport, type Deposit } from "@sh
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,8 @@ import {
   Percent,
   Award,
   Calendar,
+  Search,
+  Filter,
 } from "lucide-react";
 import { format, startOfDay, startOfMonth, startOfYear, endOfMonth, isAfter, isBefore, isWithinInterval } from "date-fns";
 
@@ -62,6 +65,8 @@ export default function PerformanceCheck() {
   const [selectedStaff, setSelectedStaff] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<string>(currentYear.toString());
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filterRole, setFilterRole] = useState<string>("all");
   const [, setLocation] = useLocation();
 
   const { data: session, isLoading: sessionLoading, isError: sessionError } = useQuery<SessionData>({
@@ -84,6 +89,21 @@ export default function PerformanceCheck() {
       setLocation("/");
     }
   }, [sessionError, sessionLoading, session, setLocation]);
+
+  // Filter staff list based on search term and role filter
+  const filteredStaffList = staffList.filter(staff => {
+    const matchesSearch = searchTerm === "" || 
+      staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (staff.employeeId && staff.employeeId.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesRole = filterRole === "all" || staff.role === filterRole;
+    
+    return matchesSearch && matchesRole;
+  });
+
+  // Get unique roles for filter dropdown
+  const uniqueRoles = Array.from(new Set(staffList.map(s => s.role).filter(Boolean)));
+  uniqueRoles.sort();
 
   const calculateMetrics = (calls: CallReport[], deposits: Deposit[], filterFn?: (date: Date) => boolean): PerformanceMetrics => {
     const filteredCalls = filterFn 
@@ -318,28 +338,96 @@ export default function PerformanceCheck() {
             <CardHeader>
               <CardTitle>Select Staff Member</CardTitle>
               <CardDescription>
-                Choose a staff member to view their performance data
+                Search and filter to find a staff member
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Select
-                value={selectedStaff}
-                onValueChange={setSelectedStaff}
-              >
-                <SelectTrigger className="w-full md:w-[400px]" data-testid="select-staff-member">
-                  <SelectValue placeholder="Select a staff member" />
-                </SelectTrigger>
-                <SelectContent>
-                  {staffList.map((staff) => (
-                    <SelectItem 
-                      key={staff.id} 
-                      value={staff.name}
-                    >
-                      {staff.name} - {staff.role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Search by Name or ID</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search staff..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                      data-testid="input-search-staff"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Filter by Role</label>
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+                    <Select value={filterRole} onValueChange={setFilterRole}>
+                      <SelectTrigger className="pl-10" data-testid="select-filter-role">
+                        <SelectValue placeholder="All Roles" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        {uniqueRoles.map((role) => (
+                          <SelectItem key={role} value={role || ""}>
+                            {role}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Staff Member {filteredStaffList.length > 0 && `(${filteredStaffList.length} found)`}
+                </label>
+                <Select
+                  value={selectedStaff}
+                  onValueChange={setSelectedStaff}
+                >
+                  <SelectTrigger className="w-full" data-testid="select-staff-member">
+                    <SelectValue placeholder="Select a staff member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredStaffList.length === 0 ? (
+                      <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                        No staff members found
+                      </div>
+                    ) : (
+                      filteredStaffList.map((staff) => (
+                        <SelectItem 
+                          key={staff.id} 
+                          value={staff.name}
+                        >
+                          {staff.name} - {staff.role}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(searchTerm || filterRole !== "all") && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Badge variant="secondary" className="gap-1">
+                    {searchTerm && `Search: "${searchTerm}"`}
+                    {searchTerm && filterRole !== "all" && " • "}
+                    {filterRole !== "all" && `Role: ${filterRole}`}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setFilterRole("all");
+                    }}
+                    data-testid="button-clear-filters"
+                  >
+                    Clear filters
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

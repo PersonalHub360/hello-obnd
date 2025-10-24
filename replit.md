@@ -48,7 +48,13 @@ The application is built as a full-stack web application using a React, Express,
 - **Consistent Calculations:** Identical calculation logic for metrics like FTD Count, Deposit Count, Bonus Formula, and Conversion Rate across all pages.
 - **Dashboard Metrics:** Real-time metrics based on call reports and deposit data.
 - **Analytics Dashboard:** Provides comprehensive staff, deposit, and call metrics with various charts.
-- **Staff Performance Check:** Individual staff metrics based on their associated deposits and calls, including daily, monthly, yearly breakdowns, performance status, and bonus calculations.
+- **Staff Performance Check:** Individual staff metrics based on their associated deposits and calls, including daily, monthly, yearly breakdowns, performance status, and bonus calculations. Features advanced search and filter functionality:
+  - Search by staff name or employee ID (case-insensitive)
+  - Filter by role with dropdown selection
+  - Combine search and filter for refined results
+  - Shows count of matching staff members
+  - Clear filters button to reset search and filter
+  - Active filter badges display current search/filter criteria
 
 ## External Dependencies
 - **Database:** PostgreSQL (Neon for cloud hosting).
