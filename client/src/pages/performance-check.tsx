@@ -122,10 +122,19 @@ export default function PerformanceCheck() {
       ? deposits.filter(d => filterFn(new Date(d.date)))
       : deposits;
 
-    const totalCalls = filteredCalls.length;
-    const successfulCalls = filteredCalls.filter(c => 
+    // Count calls from CallReport records
+    const callReportCount = filteredCalls.length;
+    const callReportSuccessful = filteredCalls.filter(c => 
       c.callStatus.toLowerCase() === "completed"
     ).length;
+
+    // Sum up call counts from deposit records
+    const depositTotalCalls = filteredDeposits.reduce((sum, d) => sum + (d.totalCalls || 0), 0);
+    const depositSuccessfulCalls = filteredDeposits.reduce((sum, d) => sum + (d.successfulCalls || 0), 0);
+
+    // Combine both sources
+    const totalCalls = callReportCount + depositTotalCalls;
+    const successfulCalls = callReportSuccessful + depositSuccessfulCalls;
 
     const totalFTD = filteredDeposits.filter(d => d.ftd === "Yes").length;
     const totalDeposits = filteredDeposits.filter(d => d.deposit === "Yes").length;

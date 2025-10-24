@@ -322,24 +322,40 @@ export class DatabaseStorage implements IStorage {
     calls: CallReport[];
     deposits: Deposit[];
   }> {
+    // Get calls where this staff is the call agent
     const calls = await db
       .select()
       .from(callReports)
       .where(eq(callReports.callAgentName, staffName))
       .orderBy(callReports.dateTime);
     
+    // Get deposits directly by staff name
+    const staffDeposits = await db
+      .select()
+      .from(deposits)
+      .where(eq(deposits.staffName, staffName))
+      .orderBy(deposits.date);
+    
+    // Also get deposits for any customers that this staff called
     const userNames = calls.map(c => c.userName);
     const uniqueUserNames = Array.from(new Set(userNames));
     
-    let relatedDeposits: Deposit[] = [];
+    let customerDeposits: Deposit[] = [];
     if (uniqueUserNames.length > 0) {
       const allDeposits = await db.select().from(deposits);
-      relatedDeposits = allDeposits.filter(d => 
+      customerDeposits = allDeposits.filter(d => 
         uniqueUserNames.some(userName => 
           userName.toLowerCase() === d.staffName.toLowerCase()
         )
       );
     }
+    
+    // Combine and deduplicate deposits
+    const allDepositsMap = new Map<string, Deposit>();
+    [...staffDeposits, ...customerDeposits].forEach(d => {
+      allDepositsMap.set(d.id, d);
+    });
+    const relatedDeposits = Array.from(allDepositsMap.values());
     
     return {
       calls,
