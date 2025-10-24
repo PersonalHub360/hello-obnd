@@ -73,8 +73,8 @@ export function StaffCombobox({
                 <CommandItem
                   key={staffMember.id}
                   value={staffMember.name}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue);
+                  onSelect={() => {
+                    onChange(staffMember.name === value ? "" : staffMember.name);
                     setOpen(false);
                   }}
                   data-testid={`option-staff-${staffMember.id}`}
