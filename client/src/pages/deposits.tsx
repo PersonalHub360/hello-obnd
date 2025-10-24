@@ -41,14 +41,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { StaffCombobox } from "@/components/staff-combobox";
 
 export default function Deposits() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,6 +71,9 @@ export default function Deposits() {
 
   // Google Sheets link state
   const [spreadsheetUrl, setSpreadsheetUrl] = useState("");
+  
+  // Staff filter state
+  const [staffFilterSearch, setStaffFilterSearch] = useState("");
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -93,11 +96,26 @@ export default function Deposits() {
     enabled: !!session,
   });
 
+  // Filter deposits by staff name
+  const filteredDeposits = deposits.filter(deposit => {
+    if (!staffFilterSearch) return true;
+    return deposit.staffName.toLowerCase().includes(staffFilterSearch.toLowerCase());
+  });
+
   useEffect(() => {
     if (!sessionLoading && !session) {
       setLocation("/");
     }
   }, [session, sessionLoading, setLocation]);
+
+  // Read staff filter from URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const staffParam = params.get('staff');
+    if (staffParam) {
+      setStaffFilterSearch(staffParam);
+    }
+  }, [location]);
 
   // Auto-link pending spreadsheet after OAuth
   useEffect(() => {
@@ -235,10 +253,10 @@ export default function Deposits() {
   };
 
   const handleToggleAll = () => {
-    if (selectedDepositIds.size === deposits.length) {
+    if (selectedDepositIds.size === filteredDeposits.length) {
       setSelectedDepositIds(new Set());
     } else {
-      setSelectedDepositIds(new Set(deposits.map(d => d.id)));
+      setSelectedDepositIds(new Set(filteredDeposits.map(d => d.id)));
     }
   };
 
@@ -904,6 +922,35 @@ export default function Deposits() {
               </Button>
             )}
           </div>
+          
+          <div className="mt-4 flex items-center gap-2">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Filter by staff name..."
+                value={staffFilterSearch}
+                onChange={(e) => setStaffFilterSearch(e.target.value)}
+                className="pl-10"
+                data-testid="input-filter-staff"
+              />
+            </div>
+            {staffFilterSearch && (
+              <>
+                <Badge variant="secondary" className="gap-1">
+                  {filteredDeposits.length} of {deposits.length} deposits
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStaffFilterSearch("")}
+                  data-testid="button-clear-staff-filter"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear
+                </Button>
+              </>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {depositsLoading ? (
@@ -913,9 +960,11 @@ export default function Deposits() {
                 <p className="mt-2 text-sm text-muted-foreground">Loading deposits...</p>
               </div>
             </div>
-          ) : deposits.length === 0 ? (
+          ) : filteredDeposits.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No deposits found</p>
+              <p className="text-muted-foreground">
+                {staffFilterSearch ? `No deposits found for "${staffFilterSearch}"` : "No deposits found"}
+              </p>
             </div>
           ) : (
             <div className="rounded-md border">
@@ -924,7 +973,7 @@ export default function Deposits() {
                   <TableRow>
                     <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedDepositIds.size === deposits.length && deposits.length > 0}
+                        checked={selectedDepositIds.size === filteredDeposits.length && filteredDeposits.length > 0}
                         onCheckedChange={handleToggleAll}
                         data-testid="checkbox-select-all-deposits"
                       />
@@ -945,7 +994,7 @@ export default function Deposits() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {deposits.map((deposit) => {
+                  {filteredDeposits.map((deposit) => {
                     const ftdCount = deposit.ftdCount || 0;
                     const depositCount = deposit.depositCount || 0;
                     const bonusAmount = (ftdCount * 1) + (depositCount * 1.5);

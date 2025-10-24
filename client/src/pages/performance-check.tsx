@@ -25,6 +25,7 @@ import {
   Calendar,
   Search,
   Filter,
+  ExternalLink,
 } from "lucide-react";
 import { format, startOfDay, startOfMonth, startOfYear, endOfMonth, isAfter, isBefore, isWithinInterval } from "date-fns";
 
@@ -434,6 +435,25 @@ export default function PerformanceCheck() {
 
         {selectedStaff && (
           <>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Performance for {selectedStaff}</CardTitle>
+                    <CardDescription>View detailed metrics and deposit history</CardDescription>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setLocation(`/deposits?staff=${encodeURIComponent(selectedStaff)}`)}
+                    data-testid="button-view-deposits"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View Deposits
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+
             {performanceLoading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
