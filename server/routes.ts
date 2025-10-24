@@ -664,6 +664,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           brandName: String(row["Brand Name"] || row.brandName || row["Brand name"] || ""),
           ftdCount: typeof row["FTD Count"] === 'number' ? row["FTD Count"] : (typeof row.ftdCount === 'number' ? row.ftdCount : 0),
           depositCount: typeof row["Deposit Count"] === 'number' ? row["Deposit Count"] : (typeof row.depositCount === 'number' ? row.depositCount : 0),
+          totalCalls: typeof row["Total Calls"] === 'number' ? row["Total Calls"] : (typeof row.totalCalls === 'number' ? row.totalCalls : 0),
+          successfulCalls: typeof row["Successful Calls"] === 'number' ? row["Successful Calls"] : (typeof row.successfulCalls === 'number' ? row.successfulCalls : 0),
+          unsuccessfulCalls: typeof row["Unsuccessful Calls"] === 'number' ? row["Unsuccessful Calls"] : (typeof row.unsuccessfulCalls === 'number' ? row.unsuccessfulCalls : 0),
+          failedCalls: typeof row["Failed Calls"] === 'number' ? row["Failed Calls"] : (typeof row.failedCalls === 'number' ? row.failedCalls : 0),
         };
       });
 
@@ -701,6 +705,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Brand Name": "JB BDT",
           "FTD Count": 5,
           "Deposit Count": 10,
+          "Total Calls": 50,
+          "Successful Calls": 30,
+          "Unsuccessful Calls": 15,
+          "Failed Calls": 5,
         },
         {
           "Staff Name": "Jane Doe",
@@ -709,6 +717,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Brand Name": "BJ BDT",
           "FTD Count": 3,
           "Deposit Count": 7,
+          "Total Calls": 40,
+          "Successful Calls": 25,
+          "Unsuccessful Calls": 10,
+          "Failed Calls": 5,
         },
         {
           "Staff Name": "Bob Johnson",
@@ -717,6 +729,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           "Brand Name": "JB PKR",
           "FTD Count": 8,
           "Deposit Count": 12,
+          "Total Calls": 60,
+          "Successful Calls": 40,
+          "Unsuccessful Calls": 15,
+          "Failed Calls": 5,
         },
       ];
 
