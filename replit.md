@@ -66,13 +66,14 @@ The application is built as a full-stack web application using a React, Express,
   - Available annual leave days
   - All staff information in organized card layout
   - Photo uploads stored in /public/uploads/staff-photos directory
-- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, Type, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). **Important:** Deposits support Create, View, and Delete operations only - Update/Edit functionality has been completely removed. Includes:
-  - **Type Field (Required):** Transaction type with 2 options - FTD, Deposit. This field is required (NOT NULL constraint) and must be provided in both manual entry and Excel imports.
+- **Deposit Section:** Manages financial deposits with statistics, new deposit forms (including Staff Name with searchable dropdown, FTD (Yes/No), Deposit (Yes/No), Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls fields), Excel import, and auto-generated reference numbers. Uses the same 7 fixed brand options as Staff Directory for consistency (JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR). **Important:** Deposits support Create, View, and Delete operations only - Update/Edit functionality has been completely removed. Includes:
+  - **FTD and Deposit Fields (Both Required):** Two independent Yes/No dropdown fields that replace the previous single Type field. Both fields are required (NOT NULL constraint) and default to "No". These fields are independent and not mutually exclusive - a deposit can be marked as both FTD=Yes and Deposit=Yes, or any other combination.
   - **FTD Count and Deposit Count:** Granular deposit metrics for tracking first-time deposits and total deposit counts
   - **Call Tracking:** Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls to monitor performance
   - Staff Name field features a searchable combobox that allows both typing to search and selecting from a dropdown list of all staff members
-  - Deposits list displays Type badge, FTD count, Deposit count, call tracking metrics with color-coded badges (green for successful, yellow for unsuccessful, red for failed), and automatically calculated bonus amounts (FTD: $1 per count, Deposit: $1.5 per count)
-  - Excel import/export fully supports all deposit fields including Type and call tracking columns
+  - Deposits list displays FTD and Deposit columns (Yes/No values), FTD count, Deposit count, call tracking metrics with color-coded badges (green for successful, yellow for unsuccessful, red for failed), and automatically calculated bonus amounts (FTD: $1 per count, Deposit: $1.5 per count)
+  - Excel import/export fully supports all deposit fields including FTD, Deposit, and call tracking columns
+  - **Excel Column Order:** Staff Name, FTD, Deposit, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, Failed Calls
   - **Actions:** View (eye icon) and Delete (trash icon) buttons only - no Edit button
 - **Analytics Dashboard:** Visualizes key HR and operational data with charts for department distribution, employee status, and hiring trends.
 - **Settings Section:** Multi-section settings page including:
@@ -138,5 +139,5 @@ The system includes comprehensive Google Sheets integration for automatic data s
 
 **Data Synced to Google Sheets:**
 - **Staff Sheet:** All staff information including Employee ID, Name, Email, Role, Brand, Country, Status, Joining Date, Date of Birth, Available Leave
-- **Deposits Sheet:** All deposit records including Staff Name, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, Failed Calls
+- **Deposits Sheet:** All deposit records including Staff Name, FTD (Yes/No), Deposit (Yes/No), Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, Failed Calls
 - **Call Reports Sheet:** All call reports including User Name, Agent, Date/Time, Status, Phone, Duration, Remarks, Type
