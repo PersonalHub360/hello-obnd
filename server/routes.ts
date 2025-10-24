@@ -635,7 +635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
-      const deposits = data.map((row: any) => {
+      const deposits = data.map((row: any, index: number) => {
         let date = row.Date || row.date;
         
         // Convert Excel date serial number to date-only string
@@ -657,11 +657,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           date = undefined;
         }
         
+        const staffName = String(row["Staff Name"] || row.staffName || row["Staff name"] || "");
+        const type = String(row.Type || row.type || "").trim();
+        const brandName = String(row["Brand Name"] || row.brandName || row["Brand name"] || "");
+        
         return {
-          staffName: String(row["Staff Name"] || row.staffName || row["Staff name"] || ""),
-          type: String(row.Type || row.type || ""),
+          rowNumber: index + 2, // +2 because Excel row 1 is header, and array is 0-indexed
+          staffName,
+          type,
           date: date,
-          brandName: String(row["Brand Name"] || row.brandName || row["Brand name"] || ""),
+          brandName,
           ftdCount: typeof row["FTD Count"] === 'number' ? row["FTD Count"] : (typeof row.ftdCount === 'number' ? row.ftdCount : 0),
           depositCount: typeof row["Deposit Count"] === 'number' ? row["Deposit Count"] : (typeof row.depositCount === 'number' ? row.depositCount : 0),
           totalCalls: typeof row["Total Calls"] === 'number' ? row["Total Calls"] : (typeof row.totalCalls === 'number' ? row.totalCalls : 0),
@@ -671,22 +676,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
-      const validDeposits = deposits.filter(d => 
-        d.staffName && 
-        d.type && 
-        (d.type === "FTD" || d.type === "Deposit") &&
-        d.brandName
-      ) as { staffName: string; type: "FTD" | "Deposit"; date?: string; brandName: string }[];
+      // Validate and collect errors
+      const errors: string[] = [];
+      const validDeposits: any[] = [];
+      
+      deposits.forEach(d => {
+        const rowErrors: string[] = [];
+        
+        if (!d.staffName) {
+          rowErrors.push("Missing 'Staff Name'");
+        }
+        if (!d.type) {
+          rowErrors.push("Missing 'Type'");
+        } else if (d.type !== "FTD" && d.type !== "Deposit") {
+          rowErrors.push(`Invalid 'Type' value: '${d.type}'. Must be exactly 'FTD' or 'Deposit' (case-sensitive)`);
+        }
+        if (!d.brandName) {
+          rowErrors.push("Missing 'Brand Name'");
+        }
+        
+        if (rowErrors.length > 0) {
+          errors.push(`Row ${d.rowNumber}: ${rowErrors.join(", ")}`);
+        } else {
+          validDeposits.push(d);
+        }
+      });
 
       if (validDeposits.length === 0) {
-        return res.status(400).json({ message: "No valid deposits found in Excel file. Ensure Staff Name, Type (FTD or Deposit), and Brand Name are provided." });
+        const errorMessage = errors.length > 0 
+          ? `Import failed. Errors found:\n${errors.join("\n")}\n\nREMINDER: Type must be exactly 'FTD' or 'Deposit' (case-sensitive). Download the template for guidance.`
+          : "No valid deposits found in Excel file. Please download and use the template.";
+        return res.status(400).json({ message: errorMessage });
       }
 
       const createdDeposits = await storage.createManyDeposits(validDeposits);
 
+      const successMessage = errors.length > 0
+        ? `Imported ${createdDeposits.length} of ${deposits.length} deposits. ${errors.length} row(s) had errors:\n${errors.join("\n")}`
+        : `Successfully imported ${createdDeposits.length} deposits`;
+
       res.status(201).json({
-        message: `Successfully imported ${createdDeposits.length} deposits`,
+        message: successMessage,
         deposits: createdDeposits,
+        totalRows: deposits.length,
+        successCount: createdDeposits.length,
+        errorCount: errors.length,
+        errors: errors.length > 0 ? errors : undefined,
       });
     } catch (error) {
       console.error("Excel import error:", error);
@@ -697,11 +732,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sample Excel template download for deposits
   app.get("/api/deposits/sample/template", requireAuth, async (req: Request, res: Response) => {
     try {
+      // Instructions sheet
+      const instructions = [
+        { "FIELD": "Staff Name", "REQUIRED": "Yes", "DESCRIPTION": "Name of the staff member", "VALID VALUES": "Any text" },
+        { "FIELD": "Type", "REQUIRED": "Yes", "DESCRIPTION": "Type of deposit - MUST be exactly 'FTD' or 'Deposit'", "VALID VALUES": "FTD or Deposit" },
+        { "FIELD": "Date", "REQUIRED": "No", "DESCRIPTION": "Date of deposit (defaults to today if empty)", "VALID VALUES": "YYYY-MM-DD or Excel date" },
+        { "FIELD": "Brand Name", "REQUIRED": "Yes", "DESCRIPTION": "Brand name", "VALID VALUES": "JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR" },
+        { "FIELD": "FTD Count", "REQUIRED": "No", "DESCRIPTION": "First Time Deposit count", "VALID VALUES": "Number (0 or greater)" },
+        { "FIELD": "Deposit Count", "REQUIRED": "No", "DESCRIPTION": "Total deposit count", "VALID VALUES": "Number (0 or greater)" },
+        { "FIELD": "Total Calls", "REQUIRED": "No", "DESCRIPTION": "Total number of calls made", "VALID VALUES": "Number (0 or greater)" },
+        { "FIELD": "Successful Calls", "REQUIRED": "No", "DESCRIPTION": "Number of successful calls", "VALID VALUES": "Number (0 or greater)" },
+        { "FIELD": "Unsuccessful Calls", "REQUIRED": "No", "DESCRIPTION": "Number of unsuccessful calls", "VALID VALUES": "Number (0 or greater)" },
+        { "FIELD": "Failed Calls", "REQUIRED": "No", "DESCRIPTION": "Number of failed calls", "VALID VALUES": "Number (0 or greater)" },
+      ];
+
       const sampleData = [
         {
           "Staff Name": "John Smith",
           "Type": "FTD",
-          "Date": new Date().toISOString(),
+          "Date": new Date().toISOString().split('T')[0],
           "Brand Name": "JB BDT",
           "FTD Count": 5,
           "Deposit Count": 10,
@@ -713,7 +762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           "Staff Name": "Jane Doe",
           "Type": "Deposit",
-          "Date": new Date().toISOString(),
+          "Date": new Date().toISOString().split('T')[0],
           "Brand Name": "BJ BDT",
           "FTD Count": 3,
           "Deposit Count": 7,
@@ -725,7 +774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         {
           "Staff Name": "Bob Johnson",
           "Type": "FTD",
-          "Date": new Date().toISOString(),
+          "Date": new Date().toISOString().split('T')[0],
           "Brand Name": "JB PKR",
           "FTD Count": 8,
           "Deposit Count": 12,
@@ -736,9 +785,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       ];
 
-      const worksheet = XLSX.utils.json_to_sheet(sampleData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Deposits");
+      
+      // Add instructions sheet first
+      const instructionsWorksheet = XLSX.utils.json_to_sheet(instructions);
+      XLSX.utils.book_append_sheet(workbook, instructionsWorksheet, "INSTRUCTIONS");
+      
+      // Add sample data sheet
+      const worksheet = XLSX.utils.json_to_sheet(sampleData);
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Sample Data");
 
       const excelBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
