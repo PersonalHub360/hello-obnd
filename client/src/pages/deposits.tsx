@@ -907,6 +907,13 @@ export default function Deposits() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedDepositIds.size === deposits.length && deposits.length > 0}
+                        onCheckedChange={handleToggleAll}
+                        data-testid="checkbox-select-all-deposits"
+                      />
+                    </TableHead>
                     <TableHead>Staff Name</TableHead>
                     <TableHead>FTD</TableHead>
                     <TableHead>Deposit</TableHead>
@@ -930,6 +937,13 @@ export default function Deposits() {
                     
                     return (
                       <TableRow key={deposit.id} data-testid={`row-deposit-${deposit.id}`}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedDepositIds.has(deposit.id)}
+                            onCheckedChange={() => handleToggleDeposit(deposit.id)}
+                            data-testid={`checkbox-deposit-${deposit.id}`}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium" data-testid={`text-staff-name-${deposit.id}`}>
                           {deposit.staffName}
                         </TableCell>
