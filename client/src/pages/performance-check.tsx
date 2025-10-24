@@ -99,15 +99,16 @@ export default function PerformanceCheck() {
       c.callStatus.toLowerCase() === "completed"
     ).length;
 
-    const uniqueDepositors = new Set(filteredDeposits.map(d => d.depositor.toLowerCase()));
-    const totalFTD = uniqueDepositors.size;
-    const totalDeposits = filteredDeposits.length;
+    const totalFTD = filteredDeposits.filter(d => d.ftd === "Yes").length;
+    const totalDeposits = filteredDeposits.filter(d => d.deposit === "Yes").length;
 
     const conversionRatio = totalCalls > 0
       ? (successfulCalls / totalCalls) * 100
       : 0;
 
-    const bonusAmount = (totalFTD * 1) + (totalDeposits * 1.5);
+    const ftdBonus = filteredDeposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
+    const depositBonus = filteredDeposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
+    const bonusAmount = (ftdBonus * 1) + (depositBonus * 1.5);
 
     let performanceStatus: "Good" | "Average" | "Bad" = "Bad";
     if (conversionRatio >= 70) {
@@ -334,7 +335,7 @@ export default function PerformanceCheck() {
                       key={staff.id} 
                       value={staff.name}
                     >
-                      {staff.name} - {staff.position}
+                      {staff.name} - {staff.role}
                     </SelectItem>
                   ))}
                 </SelectContent>
