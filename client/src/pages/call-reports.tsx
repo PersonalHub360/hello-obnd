@@ -27,6 +27,7 @@ import { Phone, TrendingUp, Clock, CheckCircle2, AlertCircle, Upload, Download, 
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { StaffCombobox } from "@/components/staff-combobox";
 
 export default function CallReports() {
   const [, setLocation] = useLocation();
@@ -612,12 +613,11 @@ export default function CallReports() {
                 <Label htmlFor="callAgentName">
                   Call Agent Name <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="callAgentName"
-                  placeholder="Agent name"
+                <StaffCombobox
                   value={callAgentName}
-                  onChange={(e) => setCallAgentName(e.target.value)}
-                  data-testid="input-agent-name"
+                  onChange={setCallAgentName}
+                  placeholder="Type or select agent..."
+                  testId="input-agent-name"
                 />
               </div>
               <div className="space-y-2">
