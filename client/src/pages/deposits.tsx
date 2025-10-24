@@ -935,6 +935,7 @@ export default function Deposits() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Staff Name</TableHead>
+                    <TableHead>Type</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Brand Name</TableHead>
                     <TableHead className="text-center">FTD Count</TableHead>
@@ -957,6 +958,9 @@ export default function Deposits() {
                       <TableRow key={deposit.id} data-testid={`row-deposit-${deposit.id}`}>
                         <TableCell className="font-medium" data-testid={`text-staff-name-${deposit.id}`}>
                           {deposit.staffName}
+                        </TableCell>
+                        <TableCell data-testid={`text-type-${deposit.id}`}>
+                          <Badge variant="outline">{deposit.type}</Badge>
                         </TableCell>
                         <TableCell data-testid={`text-date-${deposit.id}`}>
                           {format(new Date(deposit.date), "MMM dd, yyyy")}
