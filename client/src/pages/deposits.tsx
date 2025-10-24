@@ -1036,6 +1036,10 @@ export default function Deposits() {
                 <p className="font-medium" data-testid="text-view-staff-name">{selectedDeposit.staffName}</p>
               </div>
               <div>
+                <Label className="text-muted-foreground">Type</Label>
+                <p className="font-medium" data-testid="text-view-type">{selectedDeposit.type}</p>
+              </div>
+              <div>
                 <Label className="text-muted-foreground">Date</Label>
                 <p className="font-medium" data-testid="text-view-date">
                   {format(new Date(selectedDeposit.date), "MMMM dd, yyyy")}
