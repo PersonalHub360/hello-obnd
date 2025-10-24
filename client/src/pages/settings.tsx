@@ -73,6 +73,17 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 
 type UserWithoutPassword = Omit<AuthUser, 'password'>;
 
+const USER_ROLES = [
+  "User",
+  "Manager",
+  "Team Leader",
+  "Assistant Leader",
+  "Admin",
+  "Senior Manager",
+  "Department Head",
+  "Supervisor",
+] as const;
+
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { theme, setTheme } = useTheme();
@@ -89,10 +100,11 @@ export default function Settings() {
   const addUserForm = useForm<InsertAuthUser>({
     resolver: zodResolver(insertAuthUserSchema),
     defaultValues: {
+      username: "",
       name: "",
       email: "",
       password: "",
-      role: "user",
+      role: "User",
       status: "active",
     },
   });
@@ -449,6 +461,19 @@ export default function Settings() {
                       <form onSubmit={addUserForm.handleSubmit((data) => addUserMutation.mutate(data))} className="space-y-4">
                         <FormField
                           control={addUserForm.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Username</FormLabel>
+                              <FormControl>
+                                <Input placeholder="johndoe" data-testid="input-add-user-username" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={addUserForm.control}
                           name="name"
                           render={({ field }) => (
                             <FormItem>
@@ -492,9 +517,20 @@ export default function Settings() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Role</FormLabel>
-                              <FormControl>
-                                <Input placeholder="user" data-testid="input-add-user-role" {...field} />
-                              </FormControl>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-add-user-role">
+                                    <SelectValue placeholder="Select role" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {USER_ROLES.map((role) => (
+                                    <SelectItem key={role} value={role}>
+                                      {role}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -579,13 +615,21 @@ export default function Settings() {
                             </TableCell>
                             <TableCell data-testid={`user-role-${user.id}`}>
                               {editingUserId === user.id ? (
-                                <Input
+                                <Select
                                   value={editRole}
-                                  onChange={(e) => setEditRole(e.target.value)}
-                                  placeholder="Enter role"
-                                  className="h-8 max-w-[150px]"
-                                  data-testid={`input-role-${user.id}`}
-                                />
+                                  onValueChange={setEditRole}
+                                >
+                                  <SelectTrigger className="h-8 max-w-[150px]" data-testid={`select-role-${user.id}`}>
+                                    <SelectValue placeholder="Select role" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {USER_ROLES.map((role) => (
+                                      <SelectItem key={role} value={role}>
+                                        {role}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               ) : (
                                 <Badge variant="secondary">{user.role}</Badge>
                               )}
