@@ -41,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink, Search, X } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink, Search, X, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -65,6 +65,7 @@ export default function Deposits() {
   const [failedCalls, setFailedCalls] = useState<number>(0);
 
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDeposit, setSelectedDeposit] = useState<Deposit | null>(null);
   const [selectedDepositIds, setSelectedDepositIds] = useState<Set<string>>(new Set());
@@ -266,6 +267,28 @@ export default function Deposits() {
     }
   };
 
+  const updateDepositMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<{ staffName: string; ftd: string; deposit: string; date?: string; brandName: string; ftdCount?: number; depositCount?: number; totalCalls?: number; successfulCalls?: number; unsuccessfulCalls?: number; failedCalls?: number }> }) => {
+      return await apiRequest("PATCH", `/api/deposits/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      toast({
+        title: "Success",
+        description: "Deposit updated successfully",
+      });
+      setEditDialogOpen(false);
+      setSelectedDeposit(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update deposit",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteDepositMutation = useMutation({
     mutationFn: async (id: string) => {
       return await apiRequest("DELETE", `/api/deposits/${id}`);
@@ -416,9 +439,35 @@ export default function Deposits() {
     setViewDialogOpen(true);
   };
 
+  const handleEditDeposit = (deposit: Deposit) => {
+    setSelectedDeposit(deposit);
+    setEditDialogOpen(true);
+  };
+
   const handleDeleteDeposit = (deposit: Deposit) => {
     setSelectedDeposit(deposit);
     setDeleteDialogOpen(true);
+  };
+
+  const confirmEdit = () => {
+    if (selectedDeposit) {
+      updateDepositMutation.mutate({
+        id: selectedDeposit.id,
+        data: {
+          staffName: selectedDeposit.staffName,
+          ftd: selectedDeposit.ftd,
+          deposit: selectedDeposit.deposit,
+          date: selectedDeposit.date instanceof Date ? format(selectedDeposit.date, 'yyyy-MM-dd') : selectedDeposit.date,
+          brandName: selectedDeposit.brandName,
+          ftdCount: selectedDeposit.ftdCount ?? undefined,
+          depositCount: selectedDeposit.depositCount ?? undefined,
+          totalCalls: selectedDeposit.totalCalls ?? undefined,
+          successfulCalls: selectedDeposit.successfulCalls ?? undefined,
+          unsuccessfulCalls: selectedDeposit.unsuccessfulCalls ?? undefined,
+          failedCalls: selectedDeposit.failedCalls ?? undefined,
+        }
+      });
+    }
   };
 
   const confirmDelete = () => {
@@ -1057,6 +1106,14 @@ export default function Deposits() {
                             <Button
                               variant="ghost"
                               size="icon"
+                              onClick={() => handleEditDeposit(deposit)}
+                              data-testid={`button-edit-${deposit.id}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handleDeleteDeposit(deposit)}
                               data-testid={`button-delete-${deposit.id}`}
                             >
@@ -1139,6 +1196,185 @@ export default function Deposits() {
           <DialogFooter>
             <Button onClick={() => setViewDialogOpen(false)} data-testid="button-close-view">
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent data-testid="dialog-edit-deposit" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Deposit</DialogTitle>
+            <DialogDescription>Update deposit information</DialogDescription>
+          </DialogHeader>
+          {selectedDeposit && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-staffName">Staff Name</Label>
+                <StaffCombobox
+                  value={selectedDeposit.staffName}
+                  onChange={(value) => setSelectedDeposit({ ...selectedDeposit, staffName: value })}
+                  placeholder="Type or select staff..."
+                  testId="input-edit-staff-name"
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="edit-ftd">FTD</Label>
+                  <Select
+                    value={selectedDeposit.ftd}
+                    onValueChange={(value) => setSelectedDeposit({ ...selectedDeposit, ftd: value })}
+                  >
+                    <SelectTrigger data-testid="select-edit-ftd">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Yes">Yes</SelectItem>
+                      <SelectItem value="No">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="edit-deposit">Deposit</Label>
+                  <Select
+                    value={selectedDeposit.deposit}
+                    onValueChange={(value) => setSelectedDeposit({ ...selectedDeposit, deposit: value })}
+                  >
+                    <SelectTrigger data-testid="select-edit-deposit">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Yes">Yes</SelectItem>
+                      <SelectItem value="No">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="edit-date">Date</Label>
+                  <Input
+                    id="edit-date"
+                    type="date"
+                    value={selectedDeposit.date instanceof Date ? format(selectedDeposit.date, 'yyyy-MM-dd') : selectedDeposit.date}
+                    onChange={(e) => setSelectedDeposit({ ...selectedDeposit, date: e.target.value as any })}
+                    data-testid="input-edit-date"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-brandName">Brand Name</Label>
+                  <Select
+                    value={selectedDeposit.brandName}
+                    onValueChange={(value) => setSelectedDeposit({ ...selectedDeposit, brandName: value })}
+                  >
+                    <SelectTrigger data-testid="select-edit-brand-name">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Exness">Exness</SelectItem>
+                      <SelectItem value="XM">XM</SelectItem>
+                      <SelectItem value="Deriv">Deriv</SelectItem>
+                      <SelectItem value="FBS">FBS</SelectItem>
+                      <SelectItem value="Quotex">Quotex</SelectItem>
+                      <SelectItem value="IQ Option">IQ Option</SelectItem>
+                      <SelectItem value="OctaFX">OctaFX</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="edit-ftdCount">FTD Count</Label>
+                  <Input
+                    id="edit-ftdCount"
+                    type="number"
+                    min="0"
+                    value={selectedDeposit.ftdCount ?? 0}
+                    onChange={(e) => setSelectedDeposit({ ...selectedDeposit, ftdCount: parseInt(e.target.value) || 0 })}
+                    data-testid="input-edit-ftd-count"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-depositCount">Deposit Count</Label>
+                  <Input
+                    id="edit-depositCount"
+                    type="number"
+                    min="0"
+                    value={selectedDeposit.depositCount ?? 0}
+                    onChange={(e) => setSelectedDeposit({ ...selectedDeposit, depositCount: parseInt(e.target.value) || 0 })}
+                    data-testid="input-edit-deposit-count"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="edit-totalCalls">Total Calls</Label>
+                  <Input
+                    id="edit-totalCalls"
+                    type="number"
+                    min="0"
+                    value={selectedDeposit.totalCalls ?? 0}
+                    onChange={(e) => setSelectedDeposit({ ...selectedDeposit, totalCalls: parseInt(e.target.value) || 0 })}
+                    data-testid="input-edit-total-calls"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-successfulCalls">Successful Calls</Label>
+                  <Input
+                    id="edit-successfulCalls"
+                    type="number"
+                    min="0"
+                    value={selectedDeposit.successfulCalls ?? 0}
+                    onChange={(e) => setSelectedDeposit({ ...selectedDeposit, successfulCalls: parseInt(e.target.value) || 0 })}
+                    data-testid="input-edit-successful-calls"
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="edit-unsuccessfulCalls">Unsuccessful Calls</Label>
+                  <Input
+                    id="edit-unsuccessfulCalls"
+                    type="number"
+                    min="0"
+                    value={selectedDeposit.unsuccessfulCalls ?? 0}
+                    onChange={(e) => setSelectedDeposit({ ...selectedDeposit, unsuccessfulCalls: parseInt(e.target.value) || 0 })}
+                    data-testid="input-edit-unsuccessful-calls"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-failedCalls">Failed Calls</Label>
+                  <Input
+                    id="edit-failedCalls"
+                    type="number"
+                    min="0"
+                    value={selectedDeposit.failedCalls ?? 0}
+                    onChange={(e) => setSelectedDeposit({ ...selectedDeposit, failedCalls: parseInt(e.target.value) || 0 })}
+                    data-testid="input-edit-failed-calls"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              data-testid="button-cancel-edit"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmEdit}
+              disabled={updateDepositMutation.isPending}
+              data-testid="button-confirm-edit"
+            >
+              {updateDepositMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
