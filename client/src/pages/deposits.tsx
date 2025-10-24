@@ -647,9 +647,8 @@ export default function Deposits() {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="FTD" data-testid="select-option-ftd">FTD</SelectItem>
                   <SelectItem value="Deposit" data-testid="select-option-deposit">Deposit</SelectItem>
-                  <SelectItem value="Withdrawal" data-testid="select-option-withdrawal">Withdrawal</SelectItem>
-                  <SelectItem value="Bonus" data-testid="select-option-bonus">Bonus</SelectItem>
                 </SelectContent>
               </Select>
             </div>
