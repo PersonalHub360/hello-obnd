@@ -803,7 +803,7 @@ export default function Deposits() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Upload .xlsx or .xls file with Staff Name, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls columns
+                Upload .xlsx or .xls file with Staff Name, Type, Date, Brand Name, FTD Count, Deposit Count, Total Calls, Successful Calls, Unsuccessful Calls, and Failed Calls columns
               </p>
             </div>
 

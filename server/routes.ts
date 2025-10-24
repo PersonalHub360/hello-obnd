@@ -658,11 +658,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         const staffName = String(row["Staff Name"] || row.staffName || row["Staff name"] || "");
+        const type = String(row["Type"] || row.type || "");
         const brandName = String(row["Brand Name"] || row.brandName || row["Brand name"] || "");
         
         return {
           rowNumber: index + 2, // +2 because Excel row 1 is header, and array is 0-indexed
           staffName,
+          type,
           date: date,
           brandName,
           ftdCount: typeof row["FTD Count"] === 'number' ? row["FTD Count"] : (typeof row.ftdCount === 'number' ? row.ftdCount : 0),
@@ -683,6 +685,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (!d.staffName) {
           rowErrors.push("Missing 'Staff Name'");
+        }
+        if (!d.type) {
+          rowErrors.push("Missing 'Type'");
         }
         if (!d.brandName) {
           rowErrors.push("Missing 'Brand Name'");
@@ -728,6 +733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Instructions sheet
       const instructions = [
         { "FIELD": "Staff Name", "REQUIRED": "Yes", "DESCRIPTION": "Name of the staff member", "VALID VALUES": "Any text" },
+        { "FIELD": "Type", "REQUIRED": "Yes", "DESCRIPTION": "Type of transaction", "VALID VALUES": "Deposit, Withdrawal, Bonus" },
         { "FIELD": "Date", "REQUIRED": "No", "DESCRIPTION": "Date of deposit (defaults to today if empty)", "VALID VALUES": "YYYY-MM-DD or Excel date" },
         { "FIELD": "Brand Name", "REQUIRED": "Yes", "DESCRIPTION": "Brand name", "VALID VALUES": "JB BDT, BJ BDT, BJ PKR, JB PKR, NPR, SIX6'S BDT, SIX6'S PKR" },
         { "FIELD": "FTD Count", "REQUIRED": "No", "DESCRIPTION": "First Time Deposit count", "VALID VALUES": "Number (0 or greater)" },
@@ -741,6 +747,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sampleData = [
         {
           "Staff Name": "John Smith",
+          "Type": "Deposit",
           "Date": new Date().toISOString().split('T')[0],
           "Brand Name": "JB BDT",
           "FTD Count": 5,
@@ -752,6 +759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         {
           "Staff Name": "Jane Doe",
+          "Type": "Withdrawal",
           "Date": new Date().toISOString().split('T')[0],
           "Brand Name": "BJ BDT",
           "FTD Count": 3,
@@ -763,6 +771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         {
           "Staff Name": "Bob Johnson",
+          "Type": "Bonus",
           "Date": new Date().toISOString().split('T')[0],
           "Brand Name": "JB PKR",
           "FTD Count": 8,
