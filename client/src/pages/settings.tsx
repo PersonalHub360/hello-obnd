@@ -834,6 +834,188 @@ export default function Settings() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Access Permissions by Role */}
+        <Card data-testid="card-role-permissions">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle>Access Permissions by Role</CardTitle>
+                <CardDescription>
+                  View the access permissions and capabilities for each user role
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {/* Admin Role */}
+              <div className="space-y-3 p-4 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="default" className="text-sm">Admin</Badge>
+                    <span className="text-sm text-muted-foreground">Full System Access</span>
+                  </div>
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>User Management (Create, Edit, Delete)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Staff Management (Full CRUD)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Deposit Management (Full CRUD)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Call Reports (Full CRUD)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Analytics & Reports</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Google Sheets Integration</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>System Settings</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Excel Import/Export</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Senior Manager / Department Head */}
+              <div className="space-y-3 p-4 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="text-sm">Senior Manager / Department Head</Badge>
+                    <span className="text-sm text-muted-foreground">Management Level Access</span>
+                  </div>
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Staff Management (View, Edit)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Deposit Management (View, Edit)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Call Reports (Full CRUD)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Analytics & Reports (View)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>User Management</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>System Settings</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Manager / Team Leader */}
+              <div className="space-y-3 p-4 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="text-sm">Manager / Team Leader</Badge>
+                    <span className="text-sm text-muted-foreground">Team Management Access</span>
+                  </div>
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Staff Management (View)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Deposit Management (Create, View)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Call Reports (Create, View, Edit)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Performance Check</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>User Management</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>System Settings</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* User / Supervisor / Assistant Leader */}
+              <div className="space-y-3 p-4 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="text-sm">User / Supervisor / Assistant Leader</Badge>
+                    <span className="text-sm text-muted-foreground">Standard User Access</span>
+                  </div>
+                </div>
+                <Separator />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Dashboard (View)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Staff Directory (View)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Deposits (View)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Call Reports (Create, View)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Performance Check (Own data)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>User Management</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>Data Deletion</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X className="h-4 w-4 text-red-600" />
+                    <span>System Settings</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
