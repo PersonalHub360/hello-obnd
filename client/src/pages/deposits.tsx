@@ -41,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink, Search, X, Pencil } from "lucide-react";
+import { DollarSign, TrendingUp, Calendar, Upload, Download, Eye, Trash2, Link2, RefreshCw, CheckCircle, XCircle, ExternalLink, Search, X, Pencil, PhoneCall, PhoneOff } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -540,6 +540,12 @@ export default function Deposits() {
     const depositBonus = (d.depositCount || 0) * 1.5;
     return sum + ftdBonus + depositBonus;
   }, 0);
+  
+  // Call statistics
+  const totalCallsSum = deposits.reduce((sum, d) => sum + (d.totalCalls || 0), 0);
+  const totalSuccessfulCalls = deposits.reduce((sum, d) => sum + (d.successfulCalls || 0), 0);
+  const totalUnsuccessfulCalls = deposits.reduce((sum, d) => sum + (d.unsuccessfulCalls || 0), 0);
+  const totalFailedCalls = deposits.reduce((sum, d) => sum + (d.failedCalls || 0), 0);
 
   if (sessionLoading) {
     return (
@@ -607,6 +613,50 @@ export default function Deposits() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600" data-testid="text-total-bonus">${totalBonus.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">FTD=$1 × Deposit=$1.5</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-total-calls">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Calls</CardTitle>
+            <PhoneCall className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-total-calls">{totalCallsSum}</div>
+            <p className="text-xs text-muted-foreground">All calls across all deposits</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-successful-calls">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Successful</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600" data-testid="text-successful-calls">{totalSuccessfulCalls}</div>
+            <p className="text-xs text-muted-foreground">Successfully completed calls</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-unsuccessful-calls">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Unsuccessful</CardTitle>
+            <PhoneOff className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600" data-testid="text-unsuccessful-calls">{totalUnsuccessfulCalls}</div>
+            <p className="text-xs text-muted-foreground">Unsuccessful calls</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-failed-calls">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Failed</CardTitle>
+            <XCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600" data-testid="text-failed-calls">{totalFailedCalls}</div>
+            <p className="text-xs text-muted-foreground">Failed calls</p>
           </CardContent>
         </Card>
       </div>
