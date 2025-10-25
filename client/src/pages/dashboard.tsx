@@ -52,6 +52,7 @@ const YEARS = Array.from({ length: 10 }, (_, i) => 2021 + i);
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
+  const [lastStandardFilter, setLastStandardFilter] = useState<DateFilter>("today");
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -211,7 +212,14 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            <Select value={dateFilter} onValueChange={(value) => setDateFilter(value as DateFilter)}>
+            <Select 
+              value={dateFilter === "by-date" || dateFilter === "by-month" ? lastStandardFilter : dateFilter} 
+              onValueChange={(value) => {
+                const filter = value as DateFilter;
+                setDateFilter(filter);
+                setLastStandardFilter(filter);
+              }}
+            >
               <SelectTrigger className="w-[180px]" data-testid="select-date-filter">
                 <SelectValue />
               </SelectTrigger>
@@ -222,11 +230,27 @@ export default function Dashboard() {
                 <SelectItem value="last-week">Last Week</SelectItem>
                 <SelectItem value="this-month">This Month</SelectItem>
                 <SelectItem value="last-month">Last Month</SelectItem>
-                <SelectItem value="by-date">By Date</SelectItem>
-                <SelectItem value="by-month">By Month</SelectItem>
                 <SelectItem value="all-time">All Time</SelectItem>
               </SelectContent>
             </Select>
+            
+            <Button
+              variant={dateFilter === "by-date" ? "default" : "outline"}
+              size="default"
+              onClick={() => setDateFilter("by-date")}
+              data-testid="button-by-date"
+            >
+              By Date
+            </Button>
+            
+            <Button
+              variant={dateFilter === "by-month" ? "default" : "outline"}
+              size="default"
+              onClick={() => setDateFilter("by-month")}
+              data-testid="button-by-month"
+            >
+              By Month
+            </Button>
             
             {dateFilter === "by-date" && (
               <Input
