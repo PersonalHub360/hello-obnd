@@ -4,6 +4,7 @@ import { useLocation, Link } from "wouter";
 import { type SessionData, type Staff, type CallReport, type Deposit } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -22,10 +23,13 @@ import {
   CheckCircle2,
   Percent,
   Calendar,
+  PhoneOff,
+  XCircle,
+  PhoneCall,
 } from "lucide-react";
-import { startOfToday, startOfYesterday, endOfYesterday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from "date-fns";
+import { startOfToday, startOfYesterday, endOfYesterday, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay, subWeeks, subMonths } from "date-fns";
 
-type DateFilter = "today" | "yesterday" | "this-week" | "last-week" | "this-month" | "last-month" | "by-month" | "all-time";
+type DateFilter = "today" | "yesterday" | "this-week" | "last-week" | "this-month" | "last-month" | "by-month" | "by-date" | "all-time";
 
 const MONTHS = [
   { value: "0", label: "January" },
@@ -50,6 +54,7 @@ export default function Dashboard() {
   const [dateFilter, setDateFilter] = useState<DateFilter>("today");
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -110,6 +115,13 @@ export default function Dashboard() {
           end: endOfMonth(monthDate)
         };
       }
+      case "by-date": {
+        const dateObj = new Date(selectedDate);
+        return {
+          start: startOfDay(dateObj),
+          end: endOfDay(dateObj)
+        };
+      }
       case "all-time":
         return null;
       default:
@@ -133,12 +145,14 @@ export default function Dashboard() {
   const filteredCallReports = filterByDate(callReports);
   const filteredDeposits = filterByDate(deposits);
 
-  const totalCalls = filteredCallReports.length;
-  const successfulCalls = filteredCallReports.filter(
-    call => call.callStatus === "Completed"
-  ).length;
+  // Call metrics from deposits (connected to Deposit Section)
+  const totalCalls = filteredDeposits.reduce((sum, d) => sum + (d.totalCalls || 0), 0);
+  const successfulCalls = filteredDeposits.reduce((sum, d) => sum + (d.successfulCalls || 0), 0);
+  const unsuccessfulCalls = filteredDeposits.reduce((sum, d) => sum + (d.unsuccessfulCalls || 0), 0);
+  const failedCalls = filteredDeposits.reduce((sum, d) => sum + (d.failedCalls || 0), 0);
 
-  const totalDepositAmount = filteredDeposits.reduce((sum, deposit) => {
+  // Bonus and deposit metrics
+  const totalBonus = filteredDeposits.reduce((sum, deposit) => {
     const ftdBonus = (deposit.ftdCount || 0) * 1;
     const depositBonus = (deposit.depositCount || 0) * 1.5;
     return sum + ftdBonus + depositBonus;
@@ -156,8 +170,9 @@ export default function Dashboard() {
 
   const totalFTD = getTotalFTD();
 
-  const conversionRate = totalCalls > 0
-    ? (successfulCalls / totalCalls) * 100
+  // Conversion Rate: (Successful Calls / Total FTD) * 100%
+  const conversionRate = totalFTD > 0
+    ? (successfulCalls / totalFTD) * 100
     : 0;
 
   const activeStaff = staffList.filter((s) => s.status === "active").length;
@@ -189,6 +204,8 @@ export default function Dashboard() {
             <p className="text-muted-foreground mt-1">
               {dateFilter === "by-month" 
                 ? `${MONTHS[parseInt(selectedMonth)].label} ${selectedYear} Performance` 
+                : dateFilter === "by-date"
+                ? `Performance for ${new Date(selectedDate).toLocaleDateString()}`
                 : "Here's an overview of your business performance"}
             </p>
           </div>
@@ -205,10 +222,21 @@ export default function Dashboard() {
                 <SelectItem value="last-week">Last Week</SelectItem>
                 <SelectItem value="this-month">This Month</SelectItem>
                 <SelectItem value="last-month">Last Month</SelectItem>
+                <SelectItem value="by-date">By Date</SelectItem>
                 <SelectItem value="by-month">By Month</SelectItem>
                 <SelectItem value="all-time">All Time</SelectItem>
               </SelectContent>
             </Select>
+            
+            {dateFilter === "by-date" && (
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-[160px]"
+                data-testid="input-selected-date"
+              />
+            )}
             
             {dateFilter === "by-month" && (
               <>
@@ -244,7 +272,7 @@ export default function Dashboard() {
 
         <div>
           <h2 className="text-lg font-semibold mb-3">Business Metrics</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Calls</CardTitle>
@@ -307,6 +335,51 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Unsuccessful</CardTitle>
+                <PhoneOff className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600" data-testid="text-unsuccessful-calls">
+                  {unsuccessfulCalls}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Unsuccessful calls
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Failed</CardTitle>
+                <XCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600" data-testid="text-failed-calls">
+                  {failedCalls}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Failed calls
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Bonus</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600" data-testid="text-total-bonus">
+                  ${totalBonus.toFixed(2)}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  FTD=$1 × Deposit=$1.5
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
                 <Percent className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -315,20 +388,7 @@ export default function Dashboard() {
                   {conversionRate.toFixed(2)}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Success ratio
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between gap-1 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">System Status</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">Active</div>
-                <p className="text-xs text-muted-foreground">
-                  All systems operational
+                  Successful / Total FTD
                 </p>
               </CardContent>
             </Card>
