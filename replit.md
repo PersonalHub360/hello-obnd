@@ -41,6 +41,7 @@ The application is built as a full-stack web application using a React, Express,
 - **Analytics Dashboard:** Visualizes HR and operational data with charts for department distribution, employee status, hiring trends, etc.
 - **Settings Section:** Multi-section settings including Interface (theme selection, UI preferences), Notifications, Account, and User Management (Admin Only).
     - **User Management (Admin Only):** Role-based user administration with inline editing of user roles and status. Add new users with username, name, email, password, and role selection (8 predefined roles). Protected by backend `requireAdmin` middleware.
+    - **Access Permissions by Role:** Comprehensive permission matrix displaying access levels for all user roles (Admin, Senior Manager/Department Head, Manager/Team Leader, User/Supervisor/Assistant Leader). Uses green checkmark icons for granted permissions and red X icons for denied permissions. Provides clear visibility into role-based access control across all system features including User Management, Staff Management, Deposit Management, Call Reports, Analytics, Google Sheets Integration, System Settings, and Excel Import/Export.
 
 **Data Interconnection:**
 - **Real-Time Data Synchronization:** All sections query the same backend APIs. Changes in one module (e.g., Staff Directory) immediately reflect in others (e.g., Analytics).
