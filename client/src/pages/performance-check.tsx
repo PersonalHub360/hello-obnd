@@ -42,9 +42,11 @@ interface PerformanceData {
 interface PerformanceMetrics {
   totalCalls: number;
   successfulCalls: number;
+  unsuccessfulCalls: number;
+  failedCalls: number;
   totalFTD: number;
   totalDeposits: number;
-  conversionRatio: number;
+  conversionRate: number;
   bonusAmount: number;
   performanceStatus: "Good" | "Average" | "Bad";
 }
@@ -131,16 +133,21 @@ export default function PerformanceCheck() {
     // Sum up call counts from deposit records
     const depositTotalCalls = filteredDeposits.reduce((sum, d) => sum + (d.totalCalls || 0), 0);
     const depositSuccessfulCalls = filteredDeposits.reduce((sum, d) => sum + (d.successfulCalls || 0), 0);
+    const depositUnsuccessfulCalls = filteredDeposits.reduce((sum, d) => sum + (d.unsuccessfulCalls || 0), 0);
+    const depositFailedCalls = filteredDeposits.reduce((sum, d) => sum + (d.failedCalls || 0), 0);
 
     // Combine both sources
     const totalCalls = callReportCount + depositTotalCalls;
     const successfulCalls = callReportSuccessful + depositSuccessfulCalls;
+    const unsuccessfulCalls = depositUnsuccessfulCalls;
+    const failedCalls = depositFailedCalls;
 
     const totalFTD = filteredDeposits.filter(d => d.ftd === "Yes").length;
     const totalDeposits = filteredDeposits.filter(d => d.deposit === "Yes").length;
 
-    const conversionRatio = totalCalls > 0
-      ? (successfulCalls / totalCalls) * 100
+    // NEW CONVERSION RATE FORMULA: (Total FTD + Total Deposits) / Total Successful Calls * 100%
+    const conversionRate = successfulCalls > 0
+      ? ((totalFTD + totalDeposits) / successfulCalls) * 100
       : 0;
 
     const ftdBonus = filteredDeposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
@@ -148,18 +155,20 @@ export default function PerformanceCheck() {
     const bonusAmount = (ftdBonus * 1) + (depositBonus * 1.5);
 
     let performanceStatus: "Good" | "Average" | "Bad" = "Bad";
-    if (conversionRatio >= 70) {
+    if (conversionRate >= 70) {
       performanceStatus = "Good";
-    } else if (conversionRatio >= 40) {
+    } else if (conversionRate >= 40) {
       performanceStatus = "Average";
     }
 
     return {
       totalCalls,
       successfulCalls,
+      unsuccessfulCalls,
+      failedCalls,
       totalFTD,
       totalDeposits,
-      conversionRatio,
+      conversionRate,
       bonusAmount,
       performanceStatus,
     };
@@ -179,7 +188,7 @@ export default function PerformanceCheck() {
   const renderMetricsCards = (metrics: PerformanceMetrics) => {
     return (
       <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Calls</CardTitle>
@@ -196,12 +205,44 @@ export default function PerformanceCheck() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Successful Calls</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CheckCircle className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold" data-testid="metric-successful-calls">{metrics.successfulCalls}</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400" data-testid="metric-successful-calls">
+                {metrics.successfulCalls}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Completed calls
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Unsuccessful Calls</CardTitle>
+              <Phone className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400" data-testid="metric-unsuccessful-calls">
+                {metrics.unsuccessfulCalls}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Calls not completed
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Failed Calls</CardTitle>
+              <Phone className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400" data-testid="metric-failed-calls">
+                {metrics.failedCalls}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Calls that failed
               </p>
             </CardContent>
           </Card>
@@ -214,7 +255,7 @@ export default function PerformanceCheck() {
             <CardContent>
               <div className="text-2xl font-bold" data-testid="metric-total-ftd">{metrics.totalFTD}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Unique depositors
+                First-time depositors
               </p>
             </CardContent>
           </Card>
@@ -234,7 +275,7 @@ export default function PerformanceCheck() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Bonus Amount</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Bonus Amount</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -249,15 +290,15 @@ export default function PerformanceCheck() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Ratio</CardTitle>
+              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
               <Percent className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold" data-testid="metric-conversion-ratio">
-                {metrics.conversionRatio.toFixed(2)}%
+              <div className="text-2xl font-bold" data-testid="metric-conversion-rate">
+                {metrics.conversionRate.toFixed(2)}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Success rate
+                (FTD + Deposits) / Successful Calls
               </p>
             </CardContent>
           </Card>
