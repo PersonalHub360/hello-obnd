@@ -49,16 +49,17 @@ The application is built as a full-stack web application using a React, Express,
 - **Consistent Calculations:** Identical calculation logic for metrics like FTD Count, Deposit Count, Bonus Formula (FTD Count × $1 + Deposit Count × $1.5), and Conversion Rate (Successful Calls / Total FTD × 100%) across all pages.
 - **Dashboard Metrics:** Real-time metrics based on call reports and deposit data.
 - **Analytics Dashboard:** Provides comprehensive staff, deposit, and call metrics with various charts.
-- **Staff Performance Check:** Individual staff metrics based on their associated deposits and calls, including daily, monthly, yearly breakdowns, performance status, and bonus calculations. Features advanced search and filter functionality:
-  - Search by staff name or employee ID (case-insensitive)
-  - Filter by role with dropdown selection
-  - Combine search and filter for refined results
-  - Shows count of matching staff members
-  - Clear filters button to reset search and filter
-  - Active filter badges display current search/filter criteria
+- **Staff Performance Check:** Individual staff metrics based on their associated deposits and calls, including daily, monthly, yearly breakdowns, performance status, and bonus calculations. Displays 9 comprehensive metrics with color-coded UI:
+  - **Metrics Dashboard:** Total Calls, Successful Calls (green), Unsuccessful Calls (orange), Failed Calls (red), Total FTD, Total Deposits, Total Bonus Amount (green), Conversion Rate, and Performance Status badge
+  - **Conversion Rate Formula:** (Total FTD + Total Deposits) / Total Successful Calls × 100% - measures effectiveness of converting successful calls into deposits
+  - **Bonus Calculation:** (Total FTD × $1) + (Total Deposits × $1.5) - consistent with Deposit Section
+  - **Performance Status:** Good (≥70%), Average (40-69%), Bad (<40%) based on conversion rate
+  - **Search & Filter:** Search by staff name or employee ID (case-insensitive), filter by role, combine filters, clear filters button, active filter badges
   - **Daily View Options:** Toggle between Today and Yesterday performance metrics
   - **Monthly Custom Date:** Calendar date picker for selecting any custom month/year alongside standard month/year dropdowns
+  - **Yearly View:** Annual performance summary with all metrics
   - **Connected to Deposit Section:** "View Deposits" button navigates to Deposit Section with pre-filled staff filter via URL parameter
+  - **Grid Layout:** Responsive xl:grid-cols-4 layout optimized for 9 metric cards
 
 ## External Dependencies
 - **Database:** PostgreSQL (Neon for cloud hosting).
