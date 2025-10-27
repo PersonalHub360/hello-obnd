@@ -142,17 +142,17 @@ export default function PerformanceCheck() {
     const unsuccessfulCalls = depositUnsuccessfulCalls;
     const failedCalls = depositFailedCalls;
 
-    const totalFTD = filteredDeposits.filter(d => d.ftd === "Yes").length;
-    const totalDeposits = filteredDeposits.filter(d => d.deposit === "Yes").length;
+    // Sum actual FTD and Deposit counts from the fields (not just counting records)
+    const totalFTD = filteredDeposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
+    const totalDeposits = filteredDeposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
 
     // NEW CONVERSION RATE FORMULA: (Total FTD + Total Deposits) / Total Successful Calls * 100%
     const conversionRate = successfulCalls > 0
       ? ((totalFTD + totalDeposits) / successfulCalls) * 100
       : 0;
 
-    const ftdBonus = filteredDeposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
-    const depositBonus = filteredDeposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
-    const bonusAmount = (ftdBonus * 1) + (depositBonus * 1.5);
+    // Bonus calculation using the same FTD and Deposit counts
+    const bonusAmount = (totalFTD * 1) + (totalDeposits * 1.5);
 
     let performanceStatus: "Good" | "Average" | "Bad" = "Bad";
     if (conversionRate >= 70) {
