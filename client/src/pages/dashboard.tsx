@@ -171,9 +171,9 @@ export default function Dashboard() {
 
   const totalFTD = getTotalFTD();
 
-  // Conversion Rate: (Successful Calls / Total FTD) * 100%
-  const conversionRate = totalFTD > 0
-    ? (successfulCalls / totalFTD) * 100
+  // Conversion Rate: (Total FTD + Total Deposits) / Total Successful Calls * 100%
+  const conversionRate = successfulCalls > 0
+    ? ((totalFTD + totalDepositsCount) / successfulCalls) * 100
     : 0;
 
   const activeStaff = staffList.filter((s) => s.status === "active").length;

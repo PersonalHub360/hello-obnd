@@ -89,16 +89,14 @@ export default function Analytics() {
     .map(([month, count]) => ({ month, count }))
     .slice(-6);
 
-  const totalFTD = deposits.filter(d => d.ftd === "Yes").length;
-  const totalDeposits = deposits.filter(d => d.deposit === "Yes").length;
+  // Sum FTD and Deposit counts from fields (not counting records)
+  const totalFTD = deposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
+  const totalDeposits = deposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
   const totalCalls = callReports.length;
   const successfulCalls = callReports.filter(c => c.callStatus === "Completed").length;
   
-  const totalBonusAmount = deposits.reduce((sum, d) => {
-    const ftdBonus = (d.ftdCount || 0) * 1;
-    const depositBonus = (d.depositCount || 0) * 1.5;
-    return sum + ftdBonus + depositBonus;
-  }, 0);
+  // Bonus calculation using FTD and Deposit counts
+  const totalBonusAmount = (totalFTD * 1) + (totalDeposits * 1.5);
 
   const brandData = Object.entries(
     deposits.reduce((acc, deposit) => {
