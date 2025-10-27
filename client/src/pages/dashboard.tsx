@@ -412,7 +412,7 @@ export default function Dashboard() {
                   {conversionRate.toFixed(2)}%
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Successful / Total FTD
+                  (FTD + Deposits) / Successful Calls
                 </p>
               </CardContent>
             </Card>
