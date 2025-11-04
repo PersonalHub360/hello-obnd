@@ -1,12 +1,10 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
-import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
 
-const viteLogger = createLogger();
+// Vite logger will be created in setupVite function
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -20,11 +18,37 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
+  // Dynamically import vite and config only in development
+  // This function is only called in development mode, so esbuild shouldn't bundle it
+  const { createServer: createViteServer, createLogger: createViteLogger } = await import("vite");
+  const viteLogger = createViteLogger();
+  
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
     allowedHosts: true as const,
   };
+
+  // Import vite config dynamically - use eval to prevent static analysis by esbuild
+  // This ensures the vite.config.ts file isn't analyzed during bundling
+  let viteConfig: any;
+  try {
+    // Use a computed path to prevent static analysis
+    const baseDir = import.meta.dirname || __dirname;
+    const configPath = path.join(baseDir, "..", "vite.config.ts");
+    // Use dynamic import with a computed string that esbuild can't statically analyze
+    const configLoader = new Function("path", "return import(path)");
+    const viteConfigModule = await configLoader(configPath);
+    viteConfig = typeof viteConfigModule.default === 'function' 
+      ? await viteConfigModule.default() 
+      : (viteConfigModule.default || viteConfigModule);
+  } catch (e) {
+    // If vite config can't be loaded, create a minimal config
+    const react = (await import("@vitejs/plugin-react")).default;
+    viteConfig = {
+      plugins: [react()],
+    };
+  }
 
   const vite = await createViteServer({
     ...viteConfig,

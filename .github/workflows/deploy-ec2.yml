@@ -1,0 +1,101 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: hello-obnd/package-lock.json
+
+      - name: Build application
+        working-directory: ./hello-obnd
+        run: |
+          npm ci
+          npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Create deployment package
+        working-directory: ./hello-obnd
+        run: |
+          tar -czf /tmp/aurora-deploy.tar.gz \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.env*' \
+            --exclude='*.log' \
+            --exclude='dist/public' \
+            --exclude='attached_assets' \
+            package.json \
+            package-lock.json \
+            dist \
+            client \
+            server \
+            shared \
+            drizzle.config.ts \
+            tsconfig.json \
+            vite.config.ts \
+            tailwind.config.ts \
+            postcss.config.js \
+            components.json \
+            deploy.sh \
+            ecosystem.config.cjs \
+            start.sh \
+            aurora.service \
+            migrations \
+            scripts
+
+      - name: Copy deployment package to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          source: "/tmp/aurora-deploy.tar.gz"
+          target: "/tmp/"
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script: |
+            cd /var/www/aurora
+            sudo bash deploy.sh
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script: |
+            sleep 5
+            curl -f http://localhost:6000/health || exit 1
+            echo "Deployment verified successfully!"
+

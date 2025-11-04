@@ -1,0 +1,32 @@
+[Unit]
+Description=Aurora (hello-obnd) Application
+Documentation=https://github.com/yourusername/hello-obnd
+After=network.target
+
+[Service]
+Type=simple
+User=nodejs
+WorkingDirectory=/var/www/aurora
+Environment=NODE_ENV=production
+Environment=PORT=6000
+
+# PM2 commands - uses wrapper script that loads .env.production
+ExecStart=/var/www/aurora/start.sh
+ExecStop=/home/nodejs/node_modules/.bin/pm2 stop ecosystem.config.cjs
+ExecReload=/home/nodejs/node_modules/.bin/pm2 reload ecosystem.config.cjs
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=65536
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+

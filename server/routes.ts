@@ -17,6 +17,11 @@ declare module "express-session" {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint (must be before session middleware)
+  app.get("/health", async (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   const sessionSecret = process.env.SESSION_SECRET || "aurora-my-secret-key-change-in-production";
   
   // Set up PostgreSQL session store for persistence
