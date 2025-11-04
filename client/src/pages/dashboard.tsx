@@ -31,6 +31,8 @@ import { startOfToday, startOfYesterday, endOfYesterday, startOfWeek, endOfWeek,
 
 type DateFilter = "today" | "yesterday" | "this-week" | "last-week" | "this-month" | "last-month" | "by-month" | "by-date" | "all-time";
 
+const BRAND_OPTIONS = ["All Brands", "JB BDT", "BJ BDT", "BJ PKR", "JB PKR", "NPR", "SIX6'S BDT", "SIX6'S PKR"];
+
 const MONTHS = [
   { value: "0", label: "January" },
   { value: "1", label: "February" },
@@ -56,6 +58,7 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedBrand, setSelectedBrand] = useState<string>("All Brands");
 
   const { data: session, isLoading: sessionLoading } = useQuery<SessionData>({
     queryKey: ["/api/auth/session"],
@@ -143,8 +146,14 @@ export default function Dashboard() {
     });
   };
 
+  const filterByBrand = <T extends { brandName?: string }>(items: T[]): T[] => {
+    if (selectedBrand === "All Brands") return items;
+    return items.filter(item => item.brandName === selectedBrand);
+  };
+
   const filteredCallReports = filterByDate(callReports);
-  const filteredDeposits = filterByDate(deposits);
+  const filteredByDateDeposits = filterByDate(deposits);
+  const filteredDeposits = filterByBrand(filteredByDateDeposits);
 
   // Call metrics from deposits (connected to Deposit Section)
   const totalCalls = filteredDeposits.reduce((sum, d) => sum + (d.totalCalls || 0), 0);
@@ -211,6 +220,22 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <Select 
+              value={selectedBrand} 
+              onValueChange={setSelectedBrand}
+            >
+              <SelectTrigger className="w-[180px]" data-testid="select-brand-filter">
+                <SelectValue placeholder="Select Brand" />
+              </SelectTrigger>
+              <SelectContent>
+                {BRAND_OPTIONS.map((brand) => (
+                  <SelectItem key={brand} value={brand}>
+                    {brand}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <Select 
               value={dateFilter === "by-date" || dateFilter === "by-month" ? lastStandardFilter : dateFilter} 
