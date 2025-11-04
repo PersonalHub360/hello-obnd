@@ -92,8 +92,10 @@ export default function Analytics() {
   // Sum FTD and Deposit counts from fields (not counting records)
   const totalFTD = deposits.reduce((sum, d) => sum + (d.ftdCount || 0), 0);
   const totalDeposits = deposits.reduce((sum, d) => sum + (d.depositCount || 0), 0);
-  const totalCalls = callReports.length;
-  const successfulCalls = callReports.filter(c => c.callStatus === "Completed").length;
+  
+  // Call metrics from deposits (connected to Deposit Section)
+  const totalCalls = deposits.reduce((sum, d) => sum + (d.totalCalls || 0), 0);
+  const successfulCalls = deposits.reduce((sum, d) => sum + (d.successfulCalls || 0), 0);
   
   // Bonus calculation using FTD and Deposit counts
   const totalBonusAmount = (totalFTD * 1) + (totalDeposits * 1.5);
